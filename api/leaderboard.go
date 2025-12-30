@@ -34,12 +34,12 @@ const (
 
 func validateBulkUpsertScoresRequest(req *api.BulkUpsertScoresRequest) error {
 	if len(req.MemberScores.Members) == 0 {
-		return status.Errorf(codes.InvalidArgument, "at least one member is required")
+		return status.Error(codes.InvalidArgument, "at least one member is required")
 	}
 
 	for _, m := range req.MemberScores.Members {
 		if m.PublicID == "" {
-			return status.Errorf(codes.InvalidArgument, "publicID is required")
+			return status.Error(codes.InvalidArgument, "publicID is required")
 		}
 	}
 	return nil
@@ -67,9 +67,9 @@ func (app *App) BulkUpsertScores(ctx context.Context, req *api.BulkUpsertScoresR
 		if err := app.Leaderboards.SetMembersScore(ctx, req.LeaderboardId, members, req.PrevRank, getScoreTTL(req.ScoreTTL)); err != nil {
 			lg.Error("Setting member scores failed.", zap.Error(err))
 			app.AddError()
-			//TODO: Turn all these LeaderboardExpiredError verifications into a middleware
+			// TODO: Turn all these LeaderboardExpiredError verifications into a middleware
 			if _, ok := err.(*service.LeaderboardExpiredError); ok {
-				return status.Errorf(codes.InvalidArgument, err.Error())
+				return status.Error(codes.InvalidArgument, err.Error())
 			}
 			return err
 		}
@@ -123,7 +123,7 @@ func (app *App) UpsertScore(ctx context.Context, req *api.UpsertScoreRequest) (*
 			lg.Error("Setting member score failed.", zap.Error(err))
 			app.AddError()
 			if _, ok := err.(*service.LeaderboardExpiredError); ok {
-				return status.Errorf(codes.InvalidArgument, err.Error())
+				return status.Error(codes.InvalidArgument, err.Error())
 			}
 
 			return err
@@ -149,7 +149,7 @@ func (app *App) UpsertScore(ctx context.Context, req *api.UpsertScoreRequest) (*
 // IncrementScore is the handler responsible for incrementing the member score.
 func (app *App) IncrementScore(ctx context.Context, req *api.IncrementScoreRequest) (*api.IncrementScoreResponse, error) {
 	if req.Body.Increment == 0 {
-		return nil, status.Errorf(codes.InvalidArgument, "increment is required")
+		return nil, status.Error(codes.InvalidArgument, "increment is required")
 	}
 
 	lg := app.Logger.With(
@@ -169,7 +169,7 @@ func (app *App) IncrementScore(ctx context.Context, req *api.IncrementScoreReque
 			lg.Error("Member score increment failed.", zap.Error(err))
 			app.AddError()
 			if _, ok := err.(*service.LeaderboardExpiredError); ok {
-				return status.Errorf(codes.InvalidArgument, err.Error())
+				return status.Error(codes.InvalidArgument, err.Error())
 			}
 
 			return err
@@ -203,7 +203,7 @@ func (app *App) RemoveMember(ctx context.Context, req *api.RemoveMemberRequest) 
 	err := withSegment("Model", ctx, func() error {
 		lg.Debug("Removing member.")
 
-		//TODO: implement an operation that checks and if exists removes the member atomically, removing the need to check an error string.
+		// TODO: implement an operation that checks and if exists removes the member atomically, removing the need to check an error string.
 		if err := app.Leaderboards.RemoveMember(ctx, req.LeaderboardId, req.MemberPublicId); err != nil && !strings.HasPrefix(err.Error(), notFoundError) {
 			lg.Error("Member removal failed.", zap.Error(err))
 			app.AddError()
@@ -229,7 +229,7 @@ func (app *App) RemoveMembers(ctx context.Context, req *api.RemoveMembersRequest
 
 	if req.Ids == "" {
 		app.AddError()
-		return nil, status.Errorf(codes.InvalidArgument, "Member IDs are required using the 'ids' querystring parameter")
+		return nil, status.Error(codes.InvalidArgument, "Member IDs are required using the 'ids' querystring parameter")
 	}
 
 	memberIDs := strings.Split(req.Ids, ",")
@@ -277,13 +277,13 @@ func (app *App) GetMember(ctx context.Context, req *api.GetMemberRequest) (*api.
 	err := withSegment("Model", ctx, func() error {
 		var err error
 		lg.Debug("Getting member.")
-		//TODO: Add a NotFound error on the library
+		// TODO: Add a NotFound error on the library
 		member, err = app.Leaderboards.GetMember(ctx, req.LeaderboardId, req.MemberPublicId, order, req.ScoreTTL)
 		switch {
 		case err != nil && strings.HasPrefix(err.Error(), notFoundError):
 			lg.Debug("Member not found.", zap.Error(err))
 			app.AddError()
-			return status.Errorf(codes.NotFound, "Member not found.")
+			return status.Error(codes.NotFound, "Member not found.")
 		case err != nil:
 			lg.Error("Get member failed.")
 			app.AddError()
@@ -325,7 +325,7 @@ func (app *App) GetRank(ctx context.Context, req *api.GetRankRequest) (*api.GetR
 		if err != nil && strings.HasPrefix(err.Error(), notFoundError) {
 			lg.Debug("Member not found.", zap.Error(err))
 			app.AddError()
-			return status.Errorf(codes.NotFound, "Member not found.")
+			return status.Error(codes.NotFound, "Member not found.")
 		} else if err != nil {
 			lg.Error("Getting rank failed.", zap.Error(err))
 			app.AddError()
@@ -356,7 +356,7 @@ func (app *App) GetRankMultiLeaderboards(ctx context.Context, req *api.GetRankMu
 
 	if req.LeaderboardIds == "" {
 		app.AddError()
-		return nil, status.Errorf(codes.InvalidArgument, "Leaderboard IDs are required using the 'leaderboardIds' querystring parameter")
+		return nil, status.Error(codes.InvalidArgument, "Leaderboard IDs are required using the 'leaderboardIds' querystring parameter")
 	}
 
 	leaderboardIDs := strings.Split(req.LeaderboardIds, ",")
@@ -369,7 +369,7 @@ func (app *App) GetRankMultiLeaderboards(ctx context.Context, req *api.GetRankMu
 			if err != nil && strings.HasPrefix(err.Error(), notFoundError) {
 				lg.Debug("Member not found.", zap.Error(err))
 				app.AddError()
-				return status.Errorf(codes.NotFound, "Leaderboard not found or member not found req leaderboard.")
+				return status.Error(codes.NotFound, "Leaderboard not found or member not found req leaderboard.")
 			} else if err != nil {
 				lg.Error("Getting member rank on leaderboard failed.", zap.Error(err))
 				app.AddError()
@@ -412,7 +412,7 @@ func (app *App) GetAroundMember(ctx context.Context, req *api.GetAroundMemberReq
 			app.Config.GetInt("api.maxReturnedMembers"),
 			pageSize,
 		)
-		return nil, status.Errorf(codes.InvalidArgument, msg)
+		return nil, status.Error(codes.InvalidArgument, msg)
 	}
 
 	var members []*lmodel.Member
@@ -424,7 +424,7 @@ func (app *App) GetAroundMember(ctx context.Context, req *api.GetAroundMemberReq
 		if err != nil && strings.HasPrefix(err.Error(), notFoundError) {
 			lg.Debug("Member not found.", zap.Error(err))
 			app.AddError()
-			return status.Errorf(codes.NotFound, "Member not found.")
+			return status.Error(codes.NotFound, "Member not found.")
 		} else if err != nil {
 			lg.Error("Getting members around player failed.", zap.Error(err))
 			app.AddError()
@@ -443,7 +443,7 @@ func (app *App) GetAroundMember(ctx context.Context, req *api.GetAroundMemberReq
 		if err != nil {
 			lg.Error("Enriching members failed.", zap.Error(err))
 			app.AddError()
-			return nil, status.Errorf(codes.Internal, "Unable to enrich members")
+			return nil, status.Error(codes.Internal, "Unable to enrich members")
 		}
 	}
 
@@ -477,7 +477,7 @@ func (app *App) GetAroundScore(ctx context.Context, req *api.GetAroundScoreReque
 			app.Config.GetInt("api.maxReturnedMembers"),
 			pageSize,
 		)
-		return nil, status.Errorf(codes.InvalidArgument, msg)
+		return nil, status.Error(codes.InvalidArgument, msg)
 	}
 
 	var members []*lmodel.Member
@@ -488,7 +488,7 @@ func (app *App) GetAroundScore(ctx context.Context, req *api.GetAroundScoreReque
 		if err != nil && strings.HasPrefix(err.Error(), notFoundError) {
 			lg.Debug("Member not found.", zap.Error(err))
 			app.AddError()
-			return status.Errorf(codes.NotFound, "Member not found.")
+			return status.Error(codes.NotFound, "Member not found.")
 		} else if err != nil {
 			lg.Error("Getting players around score failed.", zap.Error(err))
 			app.AddError()
@@ -507,7 +507,7 @@ func (app *App) GetAroundScore(ctx context.Context, req *api.GetAroundScoreReque
 		if err != nil {
 			lg.Error("Enriching members failed.", zap.Error(err))
 			app.AddError()
-			return nil, status.Errorf(codes.Internal, "Unable to enrich members")
+			return nil, status.Error(codes.Internal, "Unable to enrich members")
 		}
 	}
 
@@ -565,7 +565,7 @@ func (app *App) GetTopMembers(ctx context.Context, req *api.GetTopMembersRequest
 			app.Config.GetInt("api.maxReturnedMembers"),
 			pageSize,
 		)
-		return nil, status.Errorf(codes.InvalidArgument, msg)
+		return nil, status.Error(codes.InvalidArgument, msg)
 	}
 
 	members, err := app.Leaderboards.GetLeaders(ctx, req.LeaderboardId, pageSize, pageNumber, order)
@@ -582,7 +582,7 @@ func (app *App) GetTopMembers(ctx context.Context, req *api.GetTopMembersRequest
 		if err != nil {
 			lg.Error("Enriching members failed.", zap.Error(err))
 			app.AddError()
-			return nil, status.Errorf(codes.Internal, "Unable to enrich members")
+			return nil, status.Error(codes.Internal, "Unable to enrich members")
 		}
 	}
 
@@ -601,7 +601,7 @@ func (app *App) GetTopPercentage(ctx context.Context, req *api.GetTopPercentageR
 
 	if req.Percentage == 0 {
 		app.AddError()
-		return nil, status.Errorf(codes.InvalidArgument, "Percentage must be a valid integer between 1 and 100.")
+		return nil, status.Error(codes.InvalidArgument, "Percentage must be a valid integer between 1 and 100.")
 	}
 
 	order := getOrder(req.Order)
@@ -617,7 +617,7 @@ func (app *App) GetTopPercentage(ctx context.Context, req *api.GetTopPercentageR
 			lg.Error("Getting top percentage failed.", zap.Error(err))
 			if _, ok := err.(*service.PercentageError); ok {
 				app.AddError()
-				return status.Errorf(codes.InvalidArgument, err.Error())
+				return status.Error(codes.InvalidArgument, err.Error())
 			}
 
 			app.AddError()
@@ -638,7 +638,7 @@ func (app *App) GetTopPercentage(ctx context.Context, req *api.GetTopPercentageR
 
 			lg.Error("Enriching members failed.", zap.Error(err))
 			app.AddError()
-			return nil, status.Errorf(codes.Internal, "Unable to enrich members")
+			return nil, status.Error(codes.Internal, "Unable to enrich members")
 		}
 	}
 
@@ -718,7 +718,7 @@ func (app *App) GetMembers(ctx context.Context, req *api.GetMembersRequest) (*ap
 		if err != nil {
 			lg.Error("Enriching members failed.", zap.Error(err))
 			app.AddError()
-			return nil, status.Errorf(codes.Internal, "Unable to enrich members")
+			return nil, status.Error(codes.Internal, "Unable to enrich members")
 		}
 	}
 
