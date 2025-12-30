@@ -99,7 +99,7 @@ func (app *App) recoveryMiddleware(ctx context.Context, req interface{}, info *g
 		if err := recover(); err != nil {
 			eError, ok := err.(error)
 			if !ok {
-				eError = fmt.Errorf(fmt.Sprintf("%v", err))
+				eError = fmt.Errorf("%v", err)
 			}
 			app.OnErrorHandler(eError, debug.Stack())
 		}
