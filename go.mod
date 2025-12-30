@@ -1,6 +1,8 @@
 module github.com/topfreegames/podium
 
-go 1.20
+go 1.25.0
+
+toolchain go1.25.5
 
 require (
 	github.com/getsentry/raven-go v0.0.0-20170918144728-1452f6376ddb
