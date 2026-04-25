@@ -12,7 +12,7 @@ package testing
 import (
 	"context"
 
-	"github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/v2"
 )
 
 // BeforeOnce runs the before each block only once

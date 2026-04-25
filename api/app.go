@@ -12,7 +12,7 @@ package api
 import (
 	"context"
 	"fmt"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	enrichercache "github.com/topfreegames/podium/leaderboard/v2/enriching/cache"
 	"net"
 	"net/http"
@@ -35,7 +35,7 @@ import (
 	"github.com/opentracing-contrib/go-stdlib/nethttp"
 	"github.com/opentracing/opentracing-go"
 	"github.com/rcrowley/go-metrics"
-	uuid "github.com/satori/go.uuid"
+	uuid "github.com/google/uuid"
 	"github.com/spf13/viper"
 	"github.com/topfreegames/podium/leaderboard/v2/database"
 	"github.com/topfreegames/podium/leaderboard/v2/service"
@@ -94,7 +94,7 @@ func New(host string, httpPort, grpcPort int, configPath string, debug bool, log
 		Config:       viper.New(),
 		Debug:        debug,
 		Logger:       logger,
-		ID:           uuid.NewV4(),
+		ID:           uuid.New(),
 	}
 	err := app.configure()
 	if err != nil {

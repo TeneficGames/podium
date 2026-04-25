@@ -17,7 +17,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
 
@@ -56,7 +56,7 @@ A smoke test will perform all the available operations in a leaderboard and then
 	Run: func(cmd *cobra.Command, args []string) {
 		doHealthCheck()
 
-		leaderboardID := uuid.NewV4().String()
+		leaderboardID := uuid.New().String()
 		fmt.Printf("Creating leaderboard %s...\n\n", leaderboardID)
 
 		fmt.Println("Adding member scores to leaderboard...")

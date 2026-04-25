@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/topfreegames/podium/leaderboard/v2/database"
 	"github.com/topfreegames/podium/leaderboard/v2/model"

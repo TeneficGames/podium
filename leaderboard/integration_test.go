@@ -19,12 +19,12 @@ import (
 	"github.com/topfreegames/podium/leaderboard/v2/database/redis"
 	"github.com/topfreegames/podium/leaderboard/v2/testing"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/topfreegames/podium/leaderboard/v2/model"
 	"github.com/topfreegames/podium/leaderboard/v2/service"
 
-	uuid "github.com/satori/go.uuid"
+	uuid "github.com/google/uuid"
 )
 
 var _ = Describe("Leaderboard integration tests", func() {
@@ -55,11 +55,6 @@ var _ = Describe("Leaderboard integration tests", func() {
 		}))
 
 		err = leaderboards.RemoveLeaderboard(NewEmptyCtx(), testLeaderboardID)
-		Expect(err).NotTo(HaveOccurred())
-	})
-
-	AfterSuite(func() {
-		err := leaderboards.RemoveLeaderboard(NewEmptyCtx(), testLeaderboardID)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -197,7 +192,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 
 	Describe("increment member scores", func() {
 		It("should increment member score and return ranks", func() {
-			lbID := uuid.NewV4().String()
+			lbID := uuid.New().String()
 
 			_, err := leaderboards.SetMemberScore(NewEmptyCtx(), lbID, "dayvson", 1000, false, "")
 			Expect(err).NotTo(HaveOccurred())
@@ -213,7 +208,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 		})
 
 		It("should increment member score when leaderboard does not exist and return ranks", func() {
-			lbID := uuid.NewV4().String()
+			lbID := uuid.New().String()
 
 			member, err := leaderboards.IncrementMemberScore(NewEmptyCtx(), lbID, "dayvson", 10, "")
 			Expect(err).NotTo(HaveOccurred())
@@ -307,7 +302,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 
 	Describe("getting member details for a given leaderboard", func() {
 		It("should return member details", func() {
-			lbID := uuid.NewV4().String()
+			lbID := uuid.New().String()
 			dayvson, err := leaderboards.SetMemberScore(NewEmptyCtx(), lbID, "dayvson", 12345, false, "")
 			Expect(err).NotTo(HaveOccurred())
 			felipe, err := leaderboards.SetMemberScore(NewEmptyCtx(), lbID, "felipe", 12344, false, "")
@@ -324,7 +319,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 		})
 
 		It("should return member details including score expiration", func() {
-			lbID := uuid.NewV4().String()
+			lbID := uuid.New().String()
 			dayvson, err := leaderboards.SetMemberScore(NewEmptyCtx(), lbID, "dayvson", 12345, false, "10")
 			Expect(err).NotTo(HaveOccurred())
 			felipe, err := leaderboards.SetMemberScore(NewEmptyCtx(), lbID, "felipe", 12344, false, "")
@@ -343,8 +338,8 @@ var _ = Describe("Leaderboard integration tests", func() {
 		})
 
 		It("should fail if member does not exist", func() {
-			lbID := uuid.NewV4().String()
-			memberID := uuid.NewV4().String()
+			lbID := uuid.New().String()
+			memberID := uuid.New().String()
 			member, err := leaderboards.GetMember(NewEmptyCtx(), lbID, memberID, "desc", false)
 			Expect(member).To(BeNil())
 			Expect(err).To(HaveOccurred())
@@ -354,8 +349,8 @@ var _ = Describe("Leaderboard integration tests", func() {
 		})
 
 		It("should fail if member does not exist and should include expiration timestamp", func() {
-			lbID := uuid.NewV4().String()
-			memberID := uuid.NewV4().String()
+			lbID := uuid.New().String()
+			memberID := uuid.New().String()
 			member, err := leaderboards.GetMember(NewEmptyCtx(), lbID, memberID, "desc", true)
 			Expect(member).To(BeNil())
 			Expect(err).To(HaveOccurred())
@@ -588,14 +583,14 @@ var _ = Describe("Leaderboard integration tests", func() {
 		})
 
 		It("should fail if member does not exist", func() {
-			rank, err := leaderboards.GetRank(NewEmptyCtx(), uuid.NewV4().String(), "invalid-member", "desc")
+			rank, err := leaderboards.GetRank(NewEmptyCtx(), uuid.New().String(), "invalid-member", "desc")
 			Expect(rank).To(Equal(-1))
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Could not find data for member invalid-member in leaderboard"))
 		})
 
 		It("should fail if invalid redis connection", func() {
-			rank, err := faultyLeaderboards.GetRank(NewEmptyCtx(), uuid.NewV4().String(), "invalid-member", "desc")
+			rank, err := faultyLeaderboards.GetRank(NewEmptyCtx(), uuid.New().String(), "invalid-member", "desc")
 			Expect(rank).To(Equal(-1))
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("connection refused"))
@@ -711,7 +706,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 
 	Describe("get top x percent of members in the leaderboard", func() {
 		It("should get top 10 percent members in the leaderboard", func() {
-			leaderboardID := uuid.NewV4().String()
+			leaderboardID := uuid.New().String()
 			members := []*model.Member{}
 			for i := 0; i < 100; i++ {
 				member, err := leaderboards.SetMemberScore(NewEmptyCtx(), leaderboardID, fmt.Sprintf("friend-%d", i), int64((100-i)*100), false, "")
@@ -734,7 +729,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 		})
 
 		It("should not break if order is different from asc and desc, should only default to desc", func() {
-			leaderboardID := uuid.NewV4().String()
+			leaderboardID := uuid.New().String()
 
 			members := []*model.Member{}
 			for i := 0; i < 100; i++ {
@@ -758,7 +753,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 		})
 
 		It("should get top 10 percent members in the leaderboard in reverse order", func() {
-			leaderboardID := uuid.NewV4().String()
+			leaderboardID := uuid.New().String()
 
 			members := []*model.Member{}
 			for i := 0; i < 100; i++ {
@@ -782,7 +777,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 		})
 
 		It("should get max members if query too broad", func() {
-			leaderboardID := uuid.NewV4().String()
+			leaderboardID := uuid.New().String()
 
 			members := []*model.Member{}
 			for i := 0; i < 10; i++ {
@@ -806,7 +801,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 		})
 
 		It("should get top 1 percent return at least 1", func() {
-			leaderboardID := uuid.NewV4().String()
+			leaderboardID := uuid.New().String()
 
 			members := []*model.Member{}
 			for i := 0; i < 2; i++ {
@@ -826,7 +821,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 		})
 
 		It("should get top 10 percent members in the leaderboard if repeated scores", func() {
-			leaderboardID := uuid.NewV4().String()
+			leaderboardID := uuid.New().String()
 
 			members := []*model.Member{}
 			for i := 0; i < 100; i++ {
@@ -848,7 +843,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 		})
 
 		It("should fail if more than 100 percent", func() {
-			leaderboardID := uuid.NewV4().String()
+			leaderboardID := uuid.New().String()
 
 			top10, err := leaderboards.GetTopPercentage(NewEmptyCtx(), leaderboardID, 10, 101, 2000, "desc")
 			Expect(top10).To(BeNil())
@@ -857,7 +852,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 		})
 
 		It("should fail if invalid redis connection", func() {
-			members, err := faultyLeaderboards.GetTopPercentage(NewEmptyCtx(), uuid.NewV4().String(), 25, 10, 2000, "desc")
+			members, err := faultyLeaderboards.GetTopPercentage(NewEmptyCtx(), uuid.New().String(), 25, 10, 2000, "desc")
 			Expect(members).To(BeEmpty())
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("connection refused"))
@@ -866,7 +861,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 
 	Describe("get members by range in a given leaderboard", func() {
 		It("should get members in a range in the leaderboard", func() {
-			leaderboardID := uuid.NewV4().String()
+			leaderboardID := uuid.New().String()
 
 			expMembers := []*model.Member{}
 			for i := 0; i < 100; i++ {
@@ -885,7 +880,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 		})
 
 		It("should fail if invalid connection to Redis", func() {
-			leaderboardID := uuid.NewV4().String()
+			leaderboardID := uuid.New().String()
 			_, err := faultyLeaderboards.GetMembersByRange(NewEmptyCtx(), leaderboardID, 20, 39, "desc")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("connection refused"))
@@ -894,7 +889,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 
 	Describe("remove leaderboard", func() {
 		It("should remove a leaderboard from redis", func() {
-			leaderboardID := uuid.NewV4().String()
+			leaderboardID := uuid.New().String()
 
 			for i := 0; i < 10; i++ {
 				_, err := leaderboards.SetMemberScore(NewEmptyCtx(), leaderboardID, fmt.Sprintf("friend-%d", i), int64(100-i), false, "")
@@ -909,7 +904,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 		})
 
 		It("should fail if invalid connection to Redis", func() {
-			leaderboardID := uuid.NewV4().String()
+			leaderboardID := uuid.New().String()
 			err := faultyLeaderboards.RemoveLeaderboard(NewEmptyCtx(), leaderboardID)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("connection refused"))
@@ -918,7 +913,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 
 	Describe("getting many members at once", func() {
 		It("should return all member details", func() {
-			lbID := uuid.NewV4().String()
+			lbID := uuid.New().String()
 			for i := 0; i < 100; i++ {
 				leaderboards.SetMemberScore(NewEmptyCtx(), lbID, fmt.Sprintf("member-%d", i), int64(100-i), false, "")
 			}
@@ -941,7 +936,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 		})
 
 		It("should return all member details using reverse rank", func() {
-			lbID := uuid.NewV4().String()
+			lbID := uuid.New().String()
 			for i := 0; i < 100; i++ {
 				leaderboards.SetMemberScore(NewEmptyCtx(), lbID, fmt.Sprintf("member-%d", i), int64(100-i), false, "")
 			}
@@ -964,7 +959,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 		})
 
 		It("should return all member details including score expiration timestamp", func() {
-			lbID := uuid.NewV4().String()
+			lbID := uuid.New().String()
 			for i := 1; i <= 100; i++ {
 				ttl := ""
 				if i%30 == 0 {
@@ -994,7 +989,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 		})
 
 		It("should return empty list if invalid leaderboard id", func() {
-			lbID := uuid.NewV4().String()
+			lbID := uuid.New().String()
 			members, err := leaderboards.GetMembers(NewEmptyCtx(), lbID, []string{"test"}, "desc", false)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -1002,7 +997,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 		})
 
 		It("should return empty list if invalid members", func() {
-			lbID := uuid.NewV4().String()
+			lbID := uuid.New().String()
 
 			for i := 0; i < 10; i++ {
 				leaderboards.SetMemberScore(NewEmptyCtx(), lbID, fmt.Sprintf("member-%d", i), int64(100-i), false, "")
@@ -1018,7 +1013,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 		})
 
 		It("should fail with faulty redis", func() {
-			lbID := uuid.NewV4().String()
+			lbID := uuid.New().String()
 			_, err := faultyLeaderboards.GetMembers(NewEmptyCtx(), lbID, []string{"member-example"}, "desc", false)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("connection refused"))

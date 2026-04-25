@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	uuid "github.com/satori/go.uuid"
+	uuid "github.com/google/uuid"
 )
 
 var keeper interface{}
@@ -23,7 +23,7 @@ func BenchmarkSetMemberScore(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		memberID := uuid.NewV4().String()
+		memberID := uuid.New().String()
 		route := getRoute(fmt.Sprintf("/l/%s/members/%s/score", lbID, memberID))
 		payload := map[string]interface{}{
 			"score": 100,
@@ -41,7 +41,7 @@ func BenchmarkSetMembersScore(b *testing.B) {
 	members := make([]map[string]interface{}, 50)
 	lbID := generateNMembers(b.N)
 	for j := 0; j < 50; j++ {
-		memberID := uuid.NewV4().String()
+		memberID := uuid.New().String()
 		members[j] = map[string]interface{}{"publicID": memberID, "score": int64(100)}
 	}
 	payload := map[string]interface{}{"members": members}
@@ -65,7 +65,7 @@ func BenchmarkIncrementMemberScore(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		memberID := uuid.NewV4().String()
+		memberID := uuid.New().String()
 		route := getRoute(fmt.Sprintf("/l/%s/members/%s/score", lbID, memberID))
 		payload := map[string]interface{}{
 			"increment": 100,
@@ -192,7 +192,7 @@ func BenchmarkSetMemberScoreForSeveralLeaderboards(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		memberID := uuid.NewV4().String()
+		memberID := uuid.New().String()
 		route := getRoute(fmt.Sprintf("/m/%s/scores", memberID))
 		payload := map[string]interface{}{
 			"score":        100,

@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/go-redis/redis/v8"
-	redismock "github.com/go-redis/redismock/v8"
-	. "github.com/onsi/ginkgo"
+	redismock "github.com/go-redis/redismock/v9"
+	"github.com/redis/go-redis/v9"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/topfreegames/podium/leaderboard/v2/model"
 )

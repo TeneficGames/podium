@@ -29,20 +29,20 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	. "github.com/topfreegames/podium/testing"
 
-	uuid "github.com/satori/go.uuid"
+	uuid "github.com/google/uuid"
 	pb "github.com/topfreegames/podium/proto/podium/api/v1"
 )
 
-var _ = Describe("Leaderboard Handler", func() {
+var _ = Describe("Leaderboard Handler", Ordered, func() {
 	var app *api.App
 	var redisClient redis.Client
 	const testLeaderboardID = "testkey"
 
-	BeforeSuite(func() {
+	BeforeAll(func() {
 		app = GetDefaultTestApp()
 		testing.InitializeTestServer(app)
 
@@ -852,8 +852,8 @@ var _ = Describe("Leaderboard Handler", func() {
 		})
 
 		HTTPMeasure("it should remove member score", func(ctx map[string]interface{}) {
-			lbID := uuid.NewV4().String()
-			memberID := uuid.NewV4().String()
+			lbID := uuid.New().String()
+			memberID := uuid.New().String()
 			_, err := app.Leaderboards.SetMemberScore(NewEmptyCtx(), lbID, memberID, 100, false, "")
 			Expect(err).NotTo(HaveOccurred())
 			ctx["lead"] = lbID
@@ -990,8 +990,8 @@ var _ = Describe("Leaderboard Handler", func() {
 		})
 
 		HTTPMeasure("it should get member", func(ctx map[string]interface{}) {
-			lbID := uuid.NewV4().String()
-			memberID := uuid.NewV4().String()
+			lbID := uuid.New().String()
+			memberID := uuid.New().String()
 			_, err := app.Leaderboards.SetMemberScore(NewEmptyCtx(), lbID, memberID, 500, false, "")
 			Expect(err).NotTo(HaveOccurred())
 
@@ -1087,8 +1087,8 @@ var _ = Describe("Leaderboard Handler", func() {
 		})
 
 		HTTPMeasure("it should get member rank", func(ctx map[string]interface{}) {
-			lbID := uuid.NewV4().String()
-			memberID := uuid.NewV4().String()
+			lbID := uuid.New().String()
+			memberID := uuid.New().String()
 			_, err := app.Leaderboards.SetMemberScore(NewEmptyCtx(), lbID, memberID, 500, false, "")
 			Expect(err).NotTo(HaveOccurred())
 
@@ -1524,8 +1524,8 @@ var _ = Describe("Leaderboard Handler", func() {
 		})
 
 		HTTPMeasure("it should get around member", func(ctx map[string]interface{}) {
-			lead := uuid.NewV4().String()
-			memberID := uuid.NewV4().String()
+			lead := uuid.New().String()
+			memberID := uuid.New().String()
 			_, err := app.Leaderboards.SetMemberScore(NewEmptyCtx(), lead, memberID, 500, false, "")
 			Expect(err).NotTo(HaveOccurred())
 
@@ -1926,8 +1926,8 @@ var _ = Describe("Leaderboard Handler", func() {
 		})
 
 		HTTPMeasure("it should get total members", func(ctx map[string]interface{}) {
-			lead := uuid.NewV4().String()
-			memberID := uuid.NewV4().String()
+			lead := uuid.New().String()
+			memberID := uuid.New().String()
 			_, err := app.Leaderboards.SetMemberScore(NewEmptyCtx(), lead, memberID, 500, false, "")
 			Expect(err).NotTo(HaveOccurred())
 
@@ -2254,8 +2254,8 @@ var _ = Describe("Leaderboard Handler", func() {
 		})
 
 		HTTPMeasure("it should get top members", func(ctx map[string]interface{}) {
-			lead := uuid.NewV4().String()
-			memberID := uuid.NewV4().String()
+			lead := uuid.New().String()
+			memberID := uuid.New().String()
 			_, err := app.Leaderboards.SetMemberScore(NewEmptyCtx(), lead, memberID, 500, false, "")
 			Expect(err).NotTo(HaveOccurred())
 
@@ -2277,7 +2277,7 @@ var _ = Describe("Leaderboard Handler", func() {
 	Describe("Get Top Percentage Handler", func() {
 		tenantID := "test-tenant-id"
 		It("Should get top members from redis if leaderboard exists (http)", func() {
-			leaderboardID := uuid.NewV4().String()
+			leaderboardID := uuid.New().String()
 
 			ctrl := gomock.NewController(GinkgoT())
 			defer ctrl.Finish()
@@ -2325,7 +2325,7 @@ var _ = Describe("Leaderboard Handler", func() {
 		})
 
 		It("Should get top members from redis if leaderboard exists with no tenant-id (http)", func() {
-			leaderboardID := uuid.NewV4().String()
+			leaderboardID := uuid.New().String()
 
 			ctrl := gomock.NewController(GinkgoT())
 			defer ctrl.Finish()
@@ -2360,7 +2360,7 @@ var _ = Describe("Leaderboard Handler", func() {
 		})
 
 		It("return error if enricher fails (http)", func() {
-			leaderboardID := uuid.NewV4().String()
+			leaderboardID := uuid.New().String()
 
 			ctrl := gomock.NewController(GinkgoT())
 			defer ctrl.Finish()
@@ -2382,7 +2382,7 @@ var _ = Describe("Leaderboard Handler", func() {
 
 		It("Should get top members from redis if leaderboard exists (grpc)", func() {
 			SetupGRPC(app, func(cli pb.PodiumClient) {
-				leaderboardID := uuid.NewV4().String()
+				leaderboardID := uuid.New().String()
 
 				for i := 1; i <= 100; i++ {
 					_, err := app.Leaderboards.SetMemberScore(NewEmptyCtx(), leaderboardID, fmt.Sprintf("member_%d", i), int64(101-i), false, "")
@@ -2408,7 +2408,7 @@ var _ = Describe("Leaderboard Handler", func() {
 		})
 
 		It("Should get top members from redis if leaderboard exists and repeated scores", func() {
-			leaderboardID := uuid.NewV4().String()
+			leaderboardID := uuid.New().String()
 
 			for i := 1; i <= 100; i++ {
 				_, err := app.Leaderboards.SetMemberScore(NewEmptyCtx(), leaderboardID, fmt.Sprintf("member_%d", i), 100, false, "")
@@ -2433,7 +2433,7 @@ var _ = Describe("Leaderboard Handler", func() {
 		})
 
 		It("Should fail if invalid percentage", func() {
-			leaderboardID := uuid.NewV4().String()
+			leaderboardID := uuid.New().String()
 
 			status, body := Get(app, fmt.Sprintf("/l/%s/top-percent/l", leaderboardID))
 			Expect(status).To(Equal(http.StatusBadRequest), body)
@@ -2441,13 +2441,13 @@ var _ = Describe("Leaderboard Handler", func() {
 		})
 
 		It("Should fail if percentage greater than 100", func() {
-			leaderboardID := uuid.NewV4().String()
+			leaderboardID := uuid.New().String()
 			status, body := Get(app, fmt.Sprintf("/l/%s/top-percent/120", leaderboardID))
 			Expect(status).To(Equal(http.StatusBadRequest), body)
 		})
 
 		It("Should fail if percentage lesser than 1", func() {
-			leaderboardID := uuid.NewV4().String()
+			leaderboardID := uuid.New().String()
 			status, body := Get(app, fmt.Sprintf("/l/%s/top-percent/0", leaderboardID))
 			Expect(status).To(Equal(http.StatusBadRequest), body)
 			Expect(body).To(ContainSubstring("Percentage must be a valid integer between 1 and 100."))
@@ -2462,7 +2462,7 @@ var _ = Describe("Leaderboard Handler", func() {
 		})
 
 		HTTPMeasure("it should get top percentage of members", func(ctx map[string]interface{}) {
-			lead := uuid.NewV4().String()
+			lead := uuid.New().String()
 
 			for i := 0; i < 100; i++ {
 				_, err := app.Leaderboards.SetMemberScore(NewEmptyCtx(), lead, fmt.Sprintf("member-%d", i), 500, false, "")
@@ -2683,7 +2683,7 @@ var _ = Describe("Leaderboard Handler", func() {
 
 	Describe("Remove Leaderboard", func() {
 		It("should remove a leaderboard", func() {
-			leaderboardID := uuid.NewV4().String()
+			leaderboardID := uuid.New().String()
 
 			for i := 0; i < 10; i++ {
 				_, err := app.Leaderboards.SetMemberScore(NewEmptyCtx(), leaderboardID, fmt.Sprintf("member-%d", i), 500, false, "")
@@ -2698,7 +2698,7 @@ var _ = Describe("Leaderboard Handler", func() {
 		})
 
 		It("should remove a leaderboard that does not exist", func() {
-			status, body := Delete(app, fmt.Sprintf("/l/%s", uuid.NewV4().String()))
+			status, body := Delete(app, fmt.Sprintf("/l/%s", uuid.New().String()))
 			Expect(status).To(Equal(http.StatusOK), body)
 			var result map[string]interface{}
 			json.Unmarshal([]byte(body), &result)
@@ -2708,7 +2708,7 @@ var _ = Describe("Leaderboard Handler", func() {
 		It("Should fail if error in Redis", func() {
 			faultyRedisApp := GetDefaultTestAppWithFaultyRedis()
 
-			status, body := Delete(faultyRedisApp, fmt.Sprintf("/l/%s", uuid.NewV4().String()))
+			status, body := Delete(faultyRedisApp, fmt.Sprintf("/l/%s", uuid.New().String()))
 			Expect(status).To(Equal(500), body)
 			Expect(body).To(ContainSubstring("connection refused"))
 		})
@@ -2717,7 +2717,7 @@ var _ = Describe("Leaderboard Handler", func() {
 	Describe("Get Members Handler", func() {
 		tenantID := "test-tenant-id"
 		It("should get several members from leaderboard (http)", func() {
-			leaderboardID := uuid.NewV4().String()
+			leaderboardID := uuid.New().String()
 
 			ctrl := gomock.NewController(GinkgoT())
 			defer ctrl.Finish()
@@ -2772,7 +2772,7 @@ var _ = Describe("Leaderboard Handler", func() {
 		})
 
 		It("should get several members from leaderboard without tenant-id (http)", func() {
-			leaderboardID := uuid.NewV4().String()
+			leaderboardID := uuid.New().String()
 
 			ctrl := gomock.NewController(GinkgoT())
 			defer ctrl.Finish()
@@ -2813,7 +2813,7 @@ var _ = Describe("Leaderboard Handler", func() {
 		})
 
 		It("Should return error if enricher fails to enrich", func() {
-			leaderboardID := uuid.NewV4().String()
+			leaderboardID := uuid.New().String()
 
 			ctrl := gomock.NewController(GinkgoT())
 			defer ctrl.Finish()
@@ -2837,7 +2837,7 @@ var _ = Describe("Leaderboard Handler", func() {
 
 		It("should get several members from leaderboard (grpc)", func() {
 			SetupGRPC(app, func(cli pb.PodiumClient) {
-				leaderboardID := uuid.NewV4().String()
+				leaderboardID := uuid.New().String()
 
 				for i := 1; i <= 100; i++ {
 					_, err := app.Leaderboards.SetMemberScore(NewEmptyCtx(), leaderboardID, fmt.Sprintf("member_%d", i), int64(101-i), false, "")
@@ -2888,7 +2888,7 @@ var _ = Describe("Leaderboard Handler", func() {
 		})
 
 		It("should return not found members", func() {
-			leaderboardID := uuid.NewV4().String()
+			leaderboardID := uuid.New().String()
 
 			for i := 1; i <= 10; i++ {
 				_, err := app.Leaderboards.SetMemberScore(NewEmptyCtx(), leaderboardID, fmt.Sprintf("member_%d", i), int64(101-i), false, "")
@@ -2919,7 +2919,7 @@ var _ = Describe("Leaderboard Handler", func() {
 		})
 
 		It("should fail if no public ids sent", func() {
-			leaderboardID := uuid.NewV4().String()
+			leaderboardID := uuid.New().String()
 
 			status, body := Get(app, fmt.Sprintf("/l/%s/members/", leaderboardID))
 			Expect(status).To(Equal(http.StatusBadRequest), body)

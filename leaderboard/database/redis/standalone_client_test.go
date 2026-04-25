@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	goredis "github.com/go-redis/redis/v8"
+	goredis "github.com/redis/go-redis/v9"
 	"github.com/topfreegames/podium/leaderboard/v2/database/redis"
 	"github.com/topfreegames/podium/leaderboard/v2/testing"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
@@ -45,7 +45,7 @@ var _ = Describe("Standalone Client", func() {
 
 	Describe("Del", func() {
 		It("Should return nil if key is removed", func() {
-			err := goRedis.ZAdd(context.Background(), testKey, &goredis.Z{Member: member, Score: 1.0}).Err()
+			err := goRedis.ZAdd(context.Background(), testKey, goredis.Z{Member: member, Score: 1.0}).Err()
 			Expect(err).NotTo(HaveOccurred())
 
 			err = standaloneClient.Del(context.Background(), testKey)
@@ -222,7 +222,7 @@ var _ = Describe("Standalone Client", func() {
 			score := 1.0
 			score2 := 2.0
 
-			err := goRedis.ZAdd(context.Background(), testKey, &goredis.Z{Member: member, Score: score}, &goredis.Z{Member: member2, Score: score2}).Err()
+			err := goRedis.ZAdd(context.Background(), testKey, goredis.Z{Member: member, Score: score}, goredis.Z{Member: member2, Score: score2}).Err()
 			Expect(err).NotTo(HaveOccurred())
 
 			count, err := standaloneClient.ZCard(context.Background(), testKey)
@@ -236,7 +236,7 @@ var _ = Describe("Standalone Client", func() {
 		It("Should return nil if member is updated", func() {
 			score := 1.0
 
-			err := goRedis.ZAdd(context.Background(), testKey, &goredis.Z{Member: member, Score: score}).Err()
+			err := goRedis.ZAdd(context.Background(), testKey, goredis.Z{Member: member, Score: score}).Err()
 			Expect(err).NotTo(HaveOccurred())
 
 			err = standaloneClient.ZIncrBy(context.Background(), testKey, member, score)
@@ -256,7 +256,7 @@ var _ = Describe("Standalone Client", func() {
 			score := 1.0
 			score2 := 2.0
 
-			err := goRedis.ZAdd(context.Background(), testKey, &goredis.Z{Member: member, Score: score}, &goredis.Z{Member: member2, Score: score2}).Err()
+			err := goRedis.ZAdd(context.Background(), testKey, goredis.Z{Member: member, Score: score}, goredis.Z{Member: member2, Score: score2}).Err()
 			Expect(err).NotTo(HaveOccurred())
 
 			members, err := standaloneClient.ZRange(context.Background(), testKey, 0, -1)
@@ -277,7 +277,7 @@ var _ = Describe("Standalone Client", func() {
 			score := 1.0
 			score2 := 2.0
 
-			err := goRedis.ZAdd(context.Background(), testKey, &goredis.Z{Member: member, Score: score}, &goredis.Z{Member: member2, Score: score2}).Err()
+			err := goRedis.ZAdd(context.Background(), testKey, goredis.Z{Member: member, Score: score}, goredis.Z{Member: member2, Score: score2}).Err()
 			Expect(err).NotTo(HaveOccurred())
 
 			members, err := standaloneClient.ZRangeByScore(context.Background(), testKey, "-inf", "1", 0, 1)
@@ -291,7 +291,7 @@ var _ = Describe("Standalone Client", func() {
 		It("Should return member rank and nil if no error ocurr", func() {
 			score := 1.0
 
-			err := goRedis.ZAdd(context.Background(), testKey, &goredis.Z{Member: member, Score: score}).Err()
+			err := goRedis.ZAdd(context.Background(), testKey, goredis.Z{Member: member, Score: score}).Err()
 			Expect(err).NotTo(HaveOccurred())
 
 			rank, err := standaloneClient.ZRank(context.Background(), testKey, member)
@@ -308,7 +308,7 @@ var _ = Describe("Standalone Client", func() {
 		It("Should return error MemberNotFounderror if sorted set doesn't have member", func() {
 			score := 1.0
 
-			err := goRedis.ZAdd(context.Background(), testKey, &goredis.Z{Member: member, Score: score}).Err()
+			err := goRedis.ZAdd(context.Background(), testKey, goredis.Z{Member: member, Score: score}).Err()
 			Expect(err).NotTo(HaveOccurred())
 
 			_, err = standaloneClient.ZRank(context.Background(), testKey, "member not found")
@@ -320,7 +320,7 @@ var _ = Describe("Standalone Client", func() {
 		It("Should return nil if member is removed from set", func() {
 			score := 1.0
 
-			err := goRedis.ZAdd(context.Background(), testKey, &goredis.Z{Member: member, Score: score}).Err()
+			err := goRedis.ZAdd(context.Background(), testKey, goredis.Z{Member: member, Score: score}).Err()
 			Expect(err).NotTo(HaveOccurred())
 
 			err = standaloneClient.ZRem(context.Background(), testKey, member)
@@ -334,7 +334,7 @@ var _ = Describe("Standalone Client", func() {
 			score := 1.0
 			secondMember := "member2"
 
-			err := goRedis.ZAdd(context.Background(), testKey, &goredis.Z{Member: member, Score: score}, &goredis.Z{Member: secondMember, Score: score * 2.0}).Err()
+			err := goRedis.ZAdd(context.Background(), testKey, goredis.Z{Member: member, Score: score}, goredis.Z{Member: secondMember, Score: score * 2.0}).Err()
 			Expect(err).NotTo(HaveOccurred())
 
 			err = standaloneClient.ZRem(context.Background(), testKey, member, secondMember)
@@ -360,7 +360,7 @@ var _ = Describe("Standalone Client", func() {
 			score := 1.0
 			score2 := 2.0
 
-			err := goRedis.ZAdd(context.Background(), testKey, &goredis.Z{Member: member, Score: score}, &goredis.Z{Member: member2, Score: score2}).Err()
+			err := goRedis.ZAdd(context.Background(), testKey, goredis.Z{Member: member, Score: score}, goredis.Z{Member: member2, Score: score2}).Err()
 			Expect(err).NotTo(HaveOccurred())
 
 			members, err := standaloneClient.ZRevRange(context.Background(), testKey, 0, -1)
@@ -381,7 +381,7 @@ var _ = Describe("Standalone Client", func() {
 			score := 1.0
 			score2 := 2.0
 
-			err := goRedis.ZAdd(context.Background(), testKey, &goredis.Z{Member: member, Score: score}, &goredis.Z{Member: member2, Score: score2}).Err()
+			err := goRedis.ZAdd(context.Background(), testKey, goredis.Z{Member: member, Score: score}, goredis.Z{Member: member2, Score: score2}).Err()
 			Expect(err).NotTo(HaveOccurred())
 
 			members, err := standaloneClient.ZRevRangeByScore(context.Background(), testKey, "-inf", "1", 0, 1)
@@ -395,10 +395,10 @@ var _ = Describe("Standalone Client", func() {
 		It("Should return rank position if member is in set", func() {
 			score := 1.0
 
-			err := goRedis.ZAdd(context.Background(), testKey, &goredis.Z{Member: member, Score: score}).Err()
+			err := goRedis.ZAdd(context.Background(), testKey, goredis.Z{Member: member, Score: score}).Err()
 			Expect(err).NotTo(HaveOccurred())
 
-			err = goRedis.ZAdd(context.Background(), testKey, &goredis.Z{Member: "another-member", Score: score * 2.0}).Err()
+			err = goRedis.ZAdd(context.Background(), testKey, goredis.Z{Member: "another-member", Score: score * 2.0}).Err()
 			Expect(err).NotTo(HaveOccurred())
 
 			returnedRank, err := standaloneClient.ZRevRank(context.Background(), testKey, member)
@@ -415,10 +415,10 @@ var _ = Describe("Standalone Client", func() {
 		It("Should return MemberNotFound if key doesn't have member", func() {
 			score := 1.0
 
-			err := goRedis.ZAdd(context.Background(), testKey, &goredis.Z{Member: member, Score: score}).Err()
+			err := goRedis.ZAdd(context.Background(), testKey, goredis.Z{Member: member, Score: score}).Err()
 			Expect(err).NotTo(HaveOccurred())
 
-			err = goRedis.ZAdd(context.Background(), testKey, &goredis.Z{Member: "another-member", Score: score * 2.0}).Err()
+			err = goRedis.ZAdd(context.Background(), testKey, goredis.Z{Member: "another-member", Score: score * 2.0}).Err()
 			Expect(err).NotTo(HaveOccurred())
 
 			_, err = standaloneClient.ZRevRank(context.Background(), testKey, "wrongKey")
@@ -430,7 +430,7 @@ var _ = Describe("Standalone Client", func() {
 		It("Should return score if member is in set", func() {
 			score := 1.0
 
-			err := goRedis.ZAdd(context.Background(), testKey, &goredis.Z{Member: member, Score: score}).Err()
+			err := goRedis.ZAdd(context.Background(), testKey, goredis.Z{Member: member, Score: score}).Err()
 			Expect(err).NotTo(HaveOccurred())
 
 			returnedScore, err := standaloneClient.ZScore(context.Background(), testKey, member)
@@ -442,7 +442,7 @@ var _ = Describe("Standalone Client", func() {
 		It("Should return MemberNotFound if key doesn't have member", func() {
 			score := 1.0
 
-			err := goRedis.ZAdd(context.Background(), testKey, &goredis.Z{Member: member, Score: score}).Err()
+			err := goRedis.ZAdd(context.Background(), testKey, goredis.Z{Member: member, Score: score}).Err()
 			Expect(err).NotTo(HaveOccurred())
 
 			_, err = standaloneClient.ZScore(context.Background(), testKey, "wrongKey")

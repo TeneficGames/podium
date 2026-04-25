@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	goredis "github.com/go-redis/redis/v8"
+	goredis "github.com/redis/go-redis/v9"
 )
 
 type standaloneClient struct {
@@ -125,9 +125,9 @@ func (c *standaloneClient) TTL(ctx context.Context, key string) (time.Duration, 
 
 // ZAdd call redis ZADD function
 func (c *standaloneClient) ZAdd(ctx context.Context, key string, members ...*Member) error {
-	goRedisMembers := make([]*goredis.Z, 0, len(members))
+	goRedisMembers := make([]goredis.Z, 0, len(members))
 	for _, member := range members {
-		goRedisMembers = append(goRedisMembers, &goredis.Z{
+		goRedisMembers = append(goRedisMembers, goredis.Z{
 			Member: member.Member,
 			Score:  member.Score,
 		})

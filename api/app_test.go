@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/topfreegames/podium/api"
 	"github.com/topfreegames/podium/log"
@@ -15,17 +15,17 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+var _ = AfterSuite(func() {
+	testing.ShutdownDefaultTestApp()
+	testing.ShutdownDefaultTestAppWithFaltyRedis()
+})
+
 var _ = Describe("App", func() {
 	var logger *zap.Logger
 	var app *api.App
 	var err error
 	BeforeEach(func() {
 		logger = log.CreateLoggerWithLevel(zapcore.FatalLevel, log.LoggerOptions{WriteSyncer: os.Stdout, RemoveTimestamp: true})
-	})
-
-	AfterSuite(func() {
-		testing.ShutdownDefaultTestApp()
-		testing.ShutdownDefaultTestAppWithFaltyRedis()
 	})
 
 	Describe("App creation", func() {
