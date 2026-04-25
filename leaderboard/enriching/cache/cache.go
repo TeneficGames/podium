@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"github.com/topfreegames/podium/leaderboard/v2/enriching"
 	"github.com/topfreegames/podium/leaderboard/v2/model"
 	"time"

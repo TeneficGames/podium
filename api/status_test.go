@@ -16,7 +16,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes/empty"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	api "github.com/topfreegames/podium/proto/podium/api/v1"

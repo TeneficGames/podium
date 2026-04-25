@@ -39,7 +39,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.20'
+          go-version: '1.26'
       - name: Setup env
         run: make setup
       - name: Test
@@ -47,9 +47,7 @@ jobs:
       - name: Coverage
         run: make coverage
       - name: Install goveralls
-        env:
-          GO111MODULE: off
-        run: go get github.com/mattn/goveralls
+        run: go install github.com/mattn/goveralls@latest
       - name: Send coverage
         env:
           COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -92,7 +90,7 @@ jobs:
   #      - name: Set up Go
   #        uses: actions/setup-go@v4
   #        with:
-  #          go-version: '1.20'
+  #          go-version: '1.26'
   #      - name: Setup env
   #        run: make setup
   #      - name: Test

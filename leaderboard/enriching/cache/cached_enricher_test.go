@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	mock_enriching "github.com/topfreegames/podium/leaderboard/v2/mocks"
 	"github.com/topfreegames/podium/leaderboard/v2/model"

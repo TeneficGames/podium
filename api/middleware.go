@@ -43,7 +43,7 @@ func (app *App) basicAuthMiddleware(ctx context.Context) (context.Context, error
 	auth := app.Config.GetString("basicauth.username") + ":" + app.Config.GetString("basicauth.password")
 
 	if token != base64.StdEncoding.EncodeToString([]byte(auth)) {
-		return nil, status.Errorf(codes.Unauthenticated, "invalid auth token")
+		return nil, status.Error(codes.Unauthenticated, "invalid auth token")
 	}
 	return ctx, nil
 }
@@ -53,7 +53,7 @@ func (app *App) loggerMiddleware(ctx context.Context, req interface{}, info *grp
 		zap.String("source", "request"),
 	)
 
-	//all except latency to string
+	// all except latency to string
 	var statusCode int
 	var latency time.Duration
 	var startTime, endTime time.Time
@@ -62,7 +62,7 @@ func (app *App) loggerMiddleware(ctx context.Context, req interface{}, info *grp
 
 	h, err := handler(ctx, req)
 
-	//no time.Since in order to format it well after
+	// no time.Since in order to format it well after
 	endTime = time.Now()
 	latency = endTime.Sub(startTime)
 
@@ -76,19 +76,19 @@ func (app *App) loggerMiddleware(ctx context.Context, req interface{}, info *grp
 		zap.Duration("latency", latency),
 	)
 
-	//request failed
+	// request failed
 	if statusCode > 399 && statusCode < 500 {
 		log.D(reqLog, "Request failed.")
 		return h, err
 	}
 
-	//request is ok, but server failed
+	// request is ok, but server failed
 	if statusCode > 499 {
 		log.D(reqLog, "Response failed.")
 		return h, err
 	}
 
-	//Everything went ok
+	// Everything went ok
 	log.D(reqLog, "Request successful.")
 	return h, err
 }
@@ -99,7 +99,7 @@ func (app *App) recoveryMiddleware(ctx context.Context, req interface{}, info *g
 		if err := recover(); err != nil {
 			eError, ok := err.(error)
 			if !ok {
-				eError = fmt.Errorf(fmt.Sprintf("%v", err))
+				eError = fmt.Errorf("%v", err)
 			}
 			app.OnErrorHandler(eError, debug.Stack())
 		}

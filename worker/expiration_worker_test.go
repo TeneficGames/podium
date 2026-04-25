@@ -21,7 +21,7 @@ import (
 	lservice "github.com/topfreegames/podium/leaderboard/v2/service"
 	"github.com/topfreegames/podium/worker"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 

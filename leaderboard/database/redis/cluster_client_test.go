@@ -4,11 +4,11 @@ package redis_test
 //	"context"
 //	"time"
 //
-//	goredis "github.com/go-redis/redis/v8"
+//	goredis "github.com/redis/go-redis/v9"
 //	"github.com/topfreegames/podium/leaderboard/v2/database/redis"
 //	"github.com/topfreegames/podium/leaderboard/v2/testing"
 //
-//	. "github.com/onsi/ginkgo"
+//	. "github.com/onsi/ginkgo/v2"
 //	. "github.com/onsi/gomega"
 //)
 //

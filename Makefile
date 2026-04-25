@@ -14,7 +14,7 @@ PROTOTOOL := go run github.com/uber/prototool/cmd/prototool
 LOCAL_GO_MODCACHE = $(shell go env | grep GOMODCACHE | cut -d "=" -f 2 | sed 's/"//g')
 GINKGO := go run github.com/onsi/ginkgo/ginkgo@v1.16.5
 BUF := go run github.com/bufbuild/buf/cmd/buf@v1.24.0
-MOCKGENERATE := go run github.com/golang/mock/mockgen@v1.7.0-rc.1
+MOCKGENERATE := go run github.com/golang/mock/mockgen@v1.6.0
 
 help: Makefile ## Show list of commands
 	@echo "Choose a command run in "$(PROJECT_NAME)":"
@@ -32,7 +32,6 @@ clear-hooks: ## Remove pre-commit git hooks
 setup: setup-hooks ## Install local dependencies and tidy go mods
 	@go get github.com/onsi/ginkgo/ginkgo
 	@go get github.com/gordonklaus/ineffassign
-	@go get github.com/uber/prototool/cmd/prototool
 	@go mod download
 
 setup-docs: ## Install dependencies necessary for building docs

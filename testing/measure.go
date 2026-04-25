@@ -2,35 +2,45 @@ package testing
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/types"
+	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+)
+
+const measureLoops = 200
+
+type measureFlag int
+
+const (
+	measureFlagNone measureFlag = iota
+	measureFlagFocused
+	measureFlagPending
 )
 
 //HTTPMeasure runs the specified specs in an http test
 func HTTPMeasure(description string, setup func(map[string]interface{}), f func(string, map[string]interface{}), timeout float64) bool {
-	return measure(description, setup, f, timeout, types.FlagTypeNone)
+	return measure(description, setup, f, timeout, measureFlagNone)
 }
 
 //FHTTPMeasure runs the specified specs in an http test
 func FHTTPMeasure(description string, setup func(map[string]interface{}), f func(string, map[string]interface{}), timeout float64) bool {
-	return measure(description, setup, f, timeout, types.FlagTypeFocused)
+	return measure(description, setup, f, timeout, measureFlagFocused)
 }
 
 //XHTTPMeasure runs the specified specs in an http test
 func XHTTPMeasure(description string, setup func(map[string]interface{}), f func(string, map[string]interface{}), timeout float64) bool {
-	return measure(description, setup, f, timeout, types.FlagTypePending)
+	return measure(description, setup, f, timeout, measureFlagPending)
 }
 
-func measure(description string, setup func(map[string]interface{}), f func(string, map[string]interface{}), timeout float64, flagType types.FlagType) bool {
+func measure(description string, setup func(map[string]interface{}), f func(string, map[string]interface{}), timeout float64, flag measureFlag) bool {
 	app := GetDefaultTestApp()
 
 	d := func(t string, f func()) { ginkgo.Describe(t, f) }
-	if flagType == types.FlagTypeFocused {
+	if flag == measureFlagFocused {
 		d = func(t string, f func()) { ginkgo.FDescribe(t, f) }
 	}
-	if flagType == types.FlagTypePending {
+	if flag == measureFlagPending {
 		d = func(t string, f func()) { ginkgo.XDescribe(t, f) }
 	}
 
@@ -46,20 +56,22 @@ func measure(description string, setup func(map[string]interface{}), f func(stri
 
 		ginkgo.AfterEach(func() {
 			loops++
-			if loops == 200 {
+			if loops == measureLoops {
 				transport.CloseIdleConnections()
 			}
 		})
 
-		ginkgo.Measure(description, func(b ginkgo.Benchmarker) {
-			runtime := b.Time("runtime", func() {
+		ginkgo.It(description, func() {
+			for i := 0; i < measureLoops; i++ {
+				start := time.Now()
 				f(app.HTTPEndpoint, ctx)
-			})
-			Expect(runtime.Seconds()).Should(
-				BeNumerically("<", timeout),
-				fmt.Sprintf("%s shouldn't take too long.", description),
-			)
-		}, 200)
+				runtime := time.Since(start)
+				Expect(runtime.Seconds()).Should(
+					BeNumerically("<", timeout),
+					fmt.Sprintf("%s shouldn't take too long.", description),
+				)
+			}
+		})
 	})
 
 	return true
