@@ -1,11 +1,11 @@
 // podium
-// https://github.com/topfreegames/podium
+// https://github.com/TeneficGames/podium
 // Licensed under the MIT license:
 // http://www.opensource.org/licenses/mit-license
-// Copyright © 2016 Top Free Games <backend@tfgco.com>
+// Copyright © 2026 Tenefic Games
 // Forked from
-// https://github.com/dayvson/go-leaderboard
-// Copyright © 2013 Maxwell Dayvson da Silva
+// https://github.com/topfreegames/podium
+// Copyright © 2016 Top Free Games
 
 package expiration_test
 
@@ -13,9 +13,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TeneficGames/podium/leaderboard/expiration"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/topfreegames/podium/leaderboard/v2/expiration"
 )
 
 var _ = Describe("Expires Helper", func() {
@@ -49,7 +49,9 @@ var _ = Describe("Expires Helper", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			startTime, err := time.Parse("20060102", formatedStartTime)
+			Expect(err).NotTo(HaveOccurred())
 			endTime, err := time.Parse("20060102", formatedEndTime)
+			Expect(err).NotTo(HaveOccurred())
 
 			ts := endTime.Add(endTime.Sub(startTime)).Unix()
 			Expect(exp).To(BeEquivalentTo(ts))

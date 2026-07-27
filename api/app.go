@@ -1,19 +1,17 @@
 // podium
-// https://github.com/topfreegames/podium
+// https://github.com/TeneficGames/podium
 // Licensed under the MIT license:
 // http://www.opensource.org/licenses/mit-license
-// Copyright © 2016 Top Free Games <backend@tfgco.com>
+// Copyright © 2026 Tenefic Games
 // Forked from
-// https://github.com/dayvson/go-leaderboard
-// Copyright © 2013 Maxwell Dayvson da Silva
+// https://github.com/topfreegames/podium
+// Copyright © 2016 Top Free Games
 
 package api
 
 import (
 	"context"
 	"fmt"
-	"github.com/redis/go-redis/v9"
-	enrichercache "github.com/topfreegames/podium/leaderboard/v2/enriching/cache"
 	"net"
 	"net/http"
 	"os"
@@ -23,33 +21,30 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/topfreegames/podium/config"
-	"github.com/topfreegames/podium/leaderboard/v2/enriching"
-	"google.golang.org/grpc/credentials/insecure"
-
-	"google.golang.org/protobuf/encoding/protojson"
-
-	"github.com/getsentry/raven-go"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	otgrpc "github.com/opentracing-contrib/go-grpc"
-	"github.com/opentracing-contrib/go-stdlib/nethttp"
-	"github.com/opentracing/opentracing-go"
-	"github.com/rcrowley/go-metrics"
+	"github.com/TeneficGames/podium/config"
+	"github.com/TeneficGames/podium/leaderboard/database"
+	"github.com/TeneficGames/podium/leaderboard/enriching"
+	enrichercache "github.com/TeneficGames/podium/leaderboard/enriching/cache"
+	lservice "github.com/TeneficGames/podium/leaderboard/service"
+	"github.com/TeneficGames/podium/log"
+	"github.com/TeneficGames/podium/observability"
+	api "github.com/TeneficGames/podium/proto/podium/api/v1"
 	uuid "github.com/google/uuid"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/rcrowley/go-metrics"
+	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
-	"github.com/topfreegames/podium/leaderboard/v2/database"
-	"github.com/topfreegames/podium/leaderboard/v2/service"
-	lservice "github.com/topfreegames/podium/leaderboard/v2/service"
-	"github.com/topfreegames/podium/log"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/metric"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/encoding/protojson"
 
-	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	grpcauth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
-	extnethttpmiddleware "github.com/topfreegames/extensions/middleware"
-	api "github.com/topfreegames/podium/proto/podium/api/v1"
-	jaegercfg "github.com/uber/jaeger-client-go/config"
+	grpcauth "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/auth"
 )
 
 // JSON type
@@ -70,16 +65,17 @@ type App struct {
 
 	httpReady, grpcReady chan bool
 
-	Config       *viper.Viper
-	ParsedConfig *config.PodiumConfig
-	DDStatsD     *extnethttpmiddleware.DogStatsD
-	Enricher     enriching.Enricher
-	Errors       metrics.EWMA
-	grpcServer   *grpc.Server
-	httpServer   *http.Server
-	ID           uuid.UUID
-	Logger       *zap.Logger
-	Leaderboards lservice.Leaderboard
+	Config          *viper.Viper
+	ParsedConfig    *config.PodiumConfig
+	Enricher        enriching.Enricher
+	Errors          metrics.EWMA
+	grpcServer      *grpc.Server
+	httpServer      *http.Server
+	ID              uuid.UUID
+	Logger          *zap.Logger
+	Leaderboards    lservice.Leaderboard
+	observability   *observability.Provider
+	requestDuration metric.Float64Histogram
 }
 
 // New returns a new podium Application.
@@ -123,66 +119,42 @@ func (app *App) configure() error {
 		return err
 	}
 
-	app.configureJaeger()
-
-	err = app.configureStatsD()
+	err = app.configureObservability()
 	if err != nil {
 		return err
 	}
 
-	app.configureEnrichment()
+	err = app.configureEnrichment()
+	if err != nil {
+		app.shutdownObservability()
+		return err
+	}
 
 	err = app.configureApplication()
 	if err != nil {
+		app.shutdownObservability()
 		return err
 	}
 
 	return nil
 }
 
-func (app *App) configureStatsD() error {
-	l := app.Logger.With(
-		zap.String("source", "app"),
-		zap.String("operation", "configureStatsD"),
-	)
-
-	ddstatsd, err := extnethttpmiddleware.NewDogStatsD(app.Config)
+func (app *App) configureObservability() error {
+	provider, err := observability.New(context.Background(), "podium")
 	if err != nil {
-		log.E(l, "Failed to initialize DogStatsD.", func(cm log.CM) {
-			cm.Write(zap.Error(err))
-		})
 		return err
 	}
-	app.DDStatsD = ddstatsd
-	l.Info("Configured StatsD successfully.")
-
-	return nil
-}
-
-func (app *App) configureJaeger() {
-	l := app.Logger.With(
-		zap.String("source", "app"),
-		zap.String("operation", "configureJaeger"),
+	app.observability = provider
+	app.requestDuration, err = otel.Meter("github.com/TeneficGames/podium/api").Float64Histogram(
+		"podium.rpc.server.duration",
+		metric.WithDescription("Duration of gRPC server requests"),
+		metric.WithUnit("s"),
 	)
-
-	cfg, err := jaegercfg.FromEnv()
 	if err != nil {
-		l.Error("Could not parse Jaeger env vars", zap.Error(err))
-		return
+		app.shutdownObservability()
+		return fmt.Errorf("create request duration metric: %w", err)
 	}
-
-	if cfg.ServiceName == "" {
-		cfg.ServiceName = "podium"
-	}
-
-	tracer, _, err := cfg.NewTracer()
-	if err != nil {
-		l.Error("Could not initialize jaeger tracer", zap.Error(err))
-		return
-	}
-
-	opentracing.SetGlobalTracer(tracer)
-	l.Info(fmt.Sprintf("Tracer configured for %s", cfg.Reporter.LocalAgentHostPort))
+	return nil
 }
 
 func (app *App) setConfigurationDefaults() {
@@ -218,7 +190,7 @@ func (app *App) loadConfiguration() error {
 	return nil
 }
 
-func (app *App) configureEnrichment() {
+func (app *App) configureEnrichment() error {
 	enricher := enriching.NewEnricher(
 		enriching.WithLogger(app.Logger),
 		enriching.WithWebhookUrls(app.ParsedConfig.Enrichment.WebhookUrls),
@@ -226,7 +198,11 @@ func (app *App) configureEnrichment() {
 		enriching.WithCloudSaveUrl(app.ParsedConfig.Enrichment.CloudSave.Url),
 		enriching.WithCloudSaveEnabled(app.ParsedConfig.Enrichment.CloudSave.Enabled),
 	)
-	app.Enricher = enriching.NewInstrumentedEnricher(enricher, app.DDStatsD)
+	instrumentedEnricher, err := enriching.NewInstrumentedEnricher(enricher)
+	if err != nil {
+		return fmt.Errorf("configure enrichment instrumentation: %w", err)
+	}
+	app.Enricher = instrumentedEnricher
 
 	if app.ParsedConfig.Enrichment.Cache.Addr != "" {
 		redisClient := redis.NewClient(&redis.Options{
@@ -235,9 +211,12 @@ func (app *App) configureEnrichment() {
 		})
 
 		enrichCache := enrichercache.NewEnricherRedisCache(redisClient)
-		enrichCache = enrichercache.NewInstrumentedCache(enrichCache, app.DDStatsD)
+		instrumentedCache, err := enrichercache.NewInstrumentedCache(enrichCache)
+		if err != nil {
+			return fmt.Errorf("configure enrichment cache instrumentation: %w", err)
+		}
 		app.Enricher = enrichercache.NewCachedEnricher(
-			enrichCache,
+			instrumentedCache,
 			app.Enricher,
 			enrichercache.WithLogger(app.Logger),
 			enrichercache.WithTTL(app.ParsedConfig.Enrichment.Cache.TTL),
@@ -247,21 +226,27 @@ func (app *App) configureEnrichment() {
 	}
 
 	app.Logger.Info("Enrichment configured successfully.")
+	return nil
 }
 
 // OnErrorHandler handles panics
 func (app *App) OnErrorHandler(err error, stack []byte) {
+	app.onErrorHandler(context.Background(), err, stack)
+}
+
+func (app *App) onErrorHandler(ctx context.Context, err error, stack []byte) {
 	app.Logger.Error(
 		"Panic occurred.",
 		zap.Any("panicText", err),
 		zap.String("stack", string(stack)),
 	)
 
-	tags := map[string]string{
-		"source": "app",
-		"type":   "panic",
-	}
-	raven.CaptureError(err, tags)
+	observability.CaptureException(
+		ctx,
+		err,
+		map[string]string{"source": "app", "type": "panic"},
+		map[string]interface{}{"stack": string(stack)},
+	)
 }
 
 func (app *App) configureApplication() error {
@@ -289,7 +274,7 @@ func (app *App) createAndConfigureLeaderboardClient() (lservice.Leaderboard, err
 		return nil, err
 	}
 
-	app.Logger.Info("Leaderboard client creation successfull.")
+	app.Logger.Info("Leaderboard client creation successful.")
 	return client, nil
 }
 
@@ -308,7 +293,7 @@ func (app *App) createLeaderboardClient() lservice.Leaderboard {
 		zap.String("url", fmt.Sprintf("redis://:<REDACTED>@%s:%v/%v", host, port, db)),
 	)
 
-	leaderboardService := service.NewService(database.NewRedisDatabase(database.RedisOptions{
+	leaderboardService := lservice.NewService(database.NewRedisDatabase(database.RedisOptions{
 		ClusterEnabled: shouldRunOnCluster,
 		Addrs:          addrs,
 		Host:           host,
@@ -329,6 +314,8 @@ func (app *App) AddError() {
 
 // Start starts listening for web requests at specified host and port
 func (app *App) Start(ctx context.Context) error {
+	defer app.shutdownObservability()
+
 	l := app.Logger.With(
 		zap.String("source", "app"),
 		zap.String("operation", "Start"),
@@ -336,15 +323,16 @@ func (app *App) Start(ctx context.Context) error {
 		zap.String("GRPCEndPoint", app.GRPCEndpoint),
 	)
 
-	grpcLis, err := net.Listen("tcp", app.GRPCEndpoint)
+	var listenConfig net.ListenConfig
+	grpcLis, err := listenConfig.Listen(ctx, "tcp", app.GRPCEndpoint)
 	if err != nil {
-		return fmt.Errorf("error trying to listen for connections: %v", err)
+		return fmt.Errorf("error trying to listen for connections: %w", err)
 	}
 	app.GRPCEndpoint = grpcLis.Addr().String()
 
-	httpLis, err := net.Listen("tcp", app.HTTPEndpoint)
+	httpLis, err := listenConfig.Listen(ctx, "tcp", app.HTTPEndpoint)
 	if err != nil {
-		return fmt.Errorf("error listening on HTTPEndpoint: %v", err)
+		return fmt.Errorf("error listening on HTTPEndpoint: %w", err)
 	}
 	app.HTTPEndpoint = httpLis.Addr().String()
 
@@ -374,9 +362,9 @@ func (app *App) Start(ctx context.Context) error {
 	}()
 
 	log.I(l, "app started")
-	sg := make(chan os.Signal)
-	//TODO verify that capturing SIGKILL actually works. Signal handling should be moved outside of Start.
-	signal.Notify(sg, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGTERM)
+	sg := make(chan os.Signal, 1)
+	signal.Notify(sg, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
+	defer signal.Stop(sg)
 
 	// stop server
 	select {
@@ -391,6 +379,9 @@ func (app *App) Start(ctx context.Context) error {
 	case err := <-errch:
 		app.Logger.Error("Err on start server", zap.Error(err))
 		return err
+	case <-ctx.Done():
+		app.GracefullStop()
+		return ctx.Err()
 	case <-stopped:
 	}
 	log.I(l, "app stopped")
@@ -407,20 +398,17 @@ func (app *App) startGRPCServer(lis net.Listener) error {
 		basicAuthInterceptor = grpcauth.UnaryServerInterceptor(app.basicAuthMiddleware)
 	}
 
-	app.grpcServer = grpc.NewServer(grpc.UnaryInterceptor(
-		grpcmiddleware.ChainUnaryServer(
-			basicAuthInterceptor,
-			otgrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer()),
-			app.loggerMiddleware,
-			app.recoveryMiddleware,
-			app.responseTimeMetricsMiddleware,
-		),
-	))
+	app.grpcServer = grpc.NewServer(grpc.ChainUnaryInterceptor(
+		basicAuthInterceptor,
+		app.loggerMiddleware,
+		app.recoveryMiddleware,
+		app.responseTimeMetricsMiddleware,
+	), grpc.StatsHandler(otelgrpc.NewServerHandler()))
 	api.RegisterPodiumServer(app.grpcServer, app)
 
 	app.grpcReady <- true
 	if err := app.grpcServer.Serve(lis); err != nil {
-		return fmt.Errorf("error trying to serve with grpc server: %v", err)
+		return fmt.Errorf("error trying to serve with grpc server: %w", err)
 	}
 
 	return nil
@@ -461,31 +449,25 @@ func (app *App) startHTTPServer(ctx context.Context, lis net.Listener) error {
 	)
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithUnaryInterceptor(otgrpc.OpenTracingClientInterceptor(opentracing.GlobalTracer())),
+		grpc.WithStatsHandler(otelgrpc.NewClientHandler()),
 	}
 
 	if err := api.RegisterPodiumHandlerFromEndpoint(ctx, gatewayMux, app.GRPCEndpoint, opts); err != nil {
-		return fmt.Errorf("error registering multiplexer for grpc gateway: %v", err)
+		return fmt.Errorf("error registering multiplexer for grpc gateway: %w", err)
 	}
 
 	mux := http.NewServeMux()
 	mux.Handle("/", removeTrailingSlashMiddleware{addVersionMiddleware{gatewayMux}})
 	mux.HandleFunc("/healthcheck", addVersionHandlerFunc(app.healthCheckHandler))
 	mux.HandleFunc("/status", addVersionHandlerFunc(app.statusHandler))
-	attachSpan := func(span opentracing.Span, r *http.Request) {
-		_ = opentracing.GlobalTracer().Inject(span.Context(), opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(r.Header))
-	}
-
-	muxWithTracing := nethttp.Middleware(opentracing.GlobalTracer(), mux, nethttp.MWSpanObserver(attachSpan))
-
 	app.httpServer = &http.Server{
 		Addr:    app.HTTPEndpoint,
-		Handler: muxWithTracing,
+		Handler: otelhttp.NewHandler(mux, "podium.http"),
 	}
 
 	app.httpReady <- true
 	if err := app.httpServer.Serve(lis); err != http.ErrServerClosed {
-		return fmt.Errorf("error listening and serving http requests: %v", err)
+		return fmt.Errorf("error listening and serving http requests: %w", err)
 	}
 
 	return nil
@@ -518,6 +500,18 @@ func (app *App) GracefullStop() {
 		if err := app.httpServer.Shutdown(context.Background()); err != nil {
 			app.Logger.Error("HTTP server Shutdown.", zap.Error(err))
 		}
+	}
+	app.shutdownObservability()
+}
+
+func (app *App) shutdownObservability() {
+	if app.observability == nil {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := app.observability.Shutdown(ctx); err != nil {
+		app.Logger.Error("Observability shutdown.", zap.Error(err))
 	}
 }
 

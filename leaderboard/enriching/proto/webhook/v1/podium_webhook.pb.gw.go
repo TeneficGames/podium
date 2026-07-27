@@ -10,6 +10,7 @@ package podium_leaderboard_webhooks_v1
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 
@@ -24,62 +25,56 @@ import (
 )
 
 // Suppress "imported and not used" errors
-var _ codes.Code
-var _ io.Reader
-var _ status.Status
-var _ = runtime.String
-var _ = utilities.NewDoubleArray
-var _ = metadata.Join
+var (
+	_ codes.Code
+	_ io.Reader
+	_ status.Status
+	_ = errors.New
+	_ = runtime.String
+	_ = utilities.NewDoubleArray
+	_ = metadata.Join
+)
 
 func request_LeaderboardsEnrichmentService_EnrichLeaderboards_0(ctx context.Context, marshaler runtime.Marshaler, client LeaderboardsEnrichmentServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq EnrichLeaderboardsRequest
-	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq.Members); err != nil && err != io.EOF {
+	var (
+		protoReq EnrichLeaderboardsRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq.Members); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
 	msg, err := client.EnrichLeaderboards(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_LeaderboardsEnrichmentService_EnrichLeaderboards_0(ctx context.Context, marshaler runtime.Marshaler, server LeaderboardsEnrichmentServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq EnrichLeaderboardsRequest
-	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq.Members); err != nil && err != io.EOF {
+	var (
+		protoReq EnrichLeaderboardsRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq.Members); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.EnrichLeaderboards(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 // RegisterLeaderboardsEnrichmentServiceHandlerServer registers the http handlers for service LeaderboardsEnrichmentService to "mux".
 // UnaryRPC     :call LeaderboardsEnrichmentServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterLeaderboardsEnrichmentServiceHandlerFromEndpoint instead.
+// GRPC interceptors will not work for this type of registration. To use interceptors, you must use the "runtime.WithMiddlewares" option in the "runtime.NewServeMux" call.
 func RegisterLeaderboardsEnrichmentServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server LeaderboardsEnrichmentServiceServer) error {
-
-	mux.Handle("POST", pattern_LeaderboardsEnrichmentService_EnrichLeaderboards_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_LeaderboardsEnrichmentService_EnrichLeaderboards_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/.LeaderboardsEnrichmentService/EnrichLeaderboards", runtime.WithHTTPPathPattern("/v1/leaderboards/enrich"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/.LeaderboardsEnrichmentService/EnrichLeaderboards", runtime.WithHTTPPathPattern("/v1/leaderboards/enrich"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -91,9 +86,7 @@ func RegisterLeaderboardsEnrichmentServiceHandlerServer(ctx context.Context, mux
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_LeaderboardsEnrichmentService_EnrichLeaderboards_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	return nil
@@ -102,25 +95,24 @@ func RegisterLeaderboardsEnrichmentServiceHandlerServer(ctx context.Context, mux
 // RegisterLeaderboardsEnrichmentServiceHandlerFromEndpoint is same as RegisterLeaderboardsEnrichmentServiceHandler but
 // automatically dials to "endpoint" and closes the connection when "ctx" gets done.
 func RegisterLeaderboardsEnrichmentServiceHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
-	conn, err := grpc.DialContext(ctx, endpoint, opts...)
+	conn, err := grpc.NewClient(endpoint, opts...)
 	if err != nil {
 		return err
 	}
 	defer func() {
 		if err != nil {
 			if cerr := conn.Close(); cerr != nil {
-				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
+				grpclog.Errorf("Failed to close conn to %s: %v", endpoint, cerr)
 			}
 			return
 		}
 		go func() {
 			<-ctx.Done()
 			if cerr := conn.Close(); cerr != nil {
-				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
+				grpclog.Errorf("Failed to close conn to %s: %v", endpoint, cerr)
 			}
 		}()
 	}()
-
 	return RegisterLeaderboardsEnrichmentServiceHandler(ctx, mux, conn)
 }
 
@@ -134,16 +126,13 @@ func RegisterLeaderboardsEnrichmentServiceHandler(ctx context.Context, mux *runt
 // to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "LeaderboardsEnrichmentServiceClient".
 // Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "LeaderboardsEnrichmentServiceClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
-// "LeaderboardsEnrichmentServiceClient" to call the correct interceptors.
+// "LeaderboardsEnrichmentServiceClient" to call the correct interceptors. This client ignores the HTTP middlewares.
 func RegisterLeaderboardsEnrichmentServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client LeaderboardsEnrichmentServiceClient) error {
-
-	mux.Handle("POST", pattern_LeaderboardsEnrichmentService_EnrichLeaderboards_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_LeaderboardsEnrichmentService_EnrichLeaderboards_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/.LeaderboardsEnrichmentService/EnrichLeaderboards", runtime.WithHTTPPathPattern("/v1/leaderboards/enrich"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/.LeaderboardsEnrichmentService/EnrichLeaderboards", runtime.WithHTTPPathPattern("/v1/leaderboards/enrich"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -154,11 +143,8 @@ func RegisterLeaderboardsEnrichmentServiceHandlerClient(ctx context.Context, mux
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_LeaderboardsEnrichmentService_EnrichLeaderboards_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
 	return nil
 }
 

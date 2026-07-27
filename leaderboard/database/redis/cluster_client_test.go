@@ -5,8 +5,8 @@ package redis_test
 //	"time"
 //
 //	goredis "github.com/redis/go-redis/v9"
-//	"github.com/topfreegames/podium/leaderboard/v2/database/redis"
-//	"github.com/topfreegames/podium/leaderboard/v2/testing"
+//	"github.com/TeneficGames/podium/leaderboard/database/redis"
+//	"github.com/TeneficGames/podium/leaderboard/testing"
 //
 //	. "github.com/onsi/ginkgo/v2"
 //	. "github.com/onsi/gomega"
@@ -285,7 +285,7 @@ package redis_test
 //	})
 //
 //	Describe("ZRank", func() {
-//		It("Should return member rank and nil if no error ocurr", func() {
+//		It("Should return member rank and nil if no error occurs", func() {
 //			score := 1.0
 //
 //			err := goRedis.ZAdd(context.Background(), testKey, &goredis.Z{Member: member, Score: score}).Err()

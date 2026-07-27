@@ -16,19 +16,35 @@ Podium uses Redis to store leaderboard information. The container takes paramete
 
 Other than that, there are a couple more configurations you can pass using environment variables:
 
-* `PODIUM_NEWRELIC_KEY` - If you have a [New Relic](https://newrelic.com/) account, you can use this variable to specify your API Key to populate data with New Relic API;
-* `PODIUM_SENTRY_URL` - If you have a [sentry server](https://docs.getsentry.com/hosted/) you can use this variable to specify your project's URL to send errors to;
 * `PODIUM_BASICAUTH_USERNAME` - If you specify this key, Podium will be configured to use basic auth with this user;
-* `PODIUM_BASICAUTH_PASSWORD` - If you specify `BASICAUTH_USERNAME`, Podium will be configured to use basic auth with this password.
-* `PODIUM_EXTENSIONS_DOGSTATSD_HOST` - If you have a [statsd datadog daemon](https://docs.datadoghq.com/developers/dogstatsd/), Podium will publish metrics to the given host at a certain port. Ex. localhost:8125
-]* `PODIUM_EXTENSIONS_DOGSTATSD_RATE` - If you have a [statsd daemon](https://docs.datadoghq.com/developers/dogstatsd/), Podium will export metrics to the deamon at the given rate
-* `PODIUM_EXTENSIONS_DOGSTATSD_TAGS_PREFIX` - If you have a [statsd daemon](https://docs.datadoghq.com/developers/dogstatsd/), you may set a prefix to every tag sent to the daemon
+* `PODIUM_BASICAUTH_PASSWORD` - If you specify `PODIUM_BASICAUTH_USERNAME`, Podium will be configured to use basic auth with this password.
+
+## Observability
+
+Podium exports traces and metrics over OTLP/gRPC when an OTLP endpoint is configured. It uses the standard OpenTelemetry environment variables:
+
+* `OTEL_SERVICE_NAME` - Service name, defaulting to `podium` for the API and `podium-worker` for the expiration worker.
+* `OTEL_EXPORTER_OTLP_ENDPOINT` - Shared OTLP collector endpoint.
+* `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` - Optional trace-specific endpoint.
+* `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` - Optional metric-specific endpoint.
+* `OTEL_EXPORTER_OTLP_INSECURE=true` - Use plaintext transport for a local collector.
+* `OTEL_EXPORTER_OTLP_PROTOCOL=grpc` - Podium currently supports OTLP/gRPC.
+* `OTEL_TRACES_SAMPLER` - Trace sampler, such as `parentbased_traceidratio`.
+* `OTEL_TRACES_SAMPLER_ARG` - Sampling ratio used by ratio-based samplers.
+* `OTEL_TRACES_EXPORTER=otlp` - Enable trace export using the default endpoint when no endpoint variable is set.
+* `OTEL_TRACES_EXPORTER=none` - Disable trace export.
+* `OTEL_METRICS_EXPORTER=otlp` - Enable metric export using the default endpoint when no endpoint variable is set.
+* `OTEL_METRICS_EXPORTER=none` - Disable metric export.
+
+Errors are sent to Sentry when `SENTRY_DSN` is set. `SENTRY_ENVIRONMENT` and `SENTRY_RELEASE` add deployment metadata. Telemetry export is disabled by default, so local development does not require a collector or Sentry account.
+
+Invalid exporter, protocol, sampler, and sample-ratio values fail application startup. See the [modernization and observability review](upgrade-review.md) for the supported values, emitted metrics, and remaining operational decisions.
 
 ## Binaries
 
 Whenever we publish a new version of Podium, we'll always supply binaries for both Linux and Darwin, on i386 and x86_64 architectures. If you'd rather run your own servers instead of containers, just use the binaries that match your platform and architecture.
 
-The API server is the `podium` binary. It takes a configuration yaml file that specifies the connection to Redis and some additional parameters. You can learn more about it at [default.yaml](https://github.com/topfreegames/podium/blob/master/config/default.yaml).
+The API server is the `podium` binary. It takes a configuration yaml file that specifies the connection to Redis and some additional parameters. You can learn more about it at [default.yaml](https://github.com/TeneficGames/podium/blob/master/config/default.yaml).
 
 ## Source
 

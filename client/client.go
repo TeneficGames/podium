@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"strings"
@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/spf13/viper"
-	ehttp "github.com/topfreegames/extensions/http"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 // RequestError contains code and body of a request that failed
@@ -62,14 +62,14 @@ type Member struct {
 	PreviousRank  int
 }
 
-//MemberList is a list of member
+// MemberList is a list of member
 type MemberList struct {
 	Members  []*Member
 	Member   *Member
 	NotFound []string
 }
 
-//Score will represent a member Score in a Leaderboard
+// Score will represent a member Score in a Leaderboard
 type Score struct {
 	LeaderboardID string
 	PublicID      string
@@ -78,12 +78,12 @@ type Score struct {
 	PreviousRank  int
 }
 
-//ScoreList is a list of Scores
+// ScoreList is a list of Scores
 type ScoreList struct {
 	Scores []*Score
 }
 
-//Response will determine if a request has been succeeded
+// Response will determine if a request has been succeeded
 type Response struct {
 	Success bool
 	Reason  string
@@ -92,10 +92,9 @@ type Response struct {
 func getHTTPClient(timeout time.Duration, maxIdleConns, maxIdleConnsPerHost int) *http.Client {
 	once.Do(func() {
 		client = &http.Client{
-			Transport: getHTTPTransport(maxIdleConns, maxIdleConnsPerHost),
+			Transport: otelhttp.NewTransport(getHTTPTransport(maxIdleConns, maxIdleConnsPerHost)),
 			Timeout:   timeout,
 		}
-		ehttp.Instrument(client)
 	})
 	return client
 }
@@ -147,6 +146,10 @@ func NewPodium(config *viper.Viper) PodiumInterface {
 }
 
 func (p *Podium) sendTo(ctx context.Context, method, url string, payload map[string]interface{}) ([]byte, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
 	payloadJSON, err := json.Marshal(payload)
 	if err != nil {
 		return nil, err
@@ -155,30 +158,27 @@ func (p *Podium) sendTo(ctx context.Context, method, url string, payload map[str
 	var req *http.Request
 
 	if payload != nil {
-		req, err = http.NewRequest(method, url, bytes.NewBuffer(payloadJSON))
+		req, err = http.NewRequestWithContext(ctx, method, url, bytes.NewReader(payloadJSON))
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		req, err = http.NewRequest(method, url, nil)
+		req, err = http.NewRequestWithContext(ctx, method, url, nil)
 		if err != nil {
 			return nil, err
 		}
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.SetBasicAuth(p.User, p.Pass)
-	if ctx == nil {
-		ctx = context.Background()
-	}
-	req = req.WithContext(ctx)
-
 	resp, err := p.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
-	body, respErr := ioutil.ReadAll(resp.Body)
+	body, respErr := io.ReadAll(resp.Body)
 	if respErr != nil {
 		return nil, respErr
 	}

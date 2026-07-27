@@ -2,8 +2,9 @@ package enriching
 
 import (
 	"context"
-	"github.com/topfreegames/podium/leaderboard/v2/model"
 	"time"
+
+	"github.com/TeneficGames/podium/leaderboard/model"
 )
 
 type Enricher interface {

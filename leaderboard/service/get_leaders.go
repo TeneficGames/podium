@@ -2,9 +2,10 @@ package service
 
 import (
 	"context"
+	"errors"
 	"math"
 
-	"github.com/topfreegames/podium/leaderboard/v2/model"
+	"github.com/TeneficGames/podium/leaderboard/model"
 )
 
 const getLeadersServiceLabel = "get leaders"
@@ -13,7 +14,8 @@ const getLeadersServiceLabel = "get leaders"
 func (s *Service) GetLeaders(ctx context.Context, leaderboard string, pageSize, page int, order string) ([]*model.Member, error) {
 	page, err := s.ensureValidPage(ctx, leaderboard, pageSize, page)
 	if err != nil {
-		if _, ok := err.(*PageOutOfRangeError); ok {
+		var pageErr *PageOutOfRangeError
+		if errors.As(err, &pageErr) {
 			return []*model.Member{}, nil
 		}
 

@@ -63,7 +63,7 @@ func (c *standaloneClient) ExpireAt(ctx context.Context, key string, time time.T
 		return NewGeneralError(err.Error())
 	}
 
-	if result != true {
+	if !result {
 		return NewKeyNotFoundError(key)
 	}
 	return nil
@@ -169,7 +169,7 @@ func (c *standaloneClient) ZRange(ctx context.Context, key string, start, stop i
 		return nil, NewGeneralError(err.Error())
 	}
 
-	var members []*Member = make([]*Member, 0, len(result))
+	members := make([]*Member, 0, len(result))
 	for _, member := range result {
 		members = append(members, &Member{
 			Member: fmt.Sprint(member.Member),
@@ -182,7 +182,9 @@ func (c *standaloneClient) ZRange(ctx context.Context, key string, start, stop i
 
 // ZRangeByScore call redis ZRANGEBYSCORE command
 func (c *standaloneClient) ZRangeByScore(ctx context.Context, key string, min, max string, offset, count int64) ([]string, error) {
-	result, err := c.Client.ZRangeByScore(ctx, key, &goredis.ZRangeBy{Min: min, Max: max, Offset: offset, Count: count}).Result()
+	result, err := c.Client.ZRangeArgs(ctx, goredis.ZRangeArgs{
+		Key: key, Start: min, Stop: max, ByScore: true, Offset: offset, Count: count,
+	}).Result()
 	if err != nil {
 		return nil, NewGeneralError(err.Error())
 	}
@@ -219,7 +221,7 @@ func (c *standaloneClient) ZRevRange(ctx context.Context, key string, start, sto
 		return nil, NewGeneralError(err.Error())
 	}
 
-	var members []*Member = make([]*Member, 0, len(result))
+	members := make([]*Member, 0, len(result))
 	for _, member := range result {
 		members = append(members, &Member{
 			Member: fmt.Sprint(member.Member),
@@ -232,7 +234,9 @@ func (c *standaloneClient) ZRevRange(ctx context.Context, key string, start, sto
 
 // ZRevRangeByScore call redis ZREVRANGEBYSCORE command
 func (c *standaloneClient) ZRevRangeByScore(ctx context.Context, key string, min, max string, offset, count int64) ([]string, error) {
-	result, err := c.Client.ZRevRangeByScore(ctx, key, &goredis.ZRangeBy{Min: min, Max: max, Offset: offset, Count: count}).Result()
+	result, err := c.Client.ZRangeArgs(ctx, goredis.ZRangeArgs{
+		Key: key, Start: max, Stop: min, ByScore: true, Rev: true, Offset: offset, Count: count,
+	}).Result()
 	if err != nil {
 		return nil, NewGeneralError(err.Error())
 	}

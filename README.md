@@ -1,13 +1,35 @@
 # Podium
 
-[![Podium](https://github.com/topfreegames/podium/actions/workflows/go.yml/badge.svg)](https://github.com/topfreegames/podium/actions/workflows/go.yml)
-[![Coverage Status](https://coveralls.io/repos/github/topfreegames/podium/badge.svg?branch=master)](https://coveralls.io/github/topfreegames/podium?branch=master)
-[![Go Report Card](https://goreportcard.com/badge/github.com/topfreegames/podium)](https://goreportcard.com/report/github.com/topfreegames/podium)
-[![Docs](https://readthedocs.org/projects/podium/badge/?version=latest)](http://podium.readthedocs.io/en/latest/)
-[![GoDoc](https://godoc.org/github.com/topfreegames/podium/leaderboard?status.svg)](https://godoc.org/github.com/topfreegames/podium/leaderboard)
-[![](https://imagelayers.io/badge/tfgco/podium:latest.svg)](https://imagelayers.io/?images=tfgco/podium:latest 'Podium Image Layers')
+[![Podium](https://github.com/TeneficGames/podium/actions/workflows/go.yml/badge.svg)](https://github.com/TeneficGames/podium/actions/workflows/go.yml)
+[![codecov](https://codecov.io/gh/TeneficGames/podium/branch/main/graph/badge.svg)](https://codecov.io/gh/TeneficGames/podium)
+[![Go Report Card](https://goreportcard.com/badge/github.com/TeneficGames/podium)](https://goreportcard.com/report/github.com/TeneficGames/podium)
+[![Go Reference](https://pkg.go.dev/badge/github.com/TeneficGames/podium/leaderboard.svg)](https://pkg.go.dev/github.com/TeneficGames/podium/leaderboard)
 
-A leaderboard system written in [Go](http://golang.org/) using [Redis](http://redis.io/) database. For more info, [read the docs](http://podium.readthedocs.io/en/latest/).
+A leaderboard system written in [Go](https://go.dev/) using [Redis](https://redis.io/). See the [documentation](docs/overview.md) for an overview.
+
+Requirements
+------------
+
+Development and CI use Go 1.26 and Redis 8.
+
+The completed modernization and observability assessment is documented in
+[docs/upgrade-review.md](docs/upgrade-review.md).
+
+Module paths
+------------
+
+The canonical Go modules are:
+
+* `github.com/TeneficGames/podium`
+* `github.com/TeneficGames/podium/leaderboard`
+* `github.com/TeneficGames/podium/client`
+
+The leaderboard module starts at v1. Go v1 module paths intentionally omit a
+`/v1` suffix; releases for this nested module use tags such as
+`leaderboard/v1.0.0`.
+
+The move from `github.com/topfreegames/podium` changes import paths and should be
+treated as a breaking change by downstream consumers.
 
 Features
 --------
@@ -27,7 +49,7 @@ Installation
 
 Install Leaderboard using the "go get" command:
 
-    go get github.com/topfreegames/podium
+    go get github.com/TeneficGames/podium/leaderboard@v1
 
 And then run
 
@@ -42,7 +64,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/topfreegames/podium/leaderboard"
+	"github.com/TeneficGames/podium/leaderboard"
 )
 
 func main() {
@@ -108,8 +130,7 @@ Our builds also show the difference to the previous build.
 
 License
 -------
-© 2016, Top Free Games. Released under the [MIT License](LICENSE).
+© 2026, Tenefic Games. Released under the [MIT License](LICENSE).
 
 Forked from:
-[© 2013, Maxwell Dayvson da Silva.](https://github.com/dayvson/go-leaderboard)
-
+[© 2016, Top Free Games.](https://github.com/topfreegames/podium)

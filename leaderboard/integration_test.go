@@ -1,11 +1,11 @@
 // podium
-// https://github.com/topfreegames/podium
+// https://github.com/TeneficGames/podium
 // Licensed under the MIT license:
 // http://www.opensource.org/licenses/mit-license
-// Copyright © 2016 Top Free Games <backend@tfgco.com>
+// Copyright © 2026 Tenefic Games
 // Forked from
-// https://github.com/dayvson/go-leaderboard
-// Copyright © 2013 Maxwell Dayvson da Silva
+// https://github.com/topfreegames/podium
+// Copyright © 2016 Top Free Games
 
 package leaderboard_test
 
@@ -15,14 +15,14 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/topfreegames/podium/leaderboard/v2/database"
-	"github.com/topfreegames/podium/leaderboard/v2/database/redis"
-	"github.com/topfreegames/podium/leaderboard/v2/testing"
+	"github.com/TeneficGames/podium/leaderboard/database"
+	"github.com/TeneficGames/podium/leaderboard/database/redis"
+	"github.com/TeneficGames/podium/leaderboard/testing"
 
+	"github.com/TeneficGames/podium/leaderboard/model"
+	"github.com/TeneficGames/podium/leaderboard/service"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/topfreegames/podium/leaderboard/v2/model"
-	"github.com/topfreegames/podium/leaderboard/v2/service"
 
 	uuid "github.com/google/uuid"
 )
@@ -707,11 +707,9 @@ var _ = Describe("Leaderboard integration tests", func() {
 	Describe("get top x percent of members in the leaderboard", func() {
 		It("should get top 10 percent members in the leaderboard", func() {
 			leaderboardID := uuid.New().String()
-			members := []*model.Member{}
 			for i := 0; i < 100; i++ {
-				member, err := leaderboards.SetMemberScore(NewEmptyCtx(), leaderboardID, fmt.Sprintf("friend-%d", i), int64((100-i)*100), false, "")
+				_, err := leaderboards.SetMemberScore(NewEmptyCtx(), leaderboardID, fmt.Sprintf("friend-%d", i), int64((100-i)*100), false, "")
 				Expect(err).NotTo(HaveOccurred())
-				members = append(members, member)
 			}
 
 			top10, err := leaderboards.GetTopPercentage(NewEmptyCtx(), leaderboardID, 10, 10, 2000, "desc")
@@ -731,11 +729,9 @@ var _ = Describe("Leaderboard integration tests", func() {
 		It("should not break if order is different from asc and desc, should only default to desc", func() {
 			leaderboardID := uuid.New().String()
 
-			members := []*model.Member{}
 			for i := 0; i < 100; i++ {
-				member, err := leaderboards.SetMemberScore(NewEmptyCtx(), leaderboardID, fmt.Sprintf("friend-%d", i), int64((100-i)*100), false, "")
+				_, err := leaderboards.SetMemberScore(NewEmptyCtx(), leaderboardID, fmt.Sprintf("friend-%d", i), int64((100-i)*100), false, "")
 				Expect(err).NotTo(HaveOccurred())
-				members = append(members, member)
 			}
 
 			top10, err := leaderboards.GetTopPercentage(NewEmptyCtx(), leaderboardID, 10, 10, 2000, "lalala")
@@ -755,11 +751,9 @@ var _ = Describe("Leaderboard integration tests", func() {
 		It("should get top 10 percent members in the leaderboard in reverse order", func() {
 			leaderboardID := uuid.New().String()
 
-			members := []*model.Member{}
 			for i := 0; i < 100; i++ {
-				member, err := leaderboards.SetMemberScore(NewEmptyCtx(), leaderboardID, fmt.Sprintf("friend-%d", i), int64((100-i)*100), false, "")
+				_, err := leaderboards.SetMemberScore(NewEmptyCtx(), leaderboardID, fmt.Sprintf("friend-%d", i), int64((100-i)*100), false, "")
 				Expect(err).NotTo(HaveOccurred())
-				members = append(members, member)
 			}
 
 			top10, err := leaderboards.GetTopPercentage(NewEmptyCtx(), leaderboardID, 10, 10, 2000, "asc")
@@ -779,11 +773,9 @@ var _ = Describe("Leaderboard integration tests", func() {
 		It("should get max members if query too broad", func() {
 			leaderboardID := uuid.New().String()
 
-			members := []*model.Member{}
 			for i := 0; i < 10; i++ {
-				member, err := leaderboards.SetMemberScore(NewEmptyCtx(), leaderboardID, fmt.Sprintf("friend-%d", i), int64((100-i)*100), false, "")
+				_, err := leaderboards.SetMemberScore(NewEmptyCtx(), leaderboardID, fmt.Sprintf("friend-%d", i), int64((100-i)*100), false, "")
 				Expect(err).NotTo(HaveOccurred())
-				members = append(members, member)
 			}
 
 			top3, err := leaderboards.GetTopPercentage(NewEmptyCtx(), leaderboardID, 10, 100, 3, "desc")
@@ -803,11 +795,9 @@ var _ = Describe("Leaderboard integration tests", func() {
 		It("should get top 1 percent return at least 1", func() {
 			leaderboardID := uuid.New().String()
 
-			members := []*model.Member{}
 			for i := 0; i < 2; i++ {
-				member, err := leaderboards.SetMemberScore(NewEmptyCtx(), leaderboardID, fmt.Sprintf("friend-%d", i), int64((100-i)*100), false, "")
+				_, err := leaderboards.SetMemberScore(NewEmptyCtx(), leaderboardID, fmt.Sprintf("friend-%d", i), int64((100-i)*100), false, "")
 				Expect(err).NotTo(HaveOccurred())
-				members = append(members, member)
 			}
 
 			top10, err := leaderboards.GetTopPercentage(NewEmptyCtx(), leaderboardID, 10, 1, 2000, "desc")
@@ -823,11 +813,9 @@ var _ = Describe("Leaderboard integration tests", func() {
 		It("should get top 10 percent members in the leaderboard if repeated scores", func() {
 			leaderboardID := uuid.New().String()
 
-			members := []*model.Member{}
 			for i := 0; i < 100; i++ {
-				member, err := leaderboards.SetMemberScore(NewEmptyCtx(), leaderboardID, fmt.Sprintf("friend-%d", i), 100, false, "")
+				_, err := leaderboards.SetMemberScore(NewEmptyCtx(), leaderboardID, fmt.Sprintf("friend-%d", i), 100, false, "")
 				Expect(err).NotTo(HaveOccurred())
-				members = append(members, member)
 			}
 
 			top10, err := leaderboards.GetTopPercentage(NewEmptyCtx(), leaderboardID, 10, 10, 2000, "desc")

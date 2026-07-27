@@ -543,7 +543,7 @@ definitions:
       leaderboardId:
         type: string
         description: The leaderboard's ID.
-      memberId:
+      id:
         type: string
         description: The member's ID.
       scores:
@@ -747,12 +747,6 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1.Member'
-  HealthCheckResponse:
-    type: object
-    properties:
-      workingString:
-        type: string
-        description: The string configured on healthcheck.workingText to represent that the service is up.
   IncrementScoreResponse:
     type: object
     properties:
@@ -861,13 +855,6 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/Any'
-  StatusResponse:
-    type: object
-    properties:
-      errorRate:
-        type: number
-        format: double
-        description: Rate of errors per second.
   TotalMembersResponse:
     type: object
     properties:

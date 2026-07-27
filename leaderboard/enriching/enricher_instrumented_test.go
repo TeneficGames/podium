@@ -3,11 +3,12 @@ package enriching
 import (
 	"context"
 	"errors"
-	"github.com/golang/mock/gomock"
+
+	mock_enriching "github.com/TeneficGames/podium/leaderboard/mocks"
+	"github.com/TeneficGames/podium/leaderboard/model"
 	. "github.com/onsi/ginkgo/v2"
-	extmocks "github.com/topfreegames/extensions/middleware/mocks"
-	mock_enriching "github.com/topfreegames/podium/leaderboard/v2/mocks"
-	"github.com/topfreegames/podium/leaderboard/v2/model"
+	. "github.com/onsi/gomega"
+	"go.uber.org/mock/gomock"
 )
 
 var _ = Describe("Instrumented enricher", func() {
@@ -29,31 +30,28 @@ var _ = Describe("Instrumented enricher", func() {
 		ctrl.Finish()
 	})
 
-	It("should send metrics if tenant ID is configured", func() {
-		mockReporter := extmocks.NewMockMetricsReporter(ctrl)
+	It("should return enriched members", func() {
 		impl := mock_enriching.NewMockEnricher(ctrl)
 
-		enricher := NewInstrumentedEnricher(impl, mockReporter)
+		enricher, err := NewInstrumentedEnricher(impl)
+		Expect(err).NotTo(HaveOccurred())
 
 		impl.EXPECT().Enrich(gomock.Any(), tenantID, leaderboardID, members).Return(members, nil)
-		mockReporter.EXPECT().Increment(enrichmentCalls)
-		mockReporter.EXPECT().Timing(enrichmentTimingMilli, gomock.Any())
 
-		_, _ = enricher.Enrich(ctx, tenantID, leaderboardID, members)
-
+		result, err := enricher.Enrich(ctx, tenantID, leaderboardID, members)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal(members))
 	})
 
-	It("should send error metric if enrichment returns error", func() {
-		mockReporter := extmocks.NewMockMetricsReporter(ctrl)
+	It("should return enrichment errors", func() {
 		impl := mock_enriching.NewMockEnricher(ctrl)
 
-		enricher := NewInstrumentedEnricher(impl, mockReporter)
+		enricher, err := NewInstrumentedEnricher(impl)
+		Expect(err).NotTo(HaveOccurred())
 
 		impl.EXPECT().Enrich(gomock.Any(), tenantID, leaderboardID, members).Return(nil, errors.New("error"))
-		mockReporter.EXPECT().Increment(enrichmentCalls)
-		mockReporter.EXPECT().Increment(enrichmentErrors)
-		mockReporter.EXPECT().Timing(enrichmentTimingMilli, gomock.Any())
 
-		_, _ = enricher.Enrich(ctx, tenantID, leaderboardID, members)
+		_, err = enricher.Enrich(ctx, tenantID, leaderboardID, members)
+		Expect(err).To(MatchError("error"))
 	})
 })

@@ -1,8 +1,8 @@
 version: v1
 
-name: buf.build/topfreegames/podium
+name: buf.build/teneficgames/podium
 deps:
-  - buf.build/googleapis/googleapis:googleapis
+  - buf.build/googleapis/googleapis
 
 breaking:
   use:

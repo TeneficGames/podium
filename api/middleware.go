@@ -1,11 +1,11 @@
 // podium
-// https://github.com/topfreegames/podium
+// https://github.com/TeneficGames/podium
 // Licensed under the MIT license:
 // http://www.opensource.org/licenses/mit-license
-// Copyright © 2016 Top Free Games <backend@tfgco.com>
+// Copyright © 2026 Tenefic Games
 // Forked from
-// https://github.com/dayvson/go-leaderboard
-// Copyright © 2013 Maxwell Dayvson da Silva
+// https://github.com/topfreegames/podium
+// Copyright © 2016 Top Free Games
 
 package api
 
@@ -17,18 +17,16 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/topfreegames/podium/log"
+	"github.com/TeneficGames/podium/log"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
+	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/auth"
 )
-
-type newRelicContextKey struct {
-	key string
-}
 
 func (app *App) noAuthMiddleware(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 	return handler(ctx, req)
@@ -94,14 +92,16 @@ func (app *App) loggerMiddleware(ctx context.Context, req interface{}, info *grp
 }
 
 // Serve executes on error handler when errors happen
-func (app *App) recoveryMiddleware(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+func (app *App) recoveryMiddleware(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (response interface{}, responseErr error) {
 	defer func() {
 		if err := recover(); err != nil {
 			eError, ok := err.(error)
 			if !ok {
 				eError = fmt.Errorf("%v", err)
 			}
-			app.OnErrorHandler(eError, debug.Stack())
+			app.onErrorHandler(ctx, eError, debug.Stack())
+			response = nil
+			responseErr = status.Error(codes.Internal, "internal server error")
 		}
 	}()
 	return handler(ctx, req)
@@ -111,17 +111,14 @@ func (app *App) responseTimeMetricsMiddleware(ctx context.Context, req interface
 	startTime := time.Now()
 	h, err := handler(ctx, req)
 	timeUsed := time.Since(startTime)
-	_, st := app.getStatusCodeFromError(err)
 	method := info.FullMethod
 
-	tags := []string{
-		fmt.Sprintf("method:%s", method),
-		fmt.Sprintf("status:%d", st),
-	}
-
-	if err := app.DDStatsD.Timing("response_time_milliseconds", timeUsed, tags...); err != nil {
-		app.Logger.Error("DDStatsD Timing", zap.Error(err))
-	}
+	app.requestDuration.Record(ctx, timeUsed.Seconds(),
+		metric.WithAttributes(
+			attribute.String("rpc.method", method),
+			attribute.Int("rpc.grpc.status_code", int(status.Code(err))),
+		),
+	)
 
 	return h, err
 }

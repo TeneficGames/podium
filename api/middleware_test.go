@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/spf13/viper"
@@ -26,7 +25,7 @@ func TestBasicAuthMiddleware(t *testing.T) {
 
 	for _, test := range tests {
 		ctx := context.Background()
-		ctx = metadata.NewIncomingContext(ctx, metadata.Pairs("authorization", fmt.Sprintf("%s", test.auth)))
+		ctx = metadata.NewIncomingContext(ctx, metadata.Pairs("authorization", test.auth))
 
 		app.Config.Set("basicauth.username", test.user)
 		app.Config.Set("basicauth.password", test.pwd)

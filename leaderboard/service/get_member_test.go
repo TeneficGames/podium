@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/golang/mock/gomock"
+	"github.com/TeneficGames/podium/leaderboard/database"
+	"github.com/TeneficGames/podium/leaderboard/model"
+	"github.com/TeneficGames/podium/leaderboard/service"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/topfreegames/podium/leaderboard/v2/database"
-	"github.com/topfreegames/podium/leaderboard/v2/model"
-	"github.com/topfreegames/podium/leaderboard/v2/service"
+	"go.uber.org/mock/gomock"
 )
 
 var _ = Describe("Service GetMember", func() {
@@ -36,7 +36,7 @@ var _ = Describe("Service GetMember", func() {
 
 	It("Should return member if all is OK", func() {
 		membersDatabaseReturn := []*database.Member{
-			&database.Member{
+			{
 				Member: "member1",
 				Score:  float64(1),
 				Rank:   int64(0),
@@ -61,7 +61,7 @@ var _ = Describe("Service GetMember", func() {
 
 	It("Should return member with Expire zero if database return empty time TTL", func() {
 		membersDatabaseReturn := []*database.Member{
-			&database.Member{
+			{
 				Member: "member1",
 				Score:  float64(1),
 				Rank:   int64(0),

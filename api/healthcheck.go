@@ -1,11 +1,11 @@
 // podium
-// https://github.com/topfreegames/podium
+// https://github.com/TeneficGames/podium
 // Licensed under the MIT license:
 // http://www.opensource.org/licenses/mit-license
-// Copyright © 2016 Top Free Games <backend@tfgco.com>
+// Copyright © 2026 Tenefic Games
 // Forked from
-// https://github.com/dayvson/go-leaderboard
-// Copyright © 2013 Maxwell Dayvson da Silva
+// https://github.com/topfreegames/podium
+// Copyright © 2016 Top Free Games
 
 package api
 
@@ -19,7 +19,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	api "github.com/topfreegames/podium/proto/podium/api/v1"
+	api "github.com/TeneficGames/podium/proto/podium/api/v1"
 )
 
 // healthCheckHandler is the handler responsible for validating that the app is still up.
@@ -43,9 +43,7 @@ func (app *App) healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 // Healthcheck handle grpc requests to healthcheck
 func (app *App) HealthCheck(ctx context.Context, req *api.HealthCheckRequest) (*api.HealthCheckResponse, error) {
 	err := withSegment("redis", ctx, func() error {
-		var err error
-
-		err = app.Leaderboards.Healthcheck(ctx)
+		err := app.Leaderboards.Healthcheck(ctx)
 		if err != nil {
 			return status.Errorf(codes.Internal, "Error trying to ping redis: %v", err)
 		}

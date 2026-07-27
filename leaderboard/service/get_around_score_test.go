@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/golang/mock/gomock"
+	"github.com/TeneficGames/podium/leaderboard/database"
+	"github.com/TeneficGames/podium/leaderboard/model"
+	"github.com/TeneficGames/podium/leaderboard/service"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/topfreegames/podium/leaderboard/v2/database"
-	"github.com/topfreegames/podium/leaderboard/v2/model"
-	"github.com/topfreegames/podium/leaderboard/v2/service"
+	"go.uber.org/mock/gomock"
 )
 
 var _ = Describe("Service GetAroundScore", func() {
@@ -41,17 +41,17 @@ var _ = Describe("Service GetAroundScore", func() {
 		stop := 8
 
 		membersDatabaseReturn := []*database.Member{
-			&database.Member{
+			{
 				Member: "member1",
 				Score:  float64(1),
 				Rank:   5,
 			},
-			&database.Member{
+			{
 				Member: "member2",
 				Score:  float64(2),
 				Rank:   6,
 			},
-			&database.Member{
+			{
 				Member: "member3",
 				Score:  float64(3),
 				Rank:   7,
@@ -59,17 +59,17 @@ var _ = Describe("Service GetAroundScore", func() {
 		}
 
 		membersReturn := []*model.Member{
-			&model.Member{
+			{
 				PublicID: "member1",
 				Score:    1,
 				Rank:     6,
 			},
-			&model.Member{
+			{
 				PublicID: "member2",
 				Score:    2,
 				Rank:     7,
 			},
-			&model.Member{
+			{
 				PublicID: "member3",
 				Score:    3,
 				Rank:     8,
@@ -187,7 +187,7 @@ var _ = Describe("Service GetAroundScore", func() {
 		mock.EXPECT().GetRank(gomock.Any(), gomock.Eq(leaderboard), gomock.Eq(member), gomock.Eq(order)).Return(rank, nil)
 		mock.EXPECT().GetTotalMembers(gomock.Any(), gomock.Eq(leaderboard)).Return(totalMembers, nil)
 
-		//this is the assertation relevant to this test
+		// This is the assertion relevant to this test.
 		mock.EXPECT().GetOrderedMembers(gomock.Any(), gomock.Eq(leaderboard), gomock.Eq(start), gomock.Eq(stop), gomock.Eq(order)).Times(1).Return(nil, fmt.Errorf("database error"))
 
 		svc.GetAroundScore(context.Background(), leaderboard, pageSize, score, order)
@@ -203,7 +203,7 @@ var _ = Describe("Service GetAroundScore", func() {
 		mock.EXPECT().GetRank(gomock.Any(), gomock.Eq(leaderboard), gomock.Eq(member), gomock.Eq(order)).Return(rank, nil)
 		mock.EXPECT().GetTotalMembers(gomock.Any(), gomock.Eq(leaderboard)).Return(totalMembers, nil)
 
-		//this is the assertation relevant to this test
+		// This is the assertion relevant to this test.
 		mock.EXPECT().GetOrderedMembers(gomock.Any(), gomock.Eq(leaderboard), gomock.Eq(start), gomock.Eq(stop), gomock.Eq(order)).Times(1).Return(nil, fmt.Errorf("database error"))
 
 		svc.GetAroundScore(context.Background(), leaderboard, pageSize, score, order)
@@ -219,7 +219,7 @@ var _ = Describe("Service GetAroundScore", func() {
 		mock.EXPECT().GetRank(gomock.Any(), gomock.Eq(leaderboard), gomock.Eq(member), gomock.Eq(order)).Return(rank, nil)
 		mock.EXPECT().GetTotalMembers(gomock.Any(), gomock.Eq(leaderboard)).Return(totalMembers, nil)
 
-		//this is the assertation relevant to this test
+		// This is the assertion relevant to this test.
 		mock.EXPECT().GetOrderedMembers(gomock.Any(), gomock.Eq(leaderboard), gomock.Eq(start), gomock.Eq(stop), gomock.Eq(order)).Times(1).Return(nil, fmt.Errorf("database error"))
 
 		svc.GetAroundScore(context.Background(), leaderboard, pageSize, score, order)

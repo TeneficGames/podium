@@ -1,11 +1,11 @@
 // podium
-// https://github.com/topfreegames/podium
+// https://github.com/TeneficGames/podium
 // Licensed under the MIT license:
 // http://www.opensource.org/licenses/mit-license
-// Copyright © 2016 Top Free Games <backend@tfgco.com>
+// Copyright © 2026 Tenefic Games
 // Forked from
-// https://github.com/dayvson/go-leaderboard
-// Copyright © 2013 Maxwell Dayvson da Silva
+// https://github.com/topfreegames/podium
+// Copyright © 2016 Top Free Games
 
 package api_test
 
@@ -19,22 +19,21 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/mock/gomock"
-	mock_enriching "github.com/topfreegames/podium/leaderboard/v2/mocks"
-	"github.com/topfreegames/podium/leaderboard/v2/model"
+	mock_enriching "github.com/TeneficGames/podium/leaderboard/mocks"
+	"github.com/TeneficGames/podium/leaderboard/model"
+	"go.uber.org/mock/gomock"
 
-	"github.com/topfreegames/podium/api"
-	"github.com/topfreegames/podium/leaderboard/v2/database/redis"
-	"github.com/topfreegames/podium/testing"
+	"github.com/TeneficGames/podium/api"
+	"github.com/TeneficGames/podium/leaderboard/database/redis"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	. "github.com/TeneficGames/podium/testing"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	. "github.com/topfreegames/podium/testing"
 
+	pb "github.com/TeneficGames/podium/proto/podium/api/v1"
 	uuid "github.com/google/uuid"
-	pb "github.com/topfreegames/podium/proto/podium/api/v1"
 )
 
 var _ = Describe("Leaderboard Handler", Ordered, func() {
@@ -44,7 +43,7 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 
 	BeforeAll(func() {
 		app = GetDefaultTestApp()
-		testing.InitializeTestServer(app)
+		InitializeTestServer(app)
 
 		var err error
 		redisClient, err = GetTestingRedis(app)
@@ -87,7 +86,7 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 					time.Now().UTC().Add(time.Duration(-2)*time.Second).Unix(),
 					time.Now().UTC().Add(time.Duration(-1)*time.Second).Unix(),
 				),
-				fmt.Sprintf("testkey-from20180101to20180105"),
+				"testkey-from20180101to20180105",
 				fmt.Sprintf(
 					"testkey-year%d",
 					time.Now().UTC().AddDate(-2, 0, 0).Year(),
@@ -406,8 +405,8 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 			Expect(err).NotTo(HaveOccurred())
 			ctx["payload"] = payloadJSON
 		}, func(httpEndPoint string, ctx map[string]interface{}) {
-			url := testing.GetRoute(httpEndPoint, "/l/testkey/scores")
-			status, body, err := testing.FastPutTo(url, ctx["payload"].([]byte))
+			url := GetRoute(httpEndPoint, "/l/testkey/scores")
+			status, body, err := FastPutTo(url, ctx["payload"].([]byte))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(status).To(Equal(http.StatusOK), string(body))
 		}, 0.1)
@@ -624,8 +623,8 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 			Expect(err).NotTo(HaveOccurred())
 			ctx["payload"] = payloadJSON
 		}, func(httpEndPoint string, ctx map[string]interface{}) {
-			url := testing.GetRoute(httpEndPoint, "/l/testkey/members/memberpublicid/score")
-			status, body, err := testing.FastPutTo(url, ctx["payload"].([]byte))
+			url := GetRoute(httpEndPoint, "/l/testkey/members/memberpublicid/score")
+			status, body, err := FastPutTo(url, ctx["payload"].([]byte))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(status).To(Equal(http.StatusOK), string(body))
 		}, 0.05)
@@ -757,8 +756,8 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 			Expect(err).NotTo(HaveOccurred())
 			ctx["payload"] = payloadJSON
 		}, func(httpEndPoint string, ctx map[string]interface{}) {
-			url := testing.GetRoute(httpEndPoint, "/l/testkey/members/memberpublicid/score")
-			status, body, err := testing.FastPatchTo(url, ctx["payload"].([]byte))
+			url := GetRoute(httpEndPoint, "/l/testkey/members/memberpublicid/score")
+			status, body, err := FastPatchTo(url, ctx["payload"].([]byte))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(status).To(Equal(http.StatusOK), string(body))
 		}, 0.05)
@@ -801,6 +800,7 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 
 		It("Should delete many member score from redis if they exists", func() {
 			_, err := app.Leaderboards.SetMemberScore(NewEmptyCtx(), testLeaderboardID, "memberpublicid", 100, false, "")
+			Expect(err).NotTo(HaveOccurred())
 			_, err = app.Leaderboards.SetMemberScore(NewEmptyCtx(), testLeaderboardID, "memberpublicid2", 100, false, "")
 			Expect(err).NotTo(HaveOccurred())
 
@@ -861,8 +861,8 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 		}, func(httpEndPoint string, ctx map[string]interface{}) {
 			lead := ctx["lead"].(string)
 			memberID := ctx["memberID"].(string)
-			url := testing.GetRoute(httpEndPoint, fmt.Sprintf("/l/%s/members?ids=%s", lead, memberID))
-			status, body, err := testing.FastDelete(url)
+			url := GetRoute(httpEndPoint, fmt.Sprintf("/l/%s/members?ids=%s", lead, memberID))
+			status, body, err := FastDelete(url)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(status).To(Equal(http.StatusOK), string(body))
 		}, 0.05)
@@ -1000,8 +1000,8 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 		}, func(httpEndPoint string, ctx map[string]interface{}) {
 			lead := ctx["lead"].(string)
 			memberID := ctx["memberID"].(string)
-			url := testing.GetRoute(httpEndPoint, fmt.Sprintf("/l/%s/members/%s", lead, memberID))
-			status, body, err := testing.FastGet(url)
+			url := GetRoute(httpEndPoint, fmt.Sprintf("/l/%s/members/%s", lead, memberID))
+			status, body, err := FastGet(url)
 			Expect(status).To(Equal(http.StatusOK), string(body))
 			Expect(err).NotTo(HaveOccurred())
 		}, 0.05)
@@ -1102,8 +1102,8 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 		}, func(httpEndPoint string, ctx map[string]interface{}) {
 			lead := ctx["lead"].(string)
 			memberID := ctx["memberID"].(string)
-			url := testing.GetRoute(httpEndPoint, fmt.Sprintf("/l/%s/members/%s/rank", lead, memberID))
-			status, body, err := testing.FastGet(url)
+			url := GetRoute(httpEndPoint, fmt.Sprintf("/l/%s/members/%s/rank", lead, memberID))
+			status, body, err := FastGet(url)
 			Expect(status).To(Equal(http.StatusOK), string(body))
 			Expect(err).NotTo(HaveOccurred())
 		}, 0.05)
@@ -1539,8 +1539,8 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 		}, func(httpEndPoint string, ctx map[string]interface{}) {
 			lead := ctx["lead"].(string)
 			memberID := ctx["memberID"].(string)
-			url := testing.GetRoute(httpEndPoint, fmt.Sprintf("/l/%s/members/%s/around", lead, memberID))
-			status, body, err := testing.FastGet(url)
+			url := GetRoute(httpEndPoint, fmt.Sprintf("/l/%s/members/%s/around", lead, memberID))
+			status, body, err := FastGet(url)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(status).To(Equal(http.StatusOK), string(body))
 		}, 0.05)
@@ -1939,8 +1939,8 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 			ctx["lead"] = lead
 		}, func(httpEndPoint string, ctx map[string]interface{}) {
 			lead := ctx["lead"].(string)
-			url := testing.GetRoute(httpEndPoint, fmt.Sprintf("/l/%s/members-count", lead))
-			status, body, err := testing.FastGet(url)
+			url := GetRoute(httpEndPoint, fmt.Sprintf("/l/%s/members-count", lead))
+			status, body, err := FastGet(url)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(status).To(Equal(http.StatusOK), string(body))
 		}, 0.05)
@@ -2267,8 +2267,8 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 			ctx["lead"] = lead
 		}, func(httpEndPoint string, ctx map[string]interface{}) {
 			lead := ctx["lead"].(string)
-			url := testing.GetRoute(httpEndPoint, fmt.Sprintf("/l/%s/top/10", lead))
-			status, body, err := testing.FastGet(url)
+			url := GetRoute(httpEndPoint, fmt.Sprintf("/l/%s/top/10", lead))
+			status, body, err := FastGet(url)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(status).To(Equal(http.StatusOK), string(body))
 		}, 0.05)
@@ -2472,8 +2472,8 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 			ctx["lead"] = lead
 		}, func(httpEndPoint string, ctx map[string]interface{}) {
 			lead := ctx["lead"].(string)
-			url := testing.GetRoute(httpEndPoint, fmt.Sprintf("/l/%s/top-percent/10", lead))
-			status, body, err := testing.FastGet(url)
+			url := GetRoute(httpEndPoint, fmt.Sprintf("/l/%s/top-percent/10", lead))
+			status, body, err := FastGet(url)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(status).To(Equal(http.StatusOK), string(body))
 		}, 0.05)
@@ -2674,8 +2674,8 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 
 			ctx["payload"] = payloadJSON
 		}, func(httpEndPoint string, ctx map[string]interface{}) {
-			url := testing.GetRoute(httpEndPoint, "/m/memberpublicid/scores")
-			status, body, err := testing.FastPutTo(url, ctx["payload"].([]byte))
+			url := GetRoute(httpEndPoint, "/m/memberpublicid/scores")
+			status, body, err := FastPutTo(url, ctx["payload"].([]byte))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(status).To(Equal(http.StatusOK), string(body))
 		}, 0.05)
@@ -2956,8 +2956,8 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 
 			ctx["mIDs"] = strings.Join(memberIDs, ",")
 		}, func(httpEndPoint string, ctx map[string]interface{}) {
-			url := testing.GetRoute(httpEndPoint, fmt.Sprintf("/l/%s/members?ids=%s", testLeaderboardID, ctx["mIDs"].(string)))
-			status, body, err := testing.FastGet(url)
+			url := GetRoute(httpEndPoint, fmt.Sprintf("/l/%s/members?ids=%s", testLeaderboardID, ctx["mIDs"].(string)))
+			status, body, err := FastGet(url)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(status).To(Equal(http.StatusOK), string(body))
 		}, 2)

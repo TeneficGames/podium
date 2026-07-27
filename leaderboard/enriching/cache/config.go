@@ -1,9 +1,10 @@
 package cache
 
 import (
-	"github.com/topfreegames/podium/leaderboard/v2/enriching"
-	"go.uber.org/zap"
 	"time"
+
+	"github.com/TeneficGames/podium/leaderboard/enriching"
+	"go.uber.org/zap"
 )
 
 type cacheConfig struct {

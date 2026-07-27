@@ -59,7 +59,7 @@ func (cc *clusterClient) ExpireAt(ctx context.Context, key string, time time.Tim
 		return NewGeneralError(err.Error())
 	}
 
-	if result != true {
+	if !result {
 		return NewKeyNotFoundError(key)
 	}
 
@@ -167,7 +167,7 @@ func (cc *clusterClient) ZRange(ctx context.Context, key string, start, stop int
 		return nil, NewGeneralError(err.Error())
 	}
 
-	var members []*Member = make([]*Member, 0, len(result))
+	members := make([]*Member, 0, len(result))
 	for _, member := range result {
 		members = append(members, &Member{
 			Member: fmt.Sprint(member.Member),
@@ -180,7 +180,9 @@ func (cc *clusterClient) ZRange(ctx context.Context, key string, start, stop int
 
 // ZRangeByScore call redis ZREVRANGEBYSCORE command
 func (cc *clusterClient) ZRangeByScore(ctx context.Context, key string, min, max string, offset, count int64) ([]string, error) {
-	result, err := cc.ClusterClient.ZRangeByScore(ctx, key, &goredis.ZRangeBy{Min: min, Max: max, Offset: offset, Count: count}).Result()
+	result, err := cc.ClusterClient.ZRangeArgs(ctx, goredis.ZRangeArgs{
+		Key: key, Start: min, Stop: max, ByScore: true, Offset: offset, Count: count,
+	}).Result()
 	if err != nil {
 		return nil, NewGeneralError(err.Error())
 	}
@@ -217,7 +219,7 @@ func (cc *clusterClient) ZRevRange(ctx context.Context, key string, start, stop 
 		return nil, NewGeneralError(err.Error())
 	}
 
-	var members []*Member = make([]*Member, 0, len(result))
+	members := make([]*Member, 0, len(result))
 	for _, member := range result {
 		members = append(members, &Member{
 			Member: fmt.Sprint(member.Member),
@@ -230,7 +232,9 @@ func (cc *clusterClient) ZRevRange(ctx context.Context, key string, start, stop 
 
 // ZRevRangeByScore call redis ZREVRANGEBYSCORE command
 func (cc *clusterClient) ZRevRangeByScore(ctx context.Context, key string, min, max string, offset, count int64) ([]string, error) {
-	result, err := cc.ClusterClient.ZRevRangeByScore(ctx, key, &goredis.ZRangeBy{Min: min, Max: max, Offset: offset, Count: count}).Result()
+	result, err := cc.ClusterClient.ZRangeArgs(ctx, goredis.ZRangeArgs{
+		Key: key, Start: max, Stop: min, ByScore: true, Rev: true, Offset: offset, Count: count,
+	}).Result()
 	if err != nil {
 		return nil, NewGeneralError(err.Error())
 	}

@@ -2,11 +2,12 @@ package enriching
 
 import (
 	"context"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-	"github.com/topfreegames/podium/leaderboard/v2/model"
 	"net/http"
 	"net/http/httptest"
+
+	"github.com/TeneficGames/podium/leaderboard/model"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Enricher tests", func() {

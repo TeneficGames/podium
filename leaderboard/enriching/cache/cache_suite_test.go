@@ -1,9 +1,10 @@
 package cache
 
 import (
+	"testing"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"testing"
 )
 
 func TestEnrichingCache(t *testing.T) {

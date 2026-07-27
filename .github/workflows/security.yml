@@ -1,0 +1,38 @@
+---
+name: Security
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  govulncheck:
+    name: govulncheck (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: server
+            workdir: .
+            go_sum: go.sum
+          - name: leaderboard
+            workdir: leaderboard
+            go_sum: leaderboard/go.sum
+          - name: client
+            workdir: client
+            go_sum: client/go.sum
+    steps:
+      - uses: actions/checkout@v6
+      - name: Scan
+        uses: golang/govulncheck-action@v1
+        with:
+          cache-dependency-path: ${{ matrix.go_sum }}
+          go-package: ./...
+          go-version-input: 1.26.5
+          repo-checkout: false
+          work-dir: ${{ matrix.workdir }}

@@ -2,14 +2,14 @@ package testing
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 
+	"github.com/TeneficGames/podium/api"
 	. "github.com/onsi/gomega"
-	"github.com/topfreegames/podium/api"
 	"github.com/valyala/fasthttp"
 )
 
@@ -79,7 +79,8 @@ func getRequest(app *api.App, method, url, body string, headersKv ...string) *ht
 	if body != "" {
 		bodyBuff = bytes.NewBuffer([]byte(body))
 	}
-	req, err := http.NewRequest(method, fmt.Sprintf("http://%s%s", app.HTTPEndpoint, url), bodyBuff)
+	req, err := http.NewRequestWithContext(context.Background(), method, fmt.Sprintf("http://%s%s", app.HTTPEndpoint, url), bodyBuff)
+	Expect(err).NotTo(HaveOccurred())
 	req.Header.Set("Connection", "close")
 
 	for i := 0; i < len(headersKv); i += 2 {
@@ -87,8 +88,6 @@ func getRequest(app *api.App, method, url, body string, headersKv ...string) *ht
 	}
 
 	req.Close = true
-	Expect(err).NotTo(HaveOccurred())
-
 	return req
 }
 
@@ -96,7 +95,7 @@ func performRequest(req *http.Request) (int, string) {
 	res, err := client.Do(req)
 	Expect(err).NotTo(HaveOccurred())
 
-	b, err := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(res.Body)
 	Expect(err).NotTo(HaveOccurred())
 
 	err = res.Body.Close()

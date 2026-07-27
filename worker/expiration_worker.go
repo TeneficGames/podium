@@ -1,25 +1,33 @@
 // podium
-// https://github.com/topfreegames/podium
+// https://github.com/TeneficGames/podium
 // Licensed under the MIT license:
 // http://www.opensource.org/licenses/mit-license
-// Copyright © 2016 Top Free Games <backend@tfgco.com>
+// Copyright © 2026 Tenefic Games
 // Forked from
-// https://github.com/dayvson/go-leaderboard
-// Copyright © 2013 Maxwell Dayvson da Silva
+// https://github.com/topfreegames/podium
+// Copyright © 2016 Top Free Games
 
 package worker
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
+	"github.com/TeneficGames/podium/config"
+	"github.com/TeneficGames/podium/leaderboard/database"
+	"github.com/TeneficGames/podium/observability"
 	"github.com/spf13/viper"
-	"github.com/topfreegames/podium/config"
-	"github.com/topfreegames/podium/leaderboard/v2/database"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // ExpirationResult is the struct that represents the result of an expiration job
@@ -40,7 +48,11 @@ type ExpirationWorker struct {
 	ConfigPath              string
 	ExpirationCheckInterval time.Duration
 	ExpirationLimitPerRun   int
-	stop                    chan bool
+	stop                    chan struct{}
+	stopOnce                sync.Once
+	runDuration             metric.Float64Histogram
+	expiredMembers          metric.Int64Counter
+	runErrors               metric.Int64Counter
 }
 
 // GetExpirationWorker returns a new scores expirer worker
@@ -68,14 +80,16 @@ func NewExpirationWorker(host string, port int, password string, db int,
 
 	worker := &ExpirationWorker{
 		ConfigPath: "../config/default.yaml",
+		Config:     viper.New(),
 	}
+	worker.Config.Set("redis.host", host)
+	worker.Config.Set("redis.port", port)
+	worker.Config.Set("redis.password", password)
+	worker.Config.Set("redis.db", db)
+	worker.Config.Set("worker.expirationCheckInterval", expirationCheckInterval)
+	worker.Config.Set("worker.expirationLimitPerRun", expirationLimitPerRun)
 
-	err := worker.loadConfiguration()
-	if err != nil {
-		return nil, err
-	}
-
-	err = worker.configure()
+	err := worker.configure()
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +111,7 @@ func (w *ExpirationWorker) configure() error {
 	w.setConfigurationDefaults()
 	w.ExpirationCheckInterval = w.Config.GetDuration("worker.expirationCheckInterval")
 	w.ExpirationLimitPerRun = w.Config.GetInt("worker.expirationLimitPerRun")
-	w.stop = make(chan bool, 1)
+	w.stop = make(chan struct{})
 
 	database := database.NewRedisDatabase(database.RedisOptions{
 		ClusterEnabled: w.Config.GetBool("redis.cluster.enabled"),
@@ -108,6 +122,34 @@ func (w *ExpirationWorker) configure() error {
 		DB:             w.Config.GetInt("redis.db"),
 	})
 	w.Database = database
+	return w.configureInstrumentation()
+}
+
+func (w *ExpirationWorker) configureInstrumentation() error {
+	meter := otel.Meter("github.com/TeneficGames/podium/worker")
+	var err error
+	w.runDuration, err = meter.Float64Histogram(
+		"podium.expiration.run.duration",
+		metric.WithUnit("s"),
+		metric.WithDescription("Duration of a leaderboard expiration run"),
+	)
+	if err != nil {
+		return fmt.Errorf("create expiration run duration histogram: %w", err)
+	}
+	w.expiredMembers, err = meter.Int64Counter(
+		"podium.expiration.members",
+		metric.WithDescription("Members removed by the expiration worker"),
+	)
+	if err != nil {
+		return fmt.Errorf("create expired members counter: %w", err)
+	}
+	w.runErrors, err = meter.Int64Counter(
+		"podium.expiration.errors",
+		metric.WithDescription("Errors encountered by the expiration worker"),
+	)
+	if err != nil {
+		return fmt.Errorf("create expiration errors counter: %w", err)
+	}
 	return nil
 }
 
@@ -125,13 +167,15 @@ func (w *ExpirationWorker) setConfigurationDefaults() {
 
 // Stop finish expiration worker execution
 func (w *ExpirationWorker) Stop() {
-	w.stop <- true
+	w.stopOnce.Do(func() {
+		close(w.stop)
+	})
 }
 
 // Run execute a new worker
 func (w *ExpirationWorker) Run(resultsChan chan<- []*ExpirationResult, errChan chan<- error) {
-	shouldEnd := make(chan bool, 1)
-	sigChan := make(chan os.Signal)
+	shouldEnd := make(chan struct{})
+	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan,
 		syscall.SIGHUP,
 		syscall.SIGINT,
@@ -139,21 +183,23 @@ func (w *ExpirationWorker) Run(resultsChan chan<- []*ExpirationResult, errChan c
 		syscall.SIGQUIT,
 	)
 
-	go w.runWorker(shouldEnd, resultsChan, errChan)
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		w.runWorker(shouldEnd, resultsChan, errChan)
+	}()
 
 	select {
 	case <-sigChan:
-		shouldEnd <- true
 	case <-w.stop:
-		shouldEnd <- true
 	}
 
-	close(sigChan)
+	signal.Stop(sigChan)
 	close(shouldEnd)
-	close(w.stop)
+	<-done
 }
 
-func (w *ExpirationWorker) runWorker(shouldEnd chan bool, resultsChan chan<- []*ExpirationResult, errChan chan<- error) {
+func (w *ExpirationWorker) runWorker(shouldEnd <-chan struct{}, resultsChan chan<- []*ExpirationResult, errChan chan<- error) {
 	ticker := time.NewTicker(w.ExpirationCheckInterval)
 	defer ticker.Stop()
 
@@ -169,30 +215,55 @@ func (w *ExpirationWorker) runWorker(shouldEnd chan bool, resultsChan chan<- []*
 }
 
 func (w *ExpirationWorker) expireMembers(resultsChan chan<- []*ExpirationResult, errChan chan<- error) {
-	leaderboardExpirations, err := w.Database.GetExpirationLeaderboards(context.Background())
+	start := time.Now()
+	ctx, span := otel.Tracer("github.com/TeneficGames/podium/worker").Start(
+		context.Background(),
+		"expiration.run",
+	)
+	defer func() {
+		w.runDuration.Record(ctx, time.Since(start).Seconds())
+		span.End()
+	}()
+
+	leaderboardExpirations, err := w.Database.GetExpirationLeaderboards(ctx)
 	if err != nil {
+		w.recordError(ctx, span, err)
 		errChan <- err
+		return
 	}
 
 	result := []*ExpirationResult{}
 	for _, leaderboard := range leaderboardExpirations {
-		expirationResult, err := w.expireMembersFromLeaderboard(leaderboard)
+		expirationResult, err := w.expireMembersFromLeaderboard(ctx, leaderboard)
 		if err != nil {
+			w.recordError(ctx, span, err)
 			errChan <- err
 			return
 		}
 
 		result = append(result, expirationResult)
+		w.expiredMembers.Add(ctx, int64(expirationResult.DeletedMembers))
 	}
+	span.SetAttributes(attribute.Int("expiration.leaderboards", len(result)))
 	resultsChan <- result
 }
 
-func (w *ExpirationWorker) expireMembersFromLeaderboard(leaderboard string) (*ExpirationResult, error) {
-	members, err := w.Database.GetMembersToExpire(context.Background(), leaderboard, w.ExpirationLimitPerRun, time.Now().UTC())
+func (w *ExpirationWorker) expireMembersFromLeaderboard(ctx context.Context, leaderboard string) (*ExpirationResult, error) {
+	ctx, span := otel.Tracer("github.com/TeneficGames/podium/worker").Start(
+		ctx,
+		"expiration.leaderboard",
+		trace.WithAttributes(attribute.String("leaderboard.id", leaderboard)),
+	)
+	defer span.End()
+
+	members, err := w.Database.GetMembersToExpire(ctx, leaderboard, w.ExpirationLimitPerRun, time.Now().UTC())
 	if err != nil {
-		if _, ok := err.(*database.LeaderboardWithoutMemberToExpireError); ok {
-			err = w.Database.RemoveLeaderboardFromExpireList(context.Background(), leaderboard)
+		var noMembersErr *database.LeaderboardWithoutMemberToExpireError
+		if errors.As(err, &noMembersErr) {
+			err = w.Database.RemoveLeaderboardFromExpireList(ctx, leaderboard)
 			if err != nil {
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
 				return nil, err
 			}
 
@@ -202,6 +273,8 @@ func (w *ExpirationWorker) expireMembersFromLeaderboard(leaderboard string) (*Ex
 				Set:            leaderboard,
 			}, nil
 		}
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return nil, err
 	}
 
@@ -213,14 +286,24 @@ func (w *ExpirationWorker) expireMembersFromLeaderboard(leaderboard string) (*Ex
 		}, nil
 	}
 
-	err = w.Database.ExpireMembers(context.Background(), leaderboard, members)
+	err = w.Database.ExpireMembers(ctx, leaderboard, members)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return nil, err
 	}
+	span.SetAttributes(attribute.Int("expiration.deleted_members", len(members)))
 
 	return &ExpirationResult{
 		DeletedMembers: len(members),
 		DeletedSet:     false,
 		Set:            leaderboard,
 	}, nil
+}
+
+func (w *ExpirationWorker) recordError(ctx context.Context, span trace.Span, err error) {
+	span.RecordError(err)
+	span.SetStatus(codes.Error, err.Error())
+	w.runErrors.Add(ctx, 1)
+	observability.CaptureException(ctx, err, map[string]string{"source": "expiration-worker"}, nil)
 }

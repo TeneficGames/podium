@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/golang/mock/gomock"
+	"github.com/TeneficGames/podium/leaderboard/database"
+	"github.com/TeneficGames/podium/leaderboard/model"
+	"github.com/TeneficGames/podium/leaderboard/service"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/topfreegames/podium/leaderboard/v2/database"
-	"github.com/topfreegames/podium/leaderboard/v2/model"
-	"github.com/topfreegames/podium/leaderboard/v2/service"
+	"go.uber.org/mock/gomock"
 )
 
 var _ = Describe("Service GetMembersByRange", func() {
@@ -35,12 +35,12 @@ var _ = Describe("Service GetMembersByRange", func() {
 
 	It("Should return members slice if all is OK", func() {
 		membersDatabaseReturn := []*database.Member{
-			&database.Member{
+			{
 				Member: "member1",
 				Score:  float64(1),
 				Rank:   0,
 			},
-			&database.Member{
+			{
 				Member: "member2",
 				Score:  float64(2),
 				Rank:   1,
@@ -48,12 +48,12 @@ var _ = Describe("Service GetMembersByRange", func() {
 		}
 
 		membersReturn := []*model.Member{
-			&model.Member{
+			{
 				PublicID: "member1",
 				Score:    1,
 				Rank:     1,
 			},
-			&model.Member{
+			{
 				PublicID: "member2",
 				Score:    2,
 				Rank:     2,
@@ -71,7 +71,7 @@ var _ = Describe("Service GetMembersByRange", func() {
 	It("Should return error if database return in error", func() {
 		mock.EXPECT().GetOrderedMembers(gomock.Any(), gomock.Eq(leaderboard), gomock.Eq(start), gomock.Eq(stop), gomock.Eq(order)).Return(nil, fmt.Errorf("Database error example"))
 
-		_, err := svc.GetMembersByRange(context.Background(), leaderboard, int(start), int(stop), order)
+		_, err := svc.GetMembersByRange(context.Background(), leaderboard, start, stop, order)
 		Expect(err).To(Equal(service.NewGeneralError("get members by range", "Database error example")))
 	})
 })

@@ -3,11 +3,11 @@ package leaderboard_test
 import (
 	"context"
 
-	"github.com/topfreegames/podium/leaderboard/v2/database"
-	"github.com/topfreegames/podium/leaderboard/v2/testing"
+	"github.com/TeneficGames/podium/leaderboard/database"
+	"github.com/TeneficGames/podium/leaderboard/testing"
 )
 
-//Creates an empty context (shortcut for context.Background())
+// Creates an empty context (shortcut for context.Background())
 func NewEmptyCtx() context.Context {
 	return context.Background()
 }

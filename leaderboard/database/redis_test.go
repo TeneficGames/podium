@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/golang/mock/gomock"
+	"github.com/TeneficGames/podium/leaderboard/database"
+	"github.com/TeneficGames/podium/leaderboard/database/redis"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/topfreegames/podium/leaderboard/v2/database"
-	"github.com/topfreegames/podium/leaderboard/v2/database/redis"
+	"go.uber.org/mock/gomock"
 )
 
 var _ = Describe("Redis Database", func() {
@@ -648,7 +648,7 @@ var _ = Describe("Redis Database", func() {
 	})
 
 	Describe("RemoveLeaderboard", func() {
-		It("Should return nil if no error happended", func() {
+		It("Should return nil if no error happened", func() {
 			mock.EXPECT().Del(gomock.Any(), gomock.Eq(leaderboard)).Return(nil)
 
 			err := redisDatabase.RemoveLeaderboard(context.Background(), leaderboard)

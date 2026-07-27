@@ -1,27 +1,26 @@
 # podium
-# https://github.com/topfreegames/podium
+# https://github.com/TeneficGames/podium
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license
-# Copyright © 2016 Top Free Games <backend@tfgco.com>
+# Copyright © 2026 Tenefic Games
 # Forked from
-# https://github.com/dayvson/go-leaderboard
-# Copyright © 2013 Maxwell Dayvson da Silva
+# https://github.com/topfreegames/podium
+# Copyright © 2016 Top Free Games
 
-GODIRS = $(shell go list ./... | grep -v /vendor/ | sed s@github.com/topfreegames/podium@.@g | egrep -v "^[.]$$")
+GODIRS = $(shell go list ./... | grep -v /vendor/ | sed s@github.com/TeneficGames/podium@.@g | egrep -v "^[.]$$")
 MYIP = $(shell ifconfig | egrep inet | egrep -v inet6 | egrep -v 127.0.0.1 | awk ' { print $$2 } ')
 OS = "$(shell uname | awk '{ print tolower($$0) }')"
 PROTOTOOL := go run github.com/uber/prototool/cmd/prototool
 LOCAL_GO_MODCACHE = $(shell go env | grep GOMODCACHE | cut -d "=" -f 2 | sed 's/"//g')
-GINKGO := go run github.com/onsi/ginkgo/ginkgo@v1.16.5
-BUF := go run github.com/bufbuild/buf/cmd/buf@v1.24.0
-MOCKGENERATE := go run github.com/golang/mock/mockgen@v1.6.0
+BUF := go run github.com/bufbuild/buf/cmd/buf@v1.55.1
+MOCKGENERATE := go run go.uber.org/mock/mockgen@v0.6.0
 
 help: Makefile ## Show list of commands
 	@echo "Choose a command run in "$(PROJECT_NAME)":"
 	@echo ""
 	@awk 'BEGIN {FS = ":.*?## "} /[a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf "\033[36m%-40s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
 
-.PHONY: build proto
+.PHONY: build lint proto proto-setup proto-tools test test-client test-leaderboard test-podium test-unit
 
 setup-hooks: ## Create pre-commit git hooks
 	@cd .git/hooks && ln -sf ../../hooks/pre-commit.sh pre-commit
@@ -29,10 +28,10 @@ setup-hooks: ## Create pre-commit git hooks
 clear-hooks: ## Remove pre-commit git hooks
 	@cd .git/hooks && rm pre-commit
 
-setup: setup-hooks ## Install local dependencies and tidy go mods
-	@go get github.com/onsi/ginkgo/ginkgo
-	@go get github.com/gordonklaus/ineffassign
+setup: ## Download dependencies for all Go modules
 	@go mod download
+	@cd leaderboard && go mod download
+	@cd client && go mod download
 
 setup-docs: ## Install dependencies necessary for building docs
 	@pip2.7 install -q --log /tmp/pip.log --no-cache-dir sphinx recommonmark sphinx_rtd_theme
@@ -45,23 +44,35 @@ run: ## Execute the project
 
 test: test-podium test-leaderboard test-client ## Execute all tests
 
+test-unit: ## Execute Redis-independent unit tests
+	@go test ./cmd ./observability
+	@cd leaderboard && go test ./database ./enriching ./expiration ./service
+	@cd client && go test ./...
+
 test-podium: ## Execute all API tests
-	$(GINKGO) --cover -r -nodes=1 --skipPackage=leaderboard,client ./
+	@go test -coverprofile=podium.coverprofile ./...
 
 test-leaderboard: ## Execute all leaderboard tests
-	@cd leaderboard && $(GINKGO) --cover -r -nodes=1 ./
+	@cd leaderboard && go test -coverprofile=leaderboard.coverprofile ./...
 
 test-client: ## Execute all client tests
-	@cd client && $(GINKGO) --cover -r -nodes=1 ./
+	@cd client && go test -coverprofile=client.coverprofile ./...
+
+lint: ## Run golangci-lint for all Go modules
+	@golangci-lint run ./...
+	@cd leaderboard && golangci-lint run ./...
+	@cd client && golangci-lint run ./...
 
 coverage: ## Generate code coverage file
 	@rm -rf _build
 	@mkdir -p _build
 	@echo "mode: count" > _build/test-coverage-all.out
-	@bash -c 'for f in $$(find . -name "*.coverprofile"); do tail -n +2 $$f | sed -e "s#v2##g" >> _build/test-coverage-all.out; done'
+	@bash -c 'for f in podium.coverprofile leaderboard/leaderboard.coverprofile client/client.coverprofile; do tail -n +2 $$f >> _build/test-coverage-all.out; done'
 
-test-coverage-html: test coverage ## Generate html page with code coverage information
-	@go tool cover -html=_build/test-coverage-all.out
+test-coverage-html: test coverage ## Generate HTML coverage reports for all Go modules
+	@go tool cover -html=podium.coverprofile -o _build/podium-coverage.html
+	@cd leaderboard && go tool cover -html=leaderboard.coverprofile -o ../_build/leaderboard-coverage.html
+	@cd client && go tool cover -html=client.coverprofile -o ../_build/client-coverage.html
 
 docker-build: ## Build docker-compose services
 	@docker build -f ./build/Dockerfile -t podium .
@@ -70,10 +81,10 @@ docker-run: ## Run podium inside Docker
 	@docker run -i -t --rm -e PODIUM_REDIS_HOST=$(MYIP) -e PODIUM_REDIS_PORT=6379 -p 8880:8880 podium
 
 docker-run-redis: ## Run a redis instance in Docker
-	@docker run --name=redis -d -p 6379:6379 redis:6.0.9-alpine
+	@docker run --name=redis -d -p 6379:6379 redis:8-alpine
 
 docker-run-basic-auth: ## Run podium inside Docker and setup basic auth (admin:12345)
-	@docker run -i -t --rm -e BASICAUTH_USERNAME=admin -e BASICAUTH_PASSWORD=12345 -e PODIUM_REDIS_HOST=$(MYIP) -e PODIUM_REDIS_PORT=6379 -p 8080:80 podium
+	@docker run -i -t --rm -e PODIUM_BASICAUTH_USERNAME=admin -e PODIUM_BASICAUTH_PASSWORD=12345 -e PODIUM_REDIS_HOST=$(MYIP) -e PODIUM_REDIS_PORT=6379 -p 8080:80 podium
 
 deployments/docker-compose.yaml: deployments/docker-compose-model.yaml
 	@sed "s%<<LOCAL_GO_MODCACHE>>%${LOCAL_GO_MODCACHE}%g" $< > $@
@@ -106,19 +117,21 @@ rtfd: ## Build and open podium documentation
 	@open docs/_build/html/index.html
 
 mock-lib: ## Generate mocks
-	@mockgen github.com/topfreegames/podium/lib PodiumInterface | sed 's/mock_lib/mocks/' > lib/mocks/podium.go
+	@mockgen github.com/TeneficGames/podium/lib PodiumInterface | sed 's/mock_lib/mocks/' > lib/mocks/podium.go
 
 mock-generate:
 	$(MOCKGENERATE) -source=leaderboard/enriching/interfaces.go -destination=leaderboard/mocks/enriching.go
+	$(MOCKGENERATE) -source=leaderboard/database/expiration.go -destination=leaderboard/database/expiration_mock.go -package=database
 
-proto-setup:
-	@go install google.golang.org/protobuf/cmd/protoc-gen-go \
-		google.golang.org/grpc/cmd/protoc-gen-go-grpc \
-		github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
-		github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
-	@$(BUF) mod update
+proto-setup: proto-tools
+	@$(BUF) dep update
+
+proto-tools:
+	@go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11
+	@go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.6.2
+	@go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.29.0
+	@go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.29.0
 
 proto: ## Generate protobuf files
 	@rm proto/podium/api/v1/*.go > /dev/null 2>&1 || true
 	@$(BUF) generate
-

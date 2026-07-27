@@ -1,9 +1,9 @@
 // podium
-// https://github.com/topfreegames/podium
+// https://github.com/TeneficGames/podium
 //
 // Licensed under the MIT license:
 // http://www.opensource.org/licenses/mit-license
-// Copyright © 2016 Top Free Games <backend@tfgco.com>
+// Copyright © 2026 Tenefic Games
 
 package bench
 
@@ -12,47 +12,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
-	. "github.com/onsi/gomega"
-	"github.com/topfreegames/extensions/redis"
-	"github.com/topfreegames/podium/config"
-	"github.com/topfreegames/podium/leaderboard/v2/database"
-	"github.com/topfreegames/podium/leaderboard/v2/service"
+	"github.com/TeneficGames/podium/config"
+	"github.com/TeneficGames/podium/leaderboard/database"
+	"github.com/TeneficGames/podium/leaderboard/service"
+	"github.com/onsi/gomega"
 )
-
-func getRedis() *redis.Client {
-	config, err := config.GetDefaultConfig("../config/default.yaml")
-	Expect(err).NotTo(HaveOccurred())
-
-	redisHost := config.GetString("redis.host")
-	redisPort := config.GetInt("redis.port")
-	redisDB := config.GetInt("redis.db")
-
-	redisURL := fmt.Sprintf("redis://%s:%d/%d", redisHost, redisPort, redisDB)
-
-	config.SetDefault("redis.url", redisURL)
-	config.SetDefault("redis.connectionTimeout", 200)
-
-	redisClient, err := redis.NewClient("redis", config)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	return redisClient
-}
 
 func getRoute(url string) string {
 	return fmt.Sprintf("http://localhost:8888%s", url)
-}
-
-func get(url string) (int, string, error) {
-	return sendTo("GET", url, nil)
-}
-
-func postTo(url string, payload map[string]interface{}) (int, string, error) {
-	return sendTo("POST", url, payload)
 }
 
 func putTo(url string, payload map[string]interface{}) (int, string, error) {
@@ -72,12 +42,12 @@ func sendTo(method, url string, payload map[string]interface{}) (int, string, er
 	var req *http.Request
 
 	if payload != nil {
-		req, err = http.NewRequest(method, url, bytes.NewBuffer(payloadJSON))
+		req, err = http.NewRequestWithContext(context.Background(), method, url, bytes.NewBuffer(payloadJSON))
 		if err != nil {
 			return -1, "", err
 		}
 	} else {
-		req, err = http.NewRequest(method, url, nil)
+		req, err = http.NewRequestWithContext(context.Background(), method, url, nil)
 		if err != nil {
 			return -1, "", err
 		}
@@ -90,9 +60,14 @@ func sendTo(method, url string, payload map[string]interface{}) (int, string, er
 	if err != nil {
 		return -1, "", err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return -1, "", err
+	}
 
 	return resp.StatusCode, string(body), nil
 }
@@ -109,7 +84,7 @@ func validateResp(statusCode int, body string, err error) {
 
 func generateNMembers(amount int) string {
 	config, err := config.GetDefaultConfig("../config/default.yaml")
-	Expect(err).NotTo(HaveOccurred())
+	gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
 	client := service.NewService(
 		database.NewRedisDatabase(database.RedisOptions{
@@ -125,7 +100,9 @@ func generateNMembers(amount int) string {
 	lbID := "leaderboard-0"
 
 	for i := 0; i < amount; i++ {
-		client.SetMemberScore(context.Background(), lbID, fmt.Sprintf("bench-member-%d", i), int64(100+i), false, "inf")
+		if _, err := client.SetMemberScore(context.Background(), lbID, fmt.Sprintf("bench-member-%d", i), int64(100+i), false, "inf"); err != nil {
+			panic(err)
+		}
 	}
 
 	return lbID

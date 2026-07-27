@@ -1,18 +1,19 @@
 // podium
-// https://github.com/topfreegames/podium
+// https://github.com/TeneficGames/podium
 // Licensed under the MIT license:
 // http://www.opensource.org/licenses/mit-license
-// Copyright © 2016 Top Free Games <backend@tfgco.com>
+// Copyright © 2026 Tenefic Games
 // Forked from
-// https://github.com/dayvson/go-leaderboard
-// Copyright © 2013 Maxwell Dayvson da Silva
+// https://github.com/topfreegames/podium
+// Copyright © 2016 Top Free Games
 
 package cmd
 
 import (
 	"bytes"
+	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -27,10 +28,14 @@ func doRequest(method, url, reqBody string) (int, string, error) {
 	absURL := fmt.Sprintf("%s%s", baseURL, url)
 
 	var req *http.Request
+	var err error
 	if reqBody != "" {
-		req, _ = http.NewRequest(method, absURL, bytes.NewBuffer([]byte(reqBody)))
+		req, err = http.NewRequestWithContext(context.Background(), method, absURL, bytes.NewBufferString(reqBody))
 	} else {
-		req, _ = http.NewRequest(method, absURL, nil)
+		req, err = http.NewRequestWithContext(context.Background(), method, absURL, nil)
+	}
+	if err != nil {
+		return http.StatusInternalServerError, "", err
 	}
 
 	client := &http.Client{}
@@ -38,8 +43,10 @@ func doRequest(method, url, reqBody string) (int, string, error) {
 	if err != nil {
 		return 500, "", err
 	}
-	defer response.Body.Close()
-	body, err := ioutil.ReadAll(response.Body)
+	defer func() {
+		_ = response.Body.Close()
+	}()
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return 500, "", err
 	}

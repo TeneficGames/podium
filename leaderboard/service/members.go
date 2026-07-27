@@ -2,11 +2,12 @@ package service
 
 import (
 	"context"
+	"errors"
 	"strconv"
 	"time"
 
-	"github.com/topfreegames/podium/leaderboard/v2/database"
-	"github.com/topfreegames/podium/leaderboard/v2/model"
+	"github.com/TeneficGames/podium/leaderboard/database"
+	"github.com/TeneficGames/podium/leaderboard/model"
 )
 
 func convertDatabaseMembersIntoModelMembers(databaseMembers []*database.Member) []*model.Member {
@@ -30,7 +31,8 @@ func convertDatabaseMemberIntoModelMember(member *database.Member) *model.Member
 func (s *Service) fetchMemberRank(ctx context.Context, leaderboard, member, order string, getLastIfNotFound bool) (int, error) {
 	memberRank, err := s.Database.GetRank(ctx, leaderboard, member, order)
 	if err != nil {
-		if _, ok := err.(*database.MemberNotFoundError); ok {
+		var notFoundErr *database.MemberNotFoundError
+		if errors.As(err, &notFoundErr) {
 			if !getLastIfNotFound {
 				return -1, err
 			}
