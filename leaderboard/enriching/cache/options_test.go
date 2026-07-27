@@ -10,9 +10,12 @@
 package cache
 
 import (
+	"context"
 	"testing"
 	"time"
 
+	"github.com/TeneficGames/podium/leaderboard/model"
+	redismock "github.com/go-redis/redismock/v9"
 	"go.uber.org/zap"
 )
 
@@ -28,5 +31,22 @@ func TestCachedEnricherOptions(t *testing.T) {
 	}
 	if enricher.logger == nil {
 		t.Fatal("expected logger to be configured")
+	}
+}
+
+func TestRedisCacheRejectsInvalidJSON(t *testing.T) {
+	const tenantID = "tenant"
+	redisClient, redisMock := redismock.NewClientMock()
+	members := []*model.Member{{PublicID: "member"}}
+	redisMock.ExpectMGet(getKeysFromMemberArray(tenantID, members)...).
+		SetVal([]interface{}{"invalid"})
+
+	cache := NewEnricherRedisCache(redisClient)
+	metadata, hit, err := cache.Get(context.Background(), tenantID, members)
+	if err == nil {
+		t.Fatal("expected invalid cached JSON to fail")
+	}
+	if hit || metadata != nil {
+		t.Fatalf("expected a cache miss without metadata, got hit=%t metadata=%v", hit, metadata)
 	}
 }

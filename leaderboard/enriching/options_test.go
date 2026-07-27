@@ -45,3 +45,16 @@ func TestEnrichReturnsEmptyMembersWithoutCallingAProvider(t *testing.T) {
 		t.Fatalf("expected no members, got %d", len(result))
 	}
 }
+
+func TestEnrichSkipsEmptyWebhookURL(t *testing.T) {
+	members := []*model.Member{{PublicID: "member"}}
+	enricher := NewEnricher(WithWebhookUrls(map[string]string{"tenant": ""}))
+
+	result, err := enricher.Enrich(context.Background(), "tenant", "leaderboard", members)
+	if err != nil {
+		t.Fatalf("enrich with empty webhook URL: %v", err)
+	}
+	if len(result) != 1 || result[0] != members[0] {
+		t.Fatalf("expected members to be returned unchanged, got %#v", result)
+	}
+}
