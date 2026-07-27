@@ -126,7 +126,7 @@ func getHTTPTransport(
 }
 
 // NewPodium returns a new podium API application
-func NewPodium(config *viper.Viper) PodiumInterface {
+func NewPodium(config *viper.Viper) *Podium {
 	config.SetDefault("podium.timeout", 1*time.Second)
 	config.SetDefault("podium.maxIdleConnsPerHost", http.DefaultMaxIdleConnsPerHost)
 	config.SetDefault("podium.maxIdleConns", 100)

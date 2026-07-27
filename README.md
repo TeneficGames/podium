@@ -21,11 +21,12 @@ The canonical Go modules are:
 
 * `github.com/TeneficGames/podium`
 * `github.com/TeneficGames/podium/leaderboard`
+* `github.com/TeneficGames/podium/proto`
 * `github.com/TeneficGames/podium/client`
 
-The leaderboard module starts at v1. Go v1 module paths intentionally omit a
-`/v1` suffix; releases for this nested module use tags such as
-`leaderboard/v1.0.0`.
+The nested modules start at v1. Go v1 module paths intentionally omit a `/v1`
+suffix; releases use prefixed tags such as `leaderboard/v1.0.0`,
+`proto/v1.0.0`, and `client/v1.0.0`.
 
 The move from `github.com/topfreegames/podium` changes import paths and should be
 treated as a breaking change by downstream consumers.

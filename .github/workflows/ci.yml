@@ -27,12 +27,14 @@ jobs:
           cache-dependency-path: |
             go.sum
             leaderboard/go.sum
+            proto/go.sum
             client/go.sum
       - name: Download and verify dependencies
         run: |
           make setup
           go mod verify
           (cd leaderboard && go mod verify)
+          (cd proto && go mod verify)
           (cd client && go mod verify)
       - name: Build
         run: make build
@@ -54,6 +56,7 @@ jobs:
           cache-dependency-path: |
             go.sum
             leaderboard/go.sum
+            proto/go.sum
             client/go.sum
       - name: Test
         run: make test-unit
@@ -79,6 +82,7 @@ jobs:
           cache-dependency-path: |
             go.sum
             leaderboard/go.sum
+            proto/go.sum
             client/go.sum
       - name: Setup env
         run: make setup
@@ -117,6 +121,7 @@ jobs:
           cache-dependency-path: |
             go.sum
             leaderboard/go.sum
+            proto/go.sum
             client/go.sum
       - name: Install golangci-lint
         uses: golangci/golangci-lint-action@v9
@@ -139,6 +144,9 @@ jobs:
           - name: leaderboard
             workdir: leaderboard
             go_sum: leaderboard/go.sum
+          - name: proto
+            workdir: proto
+            go_sum: proto/go.sum
           - name: client
             workdir: client
             go_sum: client/go.sum
@@ -153,6 +161,25 @@ jobs:
           repo-checkout: false
           work-dir: ${{ matrix.workdir }}
 
+  client-compatibility:
+    name: Client compatibility (Go 1.25)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: 1.25.12
+          cache-dependency-path: |
+            proto/go.sum
+            client/go.sum
+      - name: Test proto and client
+        env:
+          GOTOOLCHAIN: local
+        run: |
+          (cd proto && go test ./...)
+          (cd client && go test ./...)
+
   docker:
     name: Build and publish image
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
@@ -162,6 +189,7 @@ jobs:
       - integration-tests
       - golangci-lint
       - govulncheck
+      - client-compatibility
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -210,6 +238,7 @@ jobs:
       - integration-tests
       - golangci-lint
       - govulncheck
+      - client-compatibility
     runs-on: ubuntu-latest
     steps:
       - name: Set up Docker Buildx
