@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TeneficGames/podium/leaderboard/v2/database/redis"
-	"github.com/TeneficGames/podium/leaderboard/v2/testing"
+	"github.com/TeneficGames/podium/leaderboard/database/redis"
+	"github.com/TeneficGames/podium/leaderboard/testing"
 	goredis "github.com/redis/go-redis/v9"
 
 	. "github.com/onsi/ginkgo/v2"

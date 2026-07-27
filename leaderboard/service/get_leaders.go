@@ -5,7 +5,7 @@ import (
 	"errors"
 	"math"
 
-	"github.com/TeneficGames/podium/leaderboard/v2/model"
+	"github.com/TeneficGames/podium/leaderboard/model"
 )
 
 const getLeadersServiceLabel = "get leaders"

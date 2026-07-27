@@ -1,8 +1,8 @@
 package leaderboard
 
 import (
-	"github.com/TeneficGames/podium/leaderboard/v2/database"
-	"github.com/TeneficGames/podium/leaderboard/v2/service"
+	"github.com/TeneficGames/podium/leaderboard/database"
+	"github.com/TeneficGames/podium/leaderboard/service"
 )
 
 var _ service.Leaderboard = &service.Service{}

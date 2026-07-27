@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/TeneficGames/podium/config"
-	"github.com/TeneficGames/podium/leaderboard/v2/database"
+	"github.com/TeneficGames/podium/leaderboard/database"
 	"github.com/TeneficGames/podium/observability"
 	"github.com/spf13/viper"
 	"go.opentelemetry.io/otel"

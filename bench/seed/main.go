@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/TeneficGames/podium/config"
-	"github.com/TeneficGames/podium/leaderboard/v2/database/redis"
+	"github.com/TeneficGames/podium/leaderboard/database/redis"
 	"github.com/gosuri/uiprogress"
 	"github.com/gosuri/uiprogress/util/strutil"
 )

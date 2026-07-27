@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TeneficGames/podium/leaderboard/v2/expiration"
+	"github.com/TeneficGames/podium/leaderboard/expiration"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )

@@ -1,4 +1,4 @@
-module github.com/TeneficGames/podium/leaderboard/v2
+module github.com/TeneficGames/podium/leaderboard
 
 go 1.26.0
 

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/TeneficGames/podium/leaderboard/v2/model"
+	"github.com/TeneficGames/podium/leaderboard/model"
 	redismock "github.com/go-redis/redismock/v9"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

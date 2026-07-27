@@ -1,7 +1,7 @@
 Library
 =======
 
-For detailed information, check the [Go package reference](https://pkg.go.dev/github.com/TeneficGames/podium/leaderboard/v2).
+For detailed information, check the [Go package reference](https://pkg.go.dev/github.com/TeneficGames/podium/leaderboard).
 All examples below have imported the leaderboard module using:
 
 ```

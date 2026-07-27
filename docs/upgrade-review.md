@@ -24,13 +24,16 @@ dependencies and their configuration keys have been removed.
 | Component | Module |
 | --- | --- |
 | Server and worker | `github.com/TeneficGames/podium` |
-| Leaderboard library | `github.com/TeneficGames/podium/leaderboard/v2` |
+| Leaderboard library | `github.com/TeneficGames/podium/leaderboard` |
 | HTTP client | `github.com/TeneficGames/podium/client` |
 
 All modules use Go 1.26 with the repository-pinned Go 1.26.5 toolchain. The
 server uses a local `replace` directive for the leaderboard module during
-development. Direct dependencies are current at review time; remaining
-`go list -m -u all` results are transitive versions selected by their owners.
+development. The leaderboard starts a new v1 line under the Tenefic Games
+module path, so its Go import path has no major-version suffix and its release
+tags use the nested-module form `leaderboard/v1.x.x`. Direct dependencies are
+current at review time; remaining `go list -m -u all` results are transitive
+versions selected by their owners.
 
 ### Observability ownership
 

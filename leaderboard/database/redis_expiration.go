@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TeneficGames/podium/leaderboard/v2/database/redis"
+	"github.com/TeneficGames/podium/leaderboard/database/redis"
 )
 
 var _ Expiration = &Redis{}

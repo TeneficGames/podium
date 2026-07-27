@@ -3,8 +3,8 @@ package leaderboard_test
 import (
 	"context"
 
-	"github.com/TeneficGames/podium/leaderboard/v2/database"
-	"github.com/TeneficGames/podium/leaderboard/v2/testing"
+	"github.com/TeneficGames/podium/leaderboard/database"
+	"github.com/TeneficGames/podium/leaderboard/testing"
 )
 
 // Creates an empty context (shortcut for context.Background())

@@ -5,7 +5,7 @@ go 1.26.0
 toolchain go1.26.5
 
 require (
-	github.com/TeneficGames/podium/leaderboard/v2 v2.0.0
+	github.com/TeneficGames/podium/leaderboard v1.0.0
 	github.com/getsentry/sentry-go v0.48.0
 	github.com/getsentry/sentry-go/otel v0.48.0
 	github.com/google/uuid v1.6.0
@@ -77,4 +77,4 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260724162435-b2f20204f0df // indirect
 )
 
-replace github.com/TeneficGames/podium/leaderboard/v2 v2.0.0 => ./leaderboard
+replace github.com/TeneficGames/podium/leaderboard v1.0.0 => ./leaderboard

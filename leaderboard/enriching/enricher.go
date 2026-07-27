@@ -10,9 +10,9 @@ import (
 	"net/url"
 	"strings"
 
-	cloud_save "github.com/TeneficGames/podium/leaderboard/v2/enriching/cloud-save"
-	podium_leaderboard_webhooks_v1 "github.com/TeneficGames/podium/leaderboard/v2/enriching/proto/webhook/v1"
-	"github.com/TeneficGames/podium/leaderboard/v2/model"
+	cloud_save "github.com/TeneficGames/podium/leaderboard/enriching/cloud-save"
+	podium_leaderboard_webhooks_v1 "github.com/TeneficGames/podium/leaderboard/enriching/proto/webhook/v1"
+	"github.com/TeneficGames/podium/leaderboard/model"
 	"go.uber.org/zap"
 )
 

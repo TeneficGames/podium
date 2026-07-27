@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TeneficGames/podium/leaderboard/v2/database"
+	"github.com/TeneficGames/podium/leaderboard/database"
 	"go.uber.org/mock/gomock"
 )
 

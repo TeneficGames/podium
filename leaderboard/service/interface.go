@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/TeneficGames/podium/leaderboard/v2/model"
+	"github.com/TeneficGames/podium/leaderboard/model"
 )
 
 // Leaderboard holds functional struct inside leaderboard and your dependecies to be executed

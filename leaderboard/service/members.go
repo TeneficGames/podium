@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/TeneficGames/podium/leaderboard/v2/database"
-	"github.com/TeneficGames/podium/leaderboard/v2/model"
+	"github.com/TeneficGames/podium/leaderboard/database"
+	"github.com/TeneficGames/podium/leaderboard/model"
 )
 
 func convertDatabaseMembersIntoModelMembers(databaseMembers []*database.Member) []*model.Member {

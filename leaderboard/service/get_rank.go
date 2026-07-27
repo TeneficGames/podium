@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/TeneficGames/podium/leaderboard/v2/database"
+	"github.com/TeneficGames/podium/leaderboard/database"
 )
 
 const getRankServiceLabel = "get rank"

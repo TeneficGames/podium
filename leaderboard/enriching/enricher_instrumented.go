@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TeneficGames/podium/leaderboard/v2/model"
+	"github.com/TeneficGames/podium/leaderboard/model"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -27,7 +27,7 @@ type instrumentedEnricher struct {
 }
 
 func NewInstrumentedEnricher(impl Enricher) (Enricher, error) {
-	meter := otel.Meter("github.com/TeneficGames/podium/leaderboard/v2/enriching")
+	meter := otel.Meter("github.com/TeneficGames/podium/leaderboard/enriching")
 	calls, err := meter.Int64Counter(enrichmentCalls)
 	if err != nil {
 		return nil, fmt.Errorf("create enrichment calls counter: %w", err)
@@ -55,7 +55,7 @@ func NewInstrumentedEnricher(impl Enricher) (Enricher, error) {
 func (en *instrumentedEnricher) Enrich(ctx context.Context, tenantID, leaderboardID string, members []*model.Member) ([]*model.Member, error) {
 	start := time.Now()
 
-	ctx, span := otel.Tracer("github.com/TeneficGames/podium/leaderboard/v2/enriching").Start(
+	ctx, span := otel.Tracer("github.com/TeneficGames/podium/leaderboard/enriching").Start(
 		ctx,
 		"podium.enriching",
 		trace.WithAttributes(

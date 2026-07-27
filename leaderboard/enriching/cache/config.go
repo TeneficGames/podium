@@ -3,7 +3,7 @@ package cache
 import (
 	"time"
 
-	"github.com/TeneficGames/podium/leaderboard/v2/enriching"
+	"github.com/TeneficGames/podium/leaderboard/enriching"
 	"go.uber.org/zap"
 )
 

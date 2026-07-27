@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/TeneficGames/podium/leaderboard/v2/database"
-	"github.com/TeneficGames/podium/leaderboard/v2/expiration"
+	"github.com/TeneficGames/podium/leaderboard/database"
+	"github.com/TeneficGames/podium/leaderboard/expiration"
 )
 
 func (s *Service) persistLeaderboardExpirationTime(ctx context.Context, leaderboard string) error {

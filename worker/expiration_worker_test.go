@@ -15,9 +15,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/TeneficGames/podium/leaderboard/v2/database"
-	"github.com/TeneficGames/podium/leaderboard/v2/database/redis"
-	lservice "github.com/TeneficGames/podium/leaderboard/v2/service"
+	"github.com/TeneficGames/podium/leaderboard/database"
+	"github.com/TeneficGames/podium/leaderboard/database/redis"
+	lservice "github.com/TeneficGames/podium/leaderboard/service"
 	"github.com/TeneficGames/podium/worker"
 
 	. "github.com/onsi/ginkgo/v2"

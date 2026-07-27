@@ -259,7 +259,7 @@ const file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_rawDesc =
 	"\x05Score\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\x03R\x05value2\x98\x01\n" +
 	"\x1dLeaderboardsEnrichmentService\x12w\n" +
-	"\x12EnrichLeaderboards\x12\x1a.EnrichLeaderboardsRequest\x1a\x1b.EnrichLeaderboardsResponse\"(\x82\xd3\xe4\x93\x02\":\amembers\"\x17/v1/leaderboards/enrichBiZggithub.com/TeneficGames/podium/leaderboard/v2/enriching/proto/webhook/v1;podium_leaderboard_webhooks_v1b\x06proto3"
+	"\x12EnrichLeaderboards\x12\x1a.EnrichLeaderboardsRequest\x1a\x1b.EnrichLeaderboardsResponse\"(\x82\xd3\xe4\x93\x02\":\amembers\"\x17/v1/leaderboards/enrichBfZdgithub.com/TeneficGames/podium/leaderboard/enriching/proto/webhook/v1;podium_leaderboard_webhooks_v1b\x06proto3"
 
 var (
 	file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_rawDescOnce sync.Once

@@ -19,12 +19,12 @@ import (
 	"strings"
 	"time"
 
-	mock_enriching "github.com/TeneficGames/podium/leaderboard/v2/mocks"
-	"github.com/TeneficGames/podium/leaderboard/v2/model"
+	mock_enriching "github.com/TeneficGames/podium/leaderboard/mocks"
+	"github.com/TeneficGames/podium/leaderboard/model"
 	"go.uber.org/mock/gomock"
 
 	"github.com/TeneficGames/podium/api"
-	"github.com/TeneficGames/podium/leaderboard/v2/database/redis"
+	"github.com/TeneficGames/podium/leaderboard/database/redis"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 

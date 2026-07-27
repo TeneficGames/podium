@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TeneficGames/podium/leaderboard/v2/enriching"
-	"github.com/TeneficGames/podium/leaderboard/v2/model"
+	"github.com/TeneficGames/podium/leaderboard/enriching"
+	"github.com/TeneficGames/podium/leaderboard/model"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -38,7 +38,7 @@ type instrumentedCache struct {
 // NewInstrumentedCache returns an EnrichCache implementation wrapped
 // with metrics reporting and tracing
 func NewInstrumentedCache(impl enriching.EnricherCache) (enriching.EnricherCache, error) {
-	meter := otel.Meter("github.com/TeneficGames/podium/leaderboard/v2/enriching/cache")
+	meter := otel.Meter("github.com/TeneficGames/podium/leaderboard/enriching/cache")
 	gets, err := meter.Int64Counter(enrichmentCacheGets)
 	if err != nil {
 		return nil, fmt.Errorf("create enrichment cache gets counter: %w", err)
@@ -86,7 +86,7 @@ func (c *instrumentedCache) Get(
 ) (map[string]map[string]string, bool, error) {
 	start := time.Now()
 
-	ctx, span := otel.Tracer("github.com/TeneficGames/podium/leaderboard/v2/enriching/cache").Start(
+	ctx, span := otel.Tracer("github.com/TeneficGames/podium/leaderboard/enriching/cache").Start(
 		ctx,
 		"podium.enriching_cache.get",
 		trace.WithAttributes(attribute.String("tenant.id", tenantID)),
@@ -119,7 +119,7 @@ func (c *instrumentedCache) Set(
 ) error {
 	start := time.Now()
 
-	ctx, span := otel.Tracer("github.com/TeneficGames/podium/leaderboard/v2/enriching/cache").Start(
+	ctx, span := otel.Tracer("github.com/TeneficGames/podium/leaderboard/enriching/cache").Start(
 		ctx,
 		"podium.enriching_cache.set",
 		trace.WithAttributes(

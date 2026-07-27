@@ -5,7 +5,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/TeneficGames/podium/leaderboard/v2/model"
+	"github.com/TeneficGames/podium/leaderboard/model"
 )
 
 const getMembersServiceLabel = "get members"

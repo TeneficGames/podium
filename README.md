@@ -3,7 +3,7 @@
 [![Podium](https://github.com/TeneficGames/podium/actions/workflows/go.yml/badge.svg)](https://github.com/TeneficGames/podium/actions/workflows/go.yml)
 [![codecov](https://codecov.io/gh/TeneficGames/podium/branch/main/graph/badge.svg)](https://codecov.io/gh/TeneficGames/podium)
 [![Go Report Card](https://goreportcard.com/badge/github.com/TeneficGames/podium)](https://goreportcard.com/report/github.com/TeneficGames/podium)
-[![Go Reference](https://pkg.go.dev/badge/github.com/TeneficGames/podium/leaderboard/v2.svg)](https://pkg.go.dev/github.com/TeneficGames/podium/leaderboard/v2)
+[![Go Reference](https://pkg.go.dev/badge/github.com/TeneficGames/podium/leaderboard.svg)](https://pkg.go.dev/github.com/TeneficGames/podium/leaderboard)
 
 A leaderboard system written in [Go](https://go.dev/) using [Redis](https://redis.io/). See the [documentation](docs/overview.md) for an overview.
 
@@ -21,8 +21,12 @@ Module paths
 The canonical Go modules are:
 
 * `github.com/TeneficGames/podium`
-* `github.com/TeneficGames/podium/leaderboard/v2`
+* `github.com/TeneficGames/podium/leaderboard`
 * `github.com/TeneficGames/podium/client`
+
+The leaderboard module starts at v1. Go v1 module paths intentionally omit a
+`/v1` suffix; releases for this nested module use tags such as
+`leaderboard/v1.0.0`.
 
 The move from `github.com/topfreegames/podium` changes import paths and should be
 treated as a breaking change by downstream consumers.
@@ -45,7 +49,7 @@ Installation
 
 Install Leaderboard using the "go get" command:
 
-    go get github.com/TeneficGames/podium
+    go get github.com/TeneficGames/podium/leaderboard@v1
 
 And then run
 
@@ -60,7 +64,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/TeneficGames/podium/leaderboard/v2"
+	"github.com/TeneficGames/podium/leaderboard"
 )
 
 func main() {

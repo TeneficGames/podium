@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/TeneficGames/podium/leaderboard/v2/expiration"
-	"github.com/TeneficGames/podium/leaderboard/v2/model"
+	"github.com/TeneficGames/podium/leaderboard/expiration"
+	"github.com/TeneficGames/podium/leaderboard/model"
 )
 
 const incrementMemberScoreServiceLabel = "increment member score"

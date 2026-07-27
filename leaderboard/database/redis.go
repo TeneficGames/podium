@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TeneficGames/podium/leaderboard/v2/database/redis"
+	"github.com/TeneficGames/podium/leaderboard/database/redis"
 )
 
 // Redis is a type that implements Database interface with redis client

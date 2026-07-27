@@ -15,12 +15,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/TeneficGames/podium/leaderboard/v2/database"
-	"github.com/TeneficGames/podium/leaderboard/v2/database/redis"
-	"github.com/TeneficGames/podium/leaderboard/v2/testing"
+	"github.com/TeneficGames/podium/leaderboard/database"
+	"github.com/TeneficGames/podium/leaderboard/database/redis"
+	"github.com/TeneficGames/podium/leaderboard/testing"
 
-	"github.com/TeneficGames/podium/leaderboard/v2/model"
-	"github.com/TeneficGames/podium/leaderboard/v2/service"
+	"github.com/TeneficGames/podium/leaderboard/model"
+	"github.com/TeneficGames/podium/leaderboard/service"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 

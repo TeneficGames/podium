@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	mock_enriching "github.com/TeneficGames/podium/leaderboard/v2/mocks"
-	"github.com/TeneficGames/podium/leaderboard/v2/model"
+	mock_enriching "github.com/TeneficGames/podium/leaderboard/mocks"
+	"github.com/TeneficGames/podium/leaderboard/model"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"go.uber.org/mock/gomock"

@@ -18,8 +18,8 @@ import (
 
 	"google.golang.org/grpc/metadata"
 
-	lmodel "github.com/TeneficGames/podium/leaderboard/v2/model"
-	"github.com/TeneficGames/podium/leaderboard/v2/service"
+	lmodel "github.com/TeneficGames/podium/leaderboard/model"
+	"github.com/TeneficGames/podium/leaderboard/service"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

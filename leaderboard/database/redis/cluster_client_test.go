@@ -5,8 +5,8 @@ package redis_test
 //	"time"
 //
 //	goredis "github.com/redis/go-redis/v9"
-//	"github.com/TeneficGames/podium/leaderboard/v2/database/redis"
-//	"github.com/TeneficGames/podium/leaderboard/v2/testing"
+//	"github.com/TeneficGames/podium/leaderboard/database/redis"
+//	"github.com/TeneficGames/podium/leaderboard/testing"
 //
 //	. "github.com/onsi/ginkgo/v2"
 //	. "github.com/onsi/gomega"
