@@ -13,6 +13,7 @@ permissions:
 
 env:
   IMAGE_NAME: trungdlp/podium
+  DOCKER_METADATA_SHORT_SHA_LENGTH: 12
 
 jobs:
   verify:
@@ -204,6 +205,16 @@ jobs:
           username: trungdlp
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Generate image metadata
+        if: github.ref == 'refs/heads/main'
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=sha-,format=short
+
       - name: Validate image build
         if: github.event_name == 'pull_request'
         uses: docker/build-push-action@v7
@@ -223,9 +234,7 @@ jobs:
           file: ./build/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: |
-            ${{ env.IMAGE_NAME }}:latest
-            ${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
+          tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -243,6 +252,14 @@ jobs:
     steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
+
+      - name: Generate source image metadata
+        id: source
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          flavor: latest=false
+          tags: type=sha,prefix=sha-,format=short
 
       - name: Generate release metadata
         id: meta
@@ -262,13 +279,13 @@ jobs:
 
       - name: Verify commit image exists
         env:
-          SOURCE_IMAGE: ${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
+          SOURCE_IMAGE: ${{ steps.source.outputs.tags }}
         run: docker buildx imagetools inspect "$SOURCE_IMAGE"
 
       - name: Publish version tags
         env:
           RELEASE_TAGS: ${{ steps.meta.outputs.tags }}
-          SOURCE_IMAGE: ${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
+          SOURCE_IMAGE: ${{ steps.source.outputs.tags }}
         run: |
           tag_args=()
           while IFS= read -r tag; do
