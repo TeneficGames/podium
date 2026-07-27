@@ -119,15 +119,12 @@ jobs:
         include:
           - name: server
             workdir: .
-            go_mod: go.mod
             go_sum: go.sum
           - name: leaderboard
             workdir: leaderboard
-            go_mod: leaderboard/go.mod
             go_sum: leaderboard/go.sum
           - name: client
             workdir: client
-            go_mod: client/go.mod
             go_sum: client/go.sum
     steps:
       - uses: actions/checkout@v6
@@ -136,6 +133,6 @@ jobs:
         with:
           cache-dependency-path: ${{ matrix.go_sum }}
           go-package: ./...
-          go-version-file: ${{ matrix.go_mod }}
+          go-version-input: 1.26.5
           repo-checkout: false
           work-dir: ${{ matrix.workdir }}
