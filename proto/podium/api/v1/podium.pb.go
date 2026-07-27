@@ -2980,7 +2980,7 @@ const file_proto_podium_api_v1_podium_proto_rawDesc = "" +
 	"\x10GetTopPercentage\x12&.podium.api.v1.GetTopPercentageRequest\x1a'.podium.api.v1.GetTopPercentageResponse\"4\x82\xd3\xe4\x93\x02.\x12,/l/{leaderboard_id}/top-percent/{percentage}\x12\xc1\x01\n" +
 	"\x1cUpsertScoreMultiLeaderboards\x122.podium.api.v1.UpsertScoreMultiLeaderboardsRequest\x1a3.podium.api.v1.UpsertScoreMultiLeaderboardsResponse\"8\x82\xd3\xe4\x93\x022:\x12score_multi_change\x1a\x1c/m/{member_public_id}/scores\x12\xa1\x01\n" +
 	"\x18GetRankMultiLeaderboards\x12..podium.api.v1.GetRankMultiLeaderboardsRequest\x1a/.podium.api.v1.GetRankMultiLeaderboardsResponse\"$\x82\xd3\xe4\x93\x02\x1e\x12\x1c/m/{member_public_id}/scoresB}\n" +
-	"\x1ecom.topfreegames.podium.api.v1B\vPodiumProtoP\x01Z6github.com/TeneficGames/podium/proto/podium/api/v1;api\xa2\x02\x03PAX\xaa\x02\rPodium.Api.V1b\x06proto3"
+	"\x1ecom.teneficgames.podium.api.v1B\vPodiumProtoP\x01Z6github.com/TeneficGames/podium/proto/podium/api/v1;api\xa2\x02\x03PAX\xaa\x02\rPodium.Api.V1b\x06proto3"
 
 var (
 	file_proto_podium_api_v1_podium_proto_rawDescOnce sync.Once

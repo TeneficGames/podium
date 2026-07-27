@@ -6,7 +6,7 @@ option csharp_namespace = "Podium.Api.V1";
 option go_package = "github.com/TeneficGames/podium/proto/podium/api/v1;api";
 option java_multiple_files = true;
 option java_outer_classname = "PodiumProto";
-option java_package = "com.topfreegames.podium.api.v1";
+option java_package = "com.teneficgames.podium.api.v1";
 option objc_class_prefix = "PAX";
 
 import "google/api/annotations.proto";
