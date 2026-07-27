@@ -1,11 +1,13 @@
 package client_test
 
 import (
-	"github.com/spf13/viper"
-	"github.com/topfreegames/podium/client"
-	httpmock "gopkg.in/jarcoal/httpmock.v1"
+	"errors"
 
-	. "github.com/onsi/ginkgo"
+	"github.com/TeneficGames/podium/client"
+	"github.com/jarcoal/httpmock"
+	"github.com/spf13/viper"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
@@ -15,12 +17,10 @@ var _ = Describe("client", func() {
 	var globalLeaderboard string
 	var localeLeaderboard string
 
-	BeforeSuite(func() {
+	BeforeEach(func() {
 		config = viper.New()
 		httpmock.Activate()
-	})
 
-	BeforeEach(func() {
 		//default configs for each test
 		config.Set("podium.url", "http://podium")
 		config.Set("podium.user", "user")
@@ -208,7 +208,7 @@ var _ = Describe("client", func() {
 			url := "http://podium/l/" + leaderboard + "/scores"
 			httpmock.RegisterResponder("PUT", url,
 				httpmock.NewStringResponder(200, `{ "success": true, "members": [ { "publicID": "1", "score": 2, "rank": 1, "previousRank": 1 } ] }`))
-			reqMembers := []*client.Member{&client.Member{Score: 1, PublicID: "1"}}
+			reqMembers := []*client.Member{{Score: 1, PublicID: "1"}}
 			members, err := p.UpdateMembersScore(nil, leaderboard, reqMembers, 0)
 
 			Expect(members).NotTo(BeNil())
@@ -227,7 +227,7 @@ var _ = Describe("client", func() {
 			url := "http://podium/l/" + leaderboard + "/scores?prevRank=true&scoreTTL=10"
 			httpmock.RegisterResponder("PUT", url,
 				httpmock.NewStringResponder(200, `{ "success": true, "members": [ { "publicID": "1", "score": 2, "rank": 1, "previousRank": 1 } ] }`))
-			reqMembers := []*client.Member{&client.Member{Score: 1, PublicID: "1"}}
+			reqMembers := []*client.Member{{Score: 1, PublicID: "1"}}
 			members, err := p.UpdateMembersScore(nil, leaderboard, reqMembers, 10)
 
 			Expect(members).NotTo(BeNil())
@@ -359,8 +359,8 @@ var _ = Describe("client", func() {
 
 			Expect(members).To(BeNil())
 			Expect(err).To(HaveOccurred())
-			reqErr, ok := err.(*client.RequestError)
-			Expect(ok).To(BeTrue())
+			var reqErr *client.RequestError
+			Expect(errors.As(err, &reqErr)).To(BeTrue())
 			Expect(reqErr.Status()).To(BeNumerically("==", 404))
 		})
 
@@ -603,7 +603,7 @@ var _ = Describe("client", func() {
 		})
 	})
 
-	AfterSuite(func() {
-		defer httpmock.DeactivateAndReset()
+	AfterEach(func() {
+		httpmock.DeactivateAndReset()
 	})
 })

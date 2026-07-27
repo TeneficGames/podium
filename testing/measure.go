@@ -18,17 +18,17 @@ const (
 	measureFlagPending
 )
 
-//HTTPMeasure runs the specified specs in an http test
+// HTTPMeasure runs the specified specs in an http test
 func HTTPMeasure(description string, setup func(map[string]interface{}), f func(string, map[string]interface{}), timeout float64) bool {
 	return measure(description, setup, f, timeout, measureFlagNone)
 }
 
-//FHTTPMeasure runs the specified specs in an http test
+// FHTTPMeasure runs the specified specs in an http test
 func FHTTPMeasure(description string, setup func(map[string]interface{}), f func(string, map[string]interface{}), timeout float64) bool {
 	return measure(description, setup, f, timeout, measureFlagFocused)
 }
 
-//XHTTPMeasure runs the specified specs in an http test
+// XHTTPMeasure runs the specified specs in an http test
 func XHTTPMeasure(description string, setup func(map[string]interface{}), f func(string, map[string]interface{}), timeout float64) bool {
 	return measure(description, setup, f, timeout, measureFlagPending)
 }

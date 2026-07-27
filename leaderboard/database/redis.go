@@ -2,10 +2,11 @@ package database
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
-	"github.com/topfreegames/podium/leaderboard/v2/database/redis"
+	"github.com/TeneficGames/podium/leaderboard/v2/database/redis"
 )
 
 // Redis is a type that implements Database interface with redis client
@@ -47,7 +48,8 @@ func NewRedisDatabase(options RedisOptions) *Redis {
 func (r *Redis) GetLeaderboardExpiration(ctx context.Context, leaderboard string) (int64, error) {
 	duration, err := r.Client.TTL(ctx, leaderboard)
 	if err != nil {
-		if _, ok := err.(*redis.TTLNotFoundError); ok {
+		var notFoundErr *redis.TTLNotFoundError
+		if errors.As(err, &notFoundErr) {
 			return int64(-1), NewTTLNotFoundError(leaderboard)
 		}
 		return int64(-1), NewGeneralError(err.Error())
@@ -67,7 +69,8 @@ func (r *Redis) GetMembers(ctx context.Context, leaderboard, order string, inclu
 	for _, member := range members {
 		score, err := r.Client.ZScore(ctx, leaderboard, member)
 		if err != nil {
-			if _, ok := err.(*redis.MemberNotFoundError); ok {
+			var notFoundErr *redis.MemberNotFoundError
+			if errors.As(err, &notFoundErr) {
 				membersToReturn = append(membersToReturn, nil)
 				continue
 			}
@@ -90,7 +93,8 @@ func (r *Redis) GetMembers(ctx context.Context, leaderboard, order string, inclu
 		if includeTTL {
 			ttl, err = r.getMemberTTL(ctx, leaderboard, member)
 			if err != nil {
-				if _, ok := err.(*MemberNotFoundError); !ok {
+				var notFoundErr *MemberNotFoundError
+				if !errors.As(err, &notFoundErr) {
 					return nil, NewGeneralError(err.Error())
 				}
 
@@ -113,7 +117,8 @@ func (r *Redis) getMemberTTL(ctx context.Context, leaderboard, member string) (t
 	leaderboardTTL := fmt.Sprintf("%s:ttl", leaderboard)
 	ttl, err := r.Client.ZScore(ctx, leaderboardTTL, member)
 	if err != nil {
-		if _, ok := err.(*redis.MemberNotFoundError); ok {
+		var notFoundErr *redis.MemberNotFoundError
+		if errors.As(err, &notFoundErr) {
 			return time.Time{}, NewMemberNotFoundError(leaderboardTTL, member)
 		}
 		return time.Time{}, NewGeneralError(err.Error())
@@ -150,7 +155,7 @@ func (r *Redis) GetOrderedMembers(ctx context.Context, leaderboard string, start
 		return nil, NewGeneralError(err.Error())
 	}
 
-	var members []*Member = make([]*Member, 0, len(redisMembers))
+	members := make([]*Member, 0, len(redisMembers))
 	for i, member := range redisMembers {
 		members = append(members, &Member{
 			Member: member.Member,
@@ -162,7 +167,7 @@ func (r *Redis) GetOrderedMembers(ctx context.Context, leaderboard string, start
 	return members, nil
 }
 
-// GetRank find member positon on leaderboard
+// GetRank find member position on leaderboard
 func (r *Redis) GetRank(ctx context.Context, leaderboard, member, order string) (int, error) {
 	var err error
 	var rank int64
@@ -177,7 +182,8 @@ func (r *Redis) GetRank(ctx context.Context, leaderboard, member, order string) 
 	}
 
 	if err != nil {
-		if _, ok := err.(*redis.MemberNotFoundError); ok {
+		var notFoundErr *redis.MemberNotFoundError
+		if errors.As(err, &notFoundErr) {
 			return -1, NewMemberNotFoundError(leaderboard, member)
 		}
 
@@ -191,7 +197,8 @@ func (r *Redis) GetRank(ctx context.Context, leaderboard, member, order string) 
 func (r *Redis) GetTotalMembers(ctx context.Context, leaderboard string) (int, error) {
 	totalMembers, err := r.Client.ZCard(ctx, leaderboard)
 	if err != nil {
-		if _, ok := err.(*redis.KeyNotFoundError); ok {
+		var notFoundErr *redis.KeyNotFoundError
+		if errors.As(err, &notFoundErr) {
 			return 0, nil
 		}
 		return -1, NewGeneralError(err.Error())
@@ -262,11 +269,12 @@ func (r *Redis) SetMembers(ctx context.Context, leaderboard string, databaseMemb
 }
 
 // SetMembersTTL set member ttl in an OrderedSet and add this to expiration_worker set
-//		The TTL is a different ordered set than the original leaderboard, with key being
-//		leaderboard name and suffix ":ttl", for example to a leaderboard named test your
-//		orederedset with time to expire will be "test:ttl"
 //
-//		Note: the worker expiration set is expiration_set
+//	The TTL is a different ordered set than the original leaderboard, with key being
+//	leaderboard name and suffix ":ttl", for example to a leaderboard named test your
+//	orederedset with time to expire will be "test:ttl"
+//
+//	Note: the worker expiration set is expiration_set
 func (r *Redis) SetMembersTTL(ctx context.Context, leaderboard string, databaseMembers []*Member) error {
 	redisMembers := make([]*redis.Member, 0, len(databaseMembers))
 	for _, member := range databaseMembers {

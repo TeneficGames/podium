@@ -2,9 +2,10 @@ package service
 
 import (
 	"context"
+	"errors"
 
-	"github.com/topfreegames/podium/leaderboard/v2/database"
-	"github.com/topfreegames/podium/leaderboard/v2/model"
+	"github.com/TeneficGames/podium/leaderboard/v2/database"
+	"github.com/TeneficGames/podium/leaderboard/v2/model"
 )
 
 const getAroundMeServiceLabel = "get around me"
@@ -13,7 +14,8 @@ const getAroundMeServiceLabel = "get around me"
 func (s *Service) GetAroundMe(ctx context.Context, leaderboard string, pageSize int, member string, order string, getLastIfNotFound bool) ([]*model.Member, error) {
 	memberRank, err := s.fetchMemberRank(ctx, leaderboard, member, order, getLastIfNotFound)
 	if err != nil {
-		if _, ok := err.(*database.MemberNotFoundError); ok {
+		var notFoundErr *database.MemberNotFoundError
+		if errors.As(err, &notFoundErr) {
 			return nil, NewMemberNotFoundError(leaderboard, member)
 		}
 

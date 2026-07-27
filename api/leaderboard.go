@@ -1,29 +1,30 @@
 // podium
-// https://github.com/topfreegames/podium
+// https://github.com/TeneficGames/podium
 // Licensed under the MIT license:
 // http://www.opensource.org/licenses/mit-license
-// Copyright © 2016 Top Free Games <backend@tfgco.com>
+// Copyright © 2026 Tenefic Games
 // Forked from
-// https://github.com/dayvson/go-leaderboard
-// Copyright © 2013 Maxwell Dayvson da Silva
+// https://github.com/topfreegames/podium
+// Copyright © 2016 Top Free Games
 
 package api
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"strings"
 
 	"google.golang.org/grpc/metadata"
 
-	lmodel "github.com/topfreegames/podium/leaderboard/v2/model"
-	"github.com/topfreegames/podium/leaderboard/v2/service"
+	lmodel "github.com/TeneficGames/podium/leaderboard/v2/model"
+	"github.com/TeneficGames/podium/leaderboard/v2/service"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	api "github.com/topfreegames/podium/proto/podium/api/v1"
+	api "github.com/TeneficGames/podium/proto/podium/api/v1"
 )
 
 const (
@@ -68,7 +69,8 @@ func (app *App) BulkUpsertScores(ctx context.Context, req *api.BulkUpsertScoresR
 			lg.Error("Setting member scores failed.", zap.Error(err))
 			app.AddError()
 			// TODO: Turn all these LeaderboardExpiredError verifications into a middleware
-			if _, ok := err.(*service.LeaderboardExpiredError); ok {
+			var expiredErr *service.LeaderboardExpiredError
+			if errors.As(err, &expiredErr) {
 				return status.Error(codes.InvalidArgument, err.Error())
 			}
 			return err
@@ -122,7 +124,8 @@ func (app *App) UpsertScore(ctx context.Context, req *api.UpsertScoreRequest) (*
 		if err != nil {
 			lg.Error("Setting member score failed.", zap.Error(err))
 			app.AddError()
-			if _, ok := err.(*service.LeaderboardExpiredError); ok {
+			var expiredErr *service.LeaderboardExpiredError
+			if errors.As(err, &expiredErr) {
 				return status.Error(codes.InvalidArgument, err.Error())
 			}
 
@@ -162,13 +165,14 @@ func (app *App) IncrementScore(ctx context.Context, req *api.IncrementScoreReque
 	err := withSegment("Model", ctx, func() error {
 		var err error
 		lg.Debug("Incrementing member score.", zap.Int64("increment", int64(req.Body.Increment)))
-		member, err = app.Leaderboards.IncrementMemberScore(context.Background(), req.LeaderboardId, req.MemberPublicId,
+		member, err = app.Leaderboards.IncrementMemberScore(ctx, req.LeaderboardId, req.MemberPublicId,
 			int(req.Body.Increment), getScoreTTL(req.ScoreTTL))
 
 		if err != nil {
 			lg.Error("Member score increment failed.", zap.Error(err))
 			app.AddError()
-			if _, ok := err.(*service.LeaderboardExpiredError); ok {
+			var expiredErr *service.LeaderboardExpiredError
+			if errors.As(err, &expiredErr) {
 				return status.Error(codes.InvalidArgument, err.Error())
 			}
 
@@ -233,15 +237,11 @@ func (app *App) RemoveMembers(ctx context.Context, req *api.RemoveMembersRequest
 	}
 
 	memberIDs := strings.Split(req.Ids, ",")
-	idsInter := make([]string, len(memberIDs))
-	for i, v := range memberIDs {
-		idsInter[i] = v
-	}
 
 	err := withSegment("Model", ctx, func() error {
 		lg.Debug("Removing members.", zap.String("ids", req.Ids))
 
-		if err := app.Leaderboards.RemoveMembers(ctx, req.LeaderboardId, idsInter); err != nil && !strings.HasPrefix(err.Error(), notFoundError) {
+		if err := app.Leaderboards.RemoveMembers(ctx, req.LeaderboardId, memberIDs); err != nil && !strings.HasPrefix(err.Error(), notFoundError) {
 			lg.Error("Members removal failed.", zap.Error(err))
 			app.AddError()
 			return err
@@ -615,7 +615,8 @@ func (app *App) GetTopPercentage(ctx context.Context, req *api.GetTopPercentageR
 
 		if err != nil {
 			lg.Error("Getting top percentage failed.", zap.Error(err))
-			if _, ok := err.(*service.PercentageError); ok {
+			var percentageErr *service.PercentageError
+			if errors.As(err, &percentageErr) {
 				app.AddError()
 				return status.Error(codes.InvalidArgument, err.Error())
 			}

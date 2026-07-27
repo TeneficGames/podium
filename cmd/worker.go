@@ -1,20 +1,23 @@
 // podium
-// https://github.com/topfreegames/podium
+// https://github.com/TeneficGames/podium
 // Licensed under the MIT license:
 // http://www.opensource.org/licenses/mit-license
-// Copyright © 2016 Top Free Games <backend@tfgco.com>
+// Copyright © 2026 Tenefic Games
 // Forked from
-// https://github.com/dayvson/go-leaderboard
-// Copyright © 2013 Maxwell Dayvson da Silva
+// https://github.com/topfreegames/podium
+// Copyright © 2016 Top Free Games
 
 package cmd
 
 import (
+	"context"
 	"os"
+	"time"
 
+	"github.com/TeneficGames/podium/log"
+	"github.com/TeneficGames/podium/observability"
+	"github.com/TeneficGames/podium/worker"
 	"github.com/spf13/cobra"
-	"github.com/topfreegames/podium/log"
-	"github.com/topfreegames/podium/worker"
 	"go.uber.org/zap"
 )
 
@@ -37,9 +40,23 @@ var workerCmd = &cobra.Command{
 			zap.String("source", "worker"),
 		)
 
-		defer logger.Sync()
+		defer func() {
+			_ = logger.Sync()
+		}()
 
 		logger.Info("Starting podium score expirer worker...")
+
+		telemetry, err := observability.New(cmd.Context(), "podium-worker")
+		if err != nil {
+			logger.Fatal("Could not configure observability.", zap.Error(err))
+		}
+		defer func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := telemetry.Shutdown(ctx); err != nil {
+				logger.Error("Could not shut down observability.", zap.Error(err))
+			}
+		}()
 
 		w, err := worker.GetExpirationWorker(ConfigFile)
 

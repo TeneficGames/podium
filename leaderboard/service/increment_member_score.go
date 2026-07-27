@@ -2,9 +2,10 @@ package service
 
 import (
 	"context"
+	"errors"
 
-	"github.com/topfreegames/podium/leaderboard/v2/expiration"
-	"github.com/topfreegames/podium/leaderboard/v2/model"
+	"github.com/TeneficGames/podium/leaderboard/v2/expiration"
+	"github.com/TeneficGames/podium/leaderboard/v2/model"
 )
 
 const incrementMemberScoreServiceLabel = "increment member score"
@@ -32,7 +33,8 @@ func (s *Service) IncrementMemberScore(ctx context.Context, leaderboard string, 
 
 	err = s.persistLeaderboardExpirationTime(ctx, leaderboard)
 	if err != nil {
-		if _, ok := err.(*expiration.LeaderboardExpiredError); ok {
+		var expiredErr *expiration.LeaderboardExpiredError
+		if errors.As(err, &expiredErr) {
 			return nil, NewLeaderboardExpiredError(leaderboard)
 		}
 		return nil, NewGeneralError(incrementMemberScoreServiceLabel, err.Error())

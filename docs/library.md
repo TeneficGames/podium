@@ -1,11 +1,11 @@
 Library
 =======
 
-For detailed information, check our [reference](https://godoc.org/github.com/topfreegames/podium/leaderboard).
+For detailed information, check the [Go package reference](https://pkg.go.dev/github.com/TeneficGames/podium/leaderboard/v2).
 All examples below have imported the leaderboard module using:
 
 ```
-import "github.com/topfreegames/podium/leaderboard"
+import "github.com/TeneficGames/podium/leaderboard"
 ```
 
 ## Creating the client

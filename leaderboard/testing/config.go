@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-//Creates an empty context (shortcut for context.Background())
+// Creates an empty context (shortcut for context.Background())
 func NewEmptyCtx() context.Context {
 	return context.Background()
 }

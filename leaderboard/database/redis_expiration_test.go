@@ -6,11 +6,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/golang/mock/gomock"
+	"github.com/TeneficGames/podium/leaderboard/v2/database"
+	"github.com/TeneficGames/podium/leaderboard/v2/database/redis"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/topfreegames/podium/leaderboard/v2/database"
-	"github.com/topfreegames/podium/leaderboard/v2/database/redis"
+	"go.uber.org/mock/gomock"
 )
 
 var _ = Describe("Redis Expiration Database", func() {

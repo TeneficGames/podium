@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
+	"github.com/TeneficGames/podium/leaderboard/v2/model"
 	redismock "github.com/go-redis/redismock/v9"
-	"github.com/redis/go-redis/v9"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/topfreegames/podium/leaderboard/v2/model"
+	"github.com/redis/go-redis/v9"
 )
 
 var _ = Describe("Members array to keys array test", func() {
@@ -172,6 +173,7 @@ var _ = Describe("Ericher cacheConfig Set tests", func() {
 		}
 
 		err := cache.Set(context.Background(), tenantID, members, 0)
+		Expect(err).NotTo(HaveOccurred())
 
 		res, err := redis.Get(context.Background(), fmt.Sprintf(cacheKeyFormat, tenantID, "member1")).Result()
 		Expect(res).To(Equal("{\"key1\":\"value1\"}"))

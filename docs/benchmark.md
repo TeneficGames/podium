@@ -1,7 +1,7 @@
 Podium's Benchmarks
 ===================
 
-You can see podium's benchmarks in our [CI server](https://travis-ci.org/topfreegames/podium/) as they get run with every build.
+You can see Podium's build history in [GitHub Actions](https://github.com/TeneficGames/podium/actions).
 
 ## Running Benchmarks
 

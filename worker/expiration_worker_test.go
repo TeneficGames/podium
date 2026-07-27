@@ -1,11 +1,11 @@
 // podium
-// https://github.com/topfreegames/podium
+// https://github.com/TeneficGames/podium
 // Licensed under the MIT license:
 // http://www.opensource.org/licenses/mit-license
-// Copyright © 2016 Top Free Games <backend@tfgco.com>
+// Copyright © 2026 Tenefic Games
 // Forked from
-// https://github.com/dayvson/go-leaderboard
-// Copyright © 2013 Maxwell Dayvson da Silva
+// https://github.com/topfreegames/podium
+// Copyright © 2016 Top Free Games
 
 package worker_test
 
@@ -15,11 +15,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/topfreegames/podium/config"
-	"github.com/topfreegames/podium/leaderboard/v2/database"
-	"github.com/topfreegames/podium/leaderboard/v2/database/redis"
-	lservice "github.com/topfreegames/podium/leaderboard/v2/service"
-	"github.com/topfreegames/podium/worker"
+	"github.com/TeneficGames/podium/leaderboard/v2/database"
+	"github.com/TeneficGames/podium/leaderboard/v2/database/redis"
+	lservice "github.com/TeneficGames/podium/leaderboard/v2/service"
+	"github.com/TeneficGames/podium/worker"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -225,13 +224,21 @@ var _ = Describe("Scores Expirer Worker", func() {
 	})
 
 	It("should create a valid expiration worker with external configuration", func() {
-		config, err := config.GetDefaultConfig("../config/test.yaml")
+		expirationWorker, err := worker.NewExpirationWorker(
+			"redis.example",
+			6380,
+			"secret",
+			3,
+			2*time.Second,
+			42,
+		)
 		Expect(err).NotTo(HaveOccurred())
-
-		expirationWorker, err = worker.NewExpirationWorker(config.GetString("redis.host"),
-			config.GetInt("redis.port"), config.GetString("redis.password"), config.GetInt("redis.db"),
-			config.GetDuration("worker.expirationCheckInterval"), config.GetInt("worker.expirationLimitPerRun"))
-		Expect(err).NotTo(HaveOccurred())
+		Expect(expirationWorker.Config.GetString("redis.host")).To(Equal("redis.example"))
+		Expect(expirationWorker.Config.GetInt("redis.port")).To(Equal(6380))
+		Expect(expirationWorker.Config.GetString("redis.password")).To(Equal("secret"))
+		Expect(expirationWorker.Config.GetInt("redis.db")).To(Equal(3))
+		Expect(expirationWorker.ExpirationCheckInterval).To(Equal(2 * time.Second))
+		Expect(expirationWorker.ExpirationLimitPerRun).To(Equal(42))
 	})
 
 	It("should print correctly expiration results", func() {

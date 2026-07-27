@@ -2,8 +2,9 @@ package cache
 
 import (
 	"context"
-	"github.com/topfreegames/podium/leaderboard/v2/enriching"
-	"github.com/topfreegames/podium/leaderboard/v2/model"
+
+	"github.com/TeneficGames/podium/leaderboard/v2/enriching"
+	"github.com/TeneficGames/podium/leaderboard/v2/model"
 	"go.uber.org/zap"
 )
 

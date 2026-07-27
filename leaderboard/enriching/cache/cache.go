@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/redis/go-redis/v9"
-	"github.com/topfreegames/podium/leaderboard/v2/enriching"
-	"github.com/topfreegames/podium/leaderboard/v2/model"
 	"time"
+
+	"github.com/TeneficGames/podium/leaderboard/v2/enriching"
+	"github.com/TeneficGames/podium/leaderboard/v2/model"
+	"github.com/redis/go-redis/v9"
 )
 
 // cacheKeyFormat is {tenantID}:{memberID}

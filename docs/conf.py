@@ -68,8 +68,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Podium'
-copyright = u'2016, Top Free Games'
-author = u'Top Free Games'
+copyright = u'2026, Tenefic Games'
+author = u'Tenefic Games'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -280,7 +280,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'Podium.tex', u'Podium Documentation',
-     u'Top Free Games', 'manual'),
+     u'Tenefic Games', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

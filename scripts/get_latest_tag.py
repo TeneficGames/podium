@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # Podium
-# https://github.com/topfreegames/podium
+# https://github.com/TeneficGames/podium
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license
-# Copyright © 2016 Top Free Games <backend@tfgco.com>
+# Copyright © 2026 Tenefic Games
 
 import urllib
 import urllib2

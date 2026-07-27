@@ -2,8 +2,9 @@ package service
 
 import (
 	"context"
+	"errors"
 
-	"github.com/topfreegames/podium/leaderboard/v2/database"
+	"github.com/TeneficGames/podium/leaderboard/v2/database"
 )
 
 const getRankServiceLabel = "get rank"
@@ -12,12 +13,13 @@ const getRankServiceLabel = "get rank"
 func (s *Service) GetRank(ctx context.Context, leaderboard, member, order string) (int, error) {
 	rank, err := s.Database.GetRank(ctx, leaderboard, member, order)
 	if err != nil {
-		if _, ok := err.(*database.MemberNotFoundError); ok {
+		var notFoundErr *database.MemberNotFoundError
+		if errors.As(err, &notFoundErr) {
 			return -1, NewMemberNotFoundError(leaderboard, member)
 		}
 
 		return -1, NewGeneralError(getRankServiceLabel, err.Error())
 	}
 
-	return int(rank + 1), nil
+	return rank + 1, nil
 }

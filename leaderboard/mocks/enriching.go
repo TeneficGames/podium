@@ -9,8 +9,8 @@ import (
 	reflect "reflect"
 	time "time"
 
-	gomock "github.com/golang/mock/gomock"
-	model "github.com/topfreegames/podium/leaderboard/v2/model"
+	gomock "go.uber.org/mock/gomock"
+	model "github.com/TeneficGames/podium/leaderboard/v2/model"
 )
 
 // MockEnricher is a mock of Enricher interface.

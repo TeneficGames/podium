@@ -2,38 +2,81 @@ package cache
 
 import (
 	"context"
-	"github.com/opentracing/opentracing-go"
-	extensions "github.com/topfreegames/extensions/middleware"
-	"github.com/topfreegames/podium/leaderboard/v2/enriching"
-	"github.com/topfreegames/podium/leaderboard/v2/model"
+	"fmt"
 	"time"
+
+	"github.com/TeneficGames/podium/leaderboard/v2/enriching"
+	"github.com/TeneficGames/podium/leaderboard/v2/model"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 )
 
 const (
-	enrichmentCacheGetTimingMilli = "enrichment_cache_get_duration_milliseconds"
-	enrichmentCacheGets           = "enrichment_cache_gets"
-	enrichmentCacheHits           = "enrichment_cache_hits"
-	enrichmentCacheGetErrors      = "enrichment_cache_get_errors"
-	enrichmentCacheSetTimingMilli = "enrichment_cache_set_duration_milliseconds"
-	enrichmentCacheSets           = "enrichment_cache_sets"
-	enrichmentCacheSetErrors      = "enrichment_cache_set_errors"
+	enrichmentCacheGetDuration = "podium.enrichment.cache.get.duration"
+	enrichmentCacheGets        = "podium.enrichment.cache.gets"
+	enrichmentCacheHits        = "podium.enrichment.cache.hits"
+	enrichmentCacheGetErrors   = "podium.enrichment.cache.get.errors"
+	enrichmentCacheSetDuration = "podium.enrichment.cache.set.duration"
+	enrichmentCacheSets        = "podium.enrichment.cache.sets"
+	enrichmentCacheSetErrors   = "podium.enrichment.cache.set.errors"
 )
 
 type instrumentedCache struct {
-	impl            enriching.EnricherCache
-	metricsReporter extensions.MetricsReporter
+	impl      enriching.EnricherCache
+	gets      metric.Int64Counter
+	hits      metric.Int64Counter
+	getErrors metric.Int64Counter
+	getTime   metric.Float64Histogram
+	sets      metric.Int64Counter
+	setErrors metric.Int64Counter
+	setTime   metric.Float64Histogram
 }
 
 // NewInstrumentedCache returns an EnrichCache implementation wrapped
 // with metrics reporting and tracing
-func NewInstrumentedCache(
-	impl enriching.EnricherCache,
-	metricsReporter extensions.MetricsReporter,
-) enriching.EnricherCache {
-	return &instrumentedCache{
-		impl:            impl,
-		metricsReporter: metricsReporter,
+func NewInstrumentedCache(impl enriching.EnricherCache) (enriching.EnricherCache, error) {
+	meter := otel.Meter("github.com/TeneficGames/podium/leaderboard/v2/enriching/cache")
+	gets, err := meter.Int64Counter(enrichmentCacheGets)
+	if err != nil {
+		return nil, fmt.Errorf("create enrichment cache gets counter: %w", err)
 	}
+	hits, err := meter.Int64Counter(enrichmentCacheHits)
+	if err != nil {
+		return nil, fmt.Errorf("create enrichment cache hits counter: %w", err)
+	}
+	getErrors, err := meter.Int64Counter(enrichmentCacheGetErrors)
+	if err != nil {
+		return nil, fmt.Errorf("create enrichment cache get errors counter: %w", err)
+	}
+	getTime, err := meter.Float64Histogram(enrichmentCacheGetDuration, metric.WithUnit("s"))
+	if err != nil {
+		return nil, fmt.Errorf("create enrichment cache get duration histogram: %w", err)
+	}
+	sets, err := meter.Int64Counter(enrichmentCacheSets)
+	if err != nil {
+		return nil, fmt.Errorf("create enrichment cache sets counter: %w", err)
+	}
+	setErrors, err := meter.Int64Counter(enrichmentCacheSetErrors)
+	if err != nil {
+		return nil, fmt.Errorf("create enrichment cache set errors counter: %w", err)
+	}
+	setTime, err := meter.Float64Histogram(enrichmentCacheSetDuration, metric.WithUnit("s"))
+	if err != nil {
+		return nil, fmt.Errorf("create enrichment cache set duration histogram: %w", err)
+	}
+	return &instrumentedCache{
+		impl:      impl,
+		gets:      gets,
+		hits:      hits,
+		getErrors: getErrors,
+		getTime:   getTime,
+		sets:      sets,
+		setErrors: setErrors,
+		setTime:   setTime,
+	}, nil
 }
 
 func (c *instrumentedCache) Get(
@@ -43,25 +86,26 @@ func (c *instrumentedCache) Get(
 ) (map[string]map[string]string, bool, error) {
 	start := time.Now()
 
-	span, ctx := opentracing.StartSpanFromContext(ctx, "podium.enriching_cache.get", opentracing.Tags{
-		"tenant_id": tenantID,
-	})
-	defer span.Finish()
+	ctx, span := otel.Tracer("github.com/TeneficGames/podium/leaderboard/v2/enriching/cache").Start(
+		ctx,
+		"podium.enriching_cache.get",
+		trace.WithAttributes(attribute.String("tenant.id", tenantID)),
+	)
+	defer span.End()
 
 	metadata, hit, err := c.impl.Get(ctx, tenantID, members)
 
-	c.metricsReporter.Increment(enrichmentCacheGets)
-	c.metricsReporter.Timing(enrichmentCacheGetTimingMilli, time.Since(start))
+	c.gets.Add(ctx, 1)
+	c.getTime.Record(ctx, time.Since(start).Seconds())
 
 	if err != nil {
-		span.SetTag("error", true)
-		span.SetTag("error.message", err.Error())
-
-		c.metricsReporter.Increment(enrichmentCacheGetErrors)
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		c.getErrors.Add(ctx, 1)
 	}
 
 	if hit {
-		c.metricsReporter.Increment(enrichmentCacheHits)
+		c.hits.Add(ctx, 1)
 	}
 
 	return metadata, hit, err
@@ -75,22 +119,25 @@ func (c *instrumentedCache) Set(
 ) error {
 	start := time.Now()
 
-	span, ctx := opentracing.StartSpanFromContext(ctx, "podium.enriching_cache.set", opentracing.Tags{
-		"tenant_id": tenantID,
-		"ttl":       ttl,
-	})
-	defer span.Finish()
+	ctx, span := otel.Tracer("github.com/TeneficGames/podium/leaderboard/v2/enriching/cache").Start(
+		ctx,
+		"podium.enriching_cache.set",
+		trace.WithAttributes(
+			attribute.String("tenant.id", tenantID),
+			attribute.Int64("cache.ttl_seconds", int64(ttl.Seconds())),
+		),
+	)
+	defer span.End()
 
 	err := c.impl.Set(ctx, tenantID, members, ttl)
 
-	c.metricsReporter.Increment(enrichmentCacheSets)
-	c.metricsReporter.Timing(enrichmentCacheSetTimingMilli, time.Since(start))
+	c.sets.Add(ctx, 1)
+	c.setTime.Record(ctx, time.Since(start).Seconds())
 
 	if err != nil {
-		span.SetTag("error", true)
-		span.SetTag("error.message", err.Error())
-
-		c.metricsReporter.Increment(enrichmentCacheSetErrors)
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		c.setErrors.Add(ctx, 1)
 	}
 
 	return err

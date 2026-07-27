@@ -1,0 +1,49 @@
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  default: standard
+  enable:
+    - bodyclose
+    - durationcheck
+    - errorlint
+    - misspell
+    - nilerr
+    - noctx
+    - unconvert
+    - wastedassign
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - errcheck
+      - path: ^(bench|testing)/
+        text: "ST1001:"
+        linters:
+          - staticcheck
+      - path: ^api/leaderboard_test\.go$
+        text: "ST1019:"
+        linters:
+          - staticcheck
+      - path: _test\.go
+        text: "(ST1023|QF1011):"
+        linters:
+          - staticcheck
+      - path: ^client/.*_test\.go$
+        text: "SA1012:"
+        linters:
+          - staticcheck
+      - text: "QF1008:"
+        linters:
+          - staticcheck
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

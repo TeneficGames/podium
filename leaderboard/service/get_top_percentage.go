@@ -4,7 +4,7 @@ import (
 	"context"
 	"math"
 
-	"github.com/topfreegames/podium/leaderboard/v2/model"
+	"github.com/TeneficGames/podium/leaderboard/v2/model"
 )
 
 const getTopPercentageServiceLabel = "get top percentage"

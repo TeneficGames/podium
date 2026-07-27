@@ -12,5 +12,5 @@ func (s *Service) TotalMembers(ctx context.Context, leaderboard string) (int, er
 	if err != nil {
 		return -1, NewGeneralError(totalMembersServiceLabel, err.Error())
 	}
-	return int(count), nil
+	return count, nil
 }

@@ -6,11 +6,11 @@ import (
 	"os"
 	"strings"
 
+	"github.com/TeneficGames/podium/api"
+	"github.com/TeneficGames/podium/log"
+	"github.com/TeneficGames/podium/testing"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/topfreegames/podium/api"
-	"github.com/topfreegames/podium/log"
-	"github.com/topfreegames/podium/testing"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -64,12 +64,12 @@ var _ = Describe("App", func() {
 			logger = log.CreateLoggerWithLevel(zapcore.ErrorLevel, log.LoggerOptions{WriteSyncer: sink, RemoveTimestamp: true})
 		})
 
-		It("should handle errors and send to raven", func() {
+		It("should log errors and report them to Sentry", func() {
 			app, err = api.New("127.0.0.1", 9999, 10000, "../config/test.yaml", false, logger)
 			Expect(err).NotTo(HaveOccurred())
 
 			app.OnErrorHandler(fmt.Errorf("some other error occurred"), []byte("stack"))
-			result := sink.Buffer.String()
+			result := sink.String()
 			var obj map[string]interface{}
 			err = json.Unmarshal([]byte(result), &obj)
 			Expect(err).NotTo(HaveOccurred())

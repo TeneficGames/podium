@@ -1,12 +1,10 @@
-# podium - webhook dispatching service
-# https://github.com/topfreegames/podium
+# Podium leaderboard service
+# https://github.com/TeneficGames/podium
 # Licensed under the MIT license:
 # http://www.opensource.org/licenses/mit-license
-# Copyright © 2019 Top Free Games <backend@tfgco.com>
+# Copyright © 2026 Tenefic Games
 
-FROM golang:1.26-alpine as build
-
-MAINTAINER TFG Co <backend@tfgco.com>
+FROM golang:1.26-alpine AS build
 
 ENV CGO_ENABLED=0
 
@@ -14,12 +12,14 @@ COPY . /podium
 
 WORKDIR /podium
 
-RUN apk update && apk add make && make setup
-RUN go mod tidy && make build
+RUN go mod download
+RUN go build -trimpath -ldflags="-s -w" -o /podium/bin/podium ./main.go
 
 FROM gcr.io/distroless/static-debian12:nonroot
 
 COPY --from=build /podium/bin/podium /podium
 COPY --from=build /podium/config/default.yaml /default.yaml
+
+USER nonroot:nonroot
 
 ENTRYPOINT ["/podium", "-c", "/default.yaml"]

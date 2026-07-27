@@ -2,17 +2,18 @@ package database
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/topfreegames/podium/leaderboard/v2/database/redis"
+	"github.com/TeneficGames/podium/leaderboard/v2/database/redis"
 )
 
 var _ Expiration = &Redis{}
 
-// GetExpirationLeaderboards return leaderboards registerd with members to expire
+// GetExpirationLeaderboards return leaderboards registered with members to expire
 func (r *Redis) GetExpirationLeaderboards(ctx context.Context) ([]string, error) {
 	expirationKeys, err := r.Client.SMembers(ctx, ExpirationSet)
 	if err != nil {
@@ -33,7 +34,8 @@ func (r *Redis) GetMembersToExpire(ctx context.Context, leaderboard string, amou
 
 	err := r.Client.Exists(ctx, expirationSet)
 	if err != nil {
-		if _, ok := err.(*redis.KeyNotFoundError); ok {
+		var notFoundErr *redis.KeyNotFoundError
+		if errors.As(err, &notFoundErr) {
 			return nil, NewLeaderboardWithoutMemberToExpireError(leaderboard)
 		}
 		return nil, NewGeneralError(err.Error())

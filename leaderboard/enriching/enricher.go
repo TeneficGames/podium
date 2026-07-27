@@ -6,13 +6,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/topfreegames/podium/leaderboard/v2/enriching/cloud-save"
-	podium_leaderboard_webhooks_v1 "github.com/topfreegames/podium/leaderboard/v2/enriching/proto/webhook/v1"
-	"github.com/topfreegames/podium/leaderboard/v2/model"
-	"go.uber.org/zap"
 	"net/http"
 	"net/url"
 	"strings"
+
+	cloud_save "github.com/TeneficGames/podium/leaderboard/v2/enriching/cloud-save"
+	podium_leaderboard_webhooks_v1 "github.com/TeneficGames/podium/leaderboard/v2/enriching/proto/webhook/v1"
+	"github.com/TeneficGames/podium/leaderboard/v2/model"
+	"go.uber.org/zap"
 )
 
 const enrichWebhookEndpoint = "/leaderboards/enrich"
@@ -135,7 +136,9 @@ func (e *enricherImpl) enrichWithWebhook(
 	if err != nil {
 		return nil, fmt.Errorf("could not complete request to webhook: %w", errors.Join(err, ErrEnrichmentCall))
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("webhook returned %s response: %w", resp.Status, ErrEnrichmentCall)
@@ -205,7 +208,9 @@ func (e *enricherImpl) enrichWithCloudSave(ctx context.Context, tenantID string,
 	if err != nil {
 		return nil, fmt.Errorf("could not complete request to cloud save: %w", errors.Join(ErrEnrichmentCall, err))
 	}
-	defer raw.Body.Close()
+	defer func() {
+		_ = raw.Body.Close()
+	}()
 
 	if raw.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("cloud save returned %s response: %w", raw.Status, ErrEnrichmentCall)

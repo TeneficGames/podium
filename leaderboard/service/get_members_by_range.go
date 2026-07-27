@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/topfreegames/podium/leaderboard/v2/model"
+	"github.com/TeneficGames/podium/leaderboard/v2/model"
 )
 
 const getMembersByRangeServiceLabel = "get members by range"

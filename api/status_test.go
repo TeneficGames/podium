@@ -1,11 +1,11 @@
 // podium
-// https://github.com/topfreegames/podium
+// https://github.com/TeneficGames/podium
 // Licensed under the MIT license:
 // http://www.opensource.org/licenses/mit-license
-// Copyright © 2016 Top Free Games <backend@tfgco.com>
+// Copyright © 2026 Tenefic Games
 // Forked from
-// https://github.com/dayvson/go-leaderboard
-// Copyright © 2013 Maxwell Dayvson da Silva
+// https://github.com/topfreegames/podium
+// Copyright © 2016 Top Free Games
 
 package api_test
 
@@ -14,13 +14,13 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/golang/protobuf/ptypes/empty"
+	empty "google.golang.org/protobuf/types/known/emptypb"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	api "github.com/topfreegames/podium/proto/podium/api/v1"
-	"github.com/topfreegames/podium/testing"
+	api "github.com/TeneficGames/podium/proto/podium/api/v1"
+	"github.com/TeneficGames/podium/testing"
 )
 
 var _ = Describe("Status Handler", func() {

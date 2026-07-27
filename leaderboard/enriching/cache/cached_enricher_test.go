@@ -3,12 +3,13 @@ package cache
 import (
 	"context"
 	"errors"
-	"github.com/golang/mock/gomock"
+	"time"
+
+	mock_enriching "github.com/TeneficGames/podium/leaderboard/v2/mocks"
+	"github.com/TeneficGames/podium/leaderboard/v2/model"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	mock_enriching "github.com/topfreegames/podium/leaderboard/v2/mocks"
-	"github.com/topfreegames/podium/leaderboard/v2/model"
-	"time"
+	"go.uber.org/mock/gomock"
 )
 
 var _ = Describe("Enricher with cache tests", func() {

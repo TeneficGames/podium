@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "podium.leaderboard.webhooks.v1";
+option go_package = "github.com/TeneficGames/podium/leaderboard/v2/enriching/proto/webhook/v1;podium_leaderboard_webhooks_v1";
 import "google/api/annotations.proto";
 
 service LeaderboardsEnrichmentService {

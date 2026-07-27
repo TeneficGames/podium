@@ -2,15 +2,15 @@
 // https://github.com/topfreegames/santiago
 // Licensed under the MIT license:
 // http://www.opensource.org/licenses/mit-license
-// Copyright © 2016 Top Free Games <backend@tfgco.com>
+// Copyright © 2026 Tenefic Games
 
 package cmd
 
 import (
 	"fmt"
 
+	"github.com/TeneficGames/podium/api"
 	"github.com/spf13/cobra"
-	"github.com/topfreegames/podium/api"
 )
 
 // versionCmd represents the version command

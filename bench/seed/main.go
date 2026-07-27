@@ -1,9 +1,9 @@
 // podium
-// https://github.com/topfreegames/podium
+// https://github.com/TeneficGames/podium
 //
 // Licensed under the MIT license:
 // http://www.opensource.org/licenses/mit-license
-// Copyright © 2016 Top Free Games <backend@tfgco.com>
+// Copyright © 2026 Tenefic Games
 
 package main
 
@@ -13,14 +13,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TeneficGames/podium/config"
+	"github.com/TeneficGames/podium/leaderboard/v2/database/redis"
 	"github.com/gosuri/uiprogress"
 	"github.com/gosuri/uiprogress/util/strutil"
-	"github.com/topfreegames/podium/config"
-	"github.com/topfreegames/podium/leaderboard/v2/database/redis"
 )
-
-var currentStage int
-var stages map[int]string
 
 var leaderboardCount = flag.Int("leaderboards", 3, "number of leaderboards to create")
 var membersPerLeaderboard = flag.Int("mpl", 5000000, "number of members per leaderboard")
@@ -61,7 +58,7 @@ func main() {
 	createTestData(client, *leaderboardCount, *membersPerLeaderboard, bar.Incr)
 }
 
-func createTestData(cli redis.Redis, leaderboardCount, membersPerLeaderboard int, progress func() bool) error {
+func createTestData(cli redis.Client, leaderboardCount, membersPerLeaderboard int, progress func() bool) {
 	for i := 0; i < leaderboardCount; i++ {
 		for j := 0; j < membersPerLeaderboard; j++ {
 			setScore(cli, fmt.Sprintf("leaderboard-%d", i), fmt.Sprintf("member-%d", j), i*j)
@@ -69,10 +66,9 @@ func createTestData(cli redis.Redis, leaderboardCount, membersPerLeaderboard int
 		}
 	}
 
-	return nil
 }
 
-func setScore(cli redis.Redis, leaderboard, member string, score int) {
+func setScore(cli redis.Client, leaderboard, member string, score int) {
 	err := cli.ZAdd(context.Background(), leaderboard, &redis.Member{Score: float64(score), Member: member})
 	if err != nil {
 		panic(err)

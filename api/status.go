@@ -1,11 +1,11 @@
 // podium
-// https://github.com/topfreegames/podium
+// https://github.com/TeneficGames/podium
 // Licensed under the MIT license:
 // http://www.opensource.org/licenses/mit-license
-// Copyright © 2016 Top Free Games <backend@tfgco.com>
+// Copyright © 2026 Tenefic Games
 // Forked from
-// https://github.com/dayvson/go-leaderboard
-// Copyright © 2013 Maxwell Dayvson da Silva
+// https://github.com/topfreegames/podium
+// Copyright © 2016 Top Free Games
 
 package api
 
@@ -17,8 +17,8 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/golang/protobuf/ptypes/empty"
-	api "github.com/topfreegames/podium/proto/podium/api/v1"
+	api "github.com/TeneficGames/podium/proto/podium/api/v1"
+	empty "google.golang.org/protobuf/types/known/emptypb"
 )
 
 type statusPayload struct {
@@ -45,7 +45,7 @@ func (app *App) statusHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	if _, err := w.Write([]byte(data)); err != nil {
+	if _, err := w.Write(data); err != nil {
 		app.Logger.Error("Error writing /status response", zap.Error(err))
 	}
 }
