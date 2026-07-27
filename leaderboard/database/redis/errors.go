@@ -43,12 +43,13 @@ type MemberNotFoundError struct {
 // NewMemberNotFoundError create a new KeyNotFoundError
 func NewMemberNotFoundError(key, member string) *MemberNotFoundError {
 	return &MemberNotFoundError{
-		key: key,
+		key:    key,
+		member: member,
 	}
 }
 
 func (mnfe *MemberNotFoundError) Error() string {
-	return fmt.Sprintf("redis: key %s not have member %s found", mnfe.key, mnfe.member)
+	return fmt.Sprintf("redis: key %s does not contain member %s", mnfe.key, mnfe.member)
 }
 
 // GeneralError create a redis error that is not handled

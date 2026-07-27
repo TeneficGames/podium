@@ -31,9 +31,9 @@ jobs:
           (cd client && go mod verify)
       - name: Build
         run: make build
-      - name: Verify generated code
+      - name: Verify Protobuf schemas and generated code
         run: |
-          make proto-tools
+          make proto-check
           make proto
           git diff --exit-code
 
@@ -79,9 +79,20 @@ jobs:
         run: make setup
       - name: Test
         run: make test
-      - name: Combine coverage
-        run: make coverage
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@v6
+        with:
+          disable_search: true
+          fail_ci_if_error: true
+          files: ./_build/test-results/*.xml
+          report_type: test_results
+          use_oidc: true
+      - name: Combine and check package coverage
+        if: ${{ !cancelled() }}
+        run: make coverage-check
       - name: Upload coverage to Codecov
+        if: ${{ !cancelled() }}
         uses: codecov/codecov-action@v6
         with:
           disable_search: true

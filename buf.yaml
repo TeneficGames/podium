@@ -1,6 +1,9 @@
-version: v1
-
-name: buf.build/teneficgames/podium
+version: v2
+modules:
+  - path: proto
+    name: buf.build/teneficgames/podium
+  - path: leaderboard/enriching/proto
+    name: buf.build/teneficgames/podium-enrichment
 deps:
   - buf.build/googleapis/googleapis
 
@@ -8,23 +11,8 @@ breaking:
   use:
     - FILE
 
-build:
-  excludes:
-    - third-party/
-    - vendor/
 lint:
   use:
-    - DEFAULT
+    - STANDARD
   enum_zero_value_suffix: _INVALID
-  service_suffix: API
-  except:
-    - FILE_OPTIONS_REQUIRE_CSHARP_NAMESPACE
-    - FILE_OPTIONS_REQUIRE_GO_PACKAGE
-    - FILE_OPTIONS_REQUIRE_JAVA_MULTIPLE_FILES
-    - FILE_OPTIONS_REQUIRE_JAVA_OUTER_CLASSNAME
-    - FILE_OPTIONS_REQUIRE_JAVA_PACKAGE
-    - FILE_OPTIONS_REQUIRE_OBJC_CLASS_PREFIX
-    - FILE_OPTIONS_REQUIRE_PHP_NAMESPACE
-    - PACKAGE_MAJOR_BETA_VERSIONED
-    - SERVICE_NAMES_API_SUFFIX
-    - SERVICE_NAMES_MATCH_FILE_NAME
+  service_suffix: Service

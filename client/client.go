@@ -275,7 +275,7 @@ func (p *Podium) appendScoreTTLAndPrevRank(pathname string, scoreTTL int) string
 		return pathname
 	}
 
-	return fmt.Sprintf("%s&scoreTTL=%d", pathname, scoreTTL)
+	return fmt.Sprintf("%s&scoreTtl=%d", pathname, scoreTTL)
 }
 
 // GetTop returns the top members for this leaderboard. Page is 1-index
@@ -369,7 +369,7 @@ func (p *Podium) UpdateMembersScore(ctx context.Context, leaderboard string, mem
 	for i, member := range members {
 		membersPayload[i] = map[string]interface{}{
 			"score":    member.Score,
-			"publicID": member.PublicID,
+			"publicId": member.PublicID,
 		}
 	}
 	payload := map[string]interface{}{"members": membersPayload}

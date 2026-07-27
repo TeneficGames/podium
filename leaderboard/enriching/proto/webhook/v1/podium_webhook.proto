@@ -1,13 +1,16 @@
 syntax = "proto3";
 
-option go_package = "github.com/TeneficGames/podium/leaderboard/enriching/proto/webhook/v1;podium_leaderboard_webhooks_v1";
+package webhook.v1;
+
 import "google/api/annotations.proto";
+
+option go_package = "github.com/TeneficGames/podium/leaderboard/enriching/proto/webhook/v1;podium_leaderboard_webhooks_v1";
 
 service LeaderboardsEnrichmentService {
   // Receives an array of members and returns the same array enriched with
   // the member's metadata.
-  rpc EnrichLeaderboards(EnrichLeaderboardsRequest) returns (EnrichLeaderboardsResponse){
-    option(google.api.http) = {
+  rpc EnrichLeaderboards(EnrichLeaderboardsRequest) returns (EnrichLeaderboardsResponse) {
+    option (google.api.http) = {
       post: "/v1/leaderboards/enrich"
       body: "members"
     };
@@ -26,7 +29,7 @@ message EnrichLeaderboardsResponse {
 
 message Member {
   // The leaderboard's ID.
-  string leaderboardId = 1;
+  string leaderboard_id = 1;
   // The member's ID.
   string id = 2;
   // The member's scores.

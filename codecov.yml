@@ -8,17 +8,81 @@ coverage:
   status:
     project:
       default:
-        target: auto
-        threshold: 1%
+        target: 80%
+        threshold: 0%
     patch:
       default:
         target: 80%
-        threshold: 1%
+        threshold: 0%
 
 comment:
-  layout: "reach, diff, flags, files"
+  layout: "reach, diff, components, files"
   behavior: default
   require_changes: true
+
+component_management:
+  default_rules:
+    statuses:
+      - type: project
+        target: 80%
+        threshold: 0%
+  individual_components:
+    - component_id: main
+      name: main
+      paths:
+        - "main.go"
+    - component_id: api
+      name: api
+      paths:
+        - "api/*.go"
+    - component_id: cmd
+      name: cmd
+      paths:
+        - "cmd/*.go"
+    - component_id: config
+      name: config
+      paths:
+        - "config/*.go"
+    - component_id: log
+      name: log
+      paths:
+        - "log/*.go"
+    - component_id: observability
+      name: observability
+      paths:
+        - "observability/*.go"
+    - component_id: worker
+      name: worker
+      paths:
+        - "worker/*.go"
+    - component_id: leaderboard_database
+      name: leaderboard/database
+      paths:
+        - "leaderboard/database/*.go"
+    - component_id: leaderboard_database_redis
+      name: leaderboard/database/redis
+      paths:
+        - "leaderboard/database/redis/*.go"
+    - component_id: leaderboard_enriching
+      name: leaderboard/enriching
+      paths:
+        - "leaderboard/enriching/*.go"
+    - component_id: leaderboard_enriching_cache
+      name: leaderboard/enriching/cache
+      paths:
+        - "leaderboard/enriching/cache/*.go"
+    - component_id: leaderboard_expiration
+      name: leaderboard/expiration
+      paths:
+        - "leaderboard/expiration/*.go"
+    - component_id: leaderboard_service
+      name: leaderboard/service
+      paths:
+        - "leaderboard/service/*.go"
+    - component_id: client
+      name: client
+      paths:
+        - "client/*.go"
 
 ignore:
   - "**/*.pb.go"
@@ -26,6 +90,8 @@ ignore:
   - "**/*_grpc.pb.go"
   - "**/mocks/**"
   - "**/*_mock.go"
+  - "leaderboard/database/mock.go"
+  - "leaderboard/database/redis/mock.go"
   - "bench/**"
   - "testing/**"
   - "leaderboard/testing/**"

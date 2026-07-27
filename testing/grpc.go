@@ -9,7 +9,7 @@ import (
 )
 
 // SetupGRPC sets up the environment for grpc communication, starting the app and creating a connected client
-func SetupGRPC(app *api.App, f func(pb.PodiumClient)) {
+func SetupGRPC(app *api.App, f func(pb.PodiumServiceClient)) {
 	InitializeTestServer(app)
 
 	conn, err := grpc.NewClient(app.GRPCEndpoint, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -18,7 +18,7 @@ func SetupGRPC(app *api.App, f func(pb.PodiumClient)) {
 		_ = conn.Close()
 	}()
 
-	cli := pb.NewPodiumClient(conn)
+	cli := pb.NewPodiumServiceClient(conn)
 
 	f(cli)
 }

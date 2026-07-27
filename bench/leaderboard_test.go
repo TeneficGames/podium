@@ -42,7 +42,7 @@ func BenchmarkSetMembersScore(b *testing.B) {
 	lbID := generateNMembers(b.N)
 	for j := 0; j < 50; j++ {
 		memberID := uuid.New().String()
-		members[j] = map[string]interface{}{"publicID": memberID, "score": int64(100)}
+		members[j] = map[string]interface{}{"publicId": memberID, "score": int64(100)}
 	}
 	payload := map[string]interface{}{"members": members}
 

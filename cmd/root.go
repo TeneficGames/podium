@@ -56,12 +56,13 @@ func init() {
 func initConfig() {
 	if ConfigFile != "" { // enable ability to specify config file via flag
 		viper.SetConfigFile(ConfigFile)
+	} else {
+		viper.SetConfigName(".podium") // name of config file (without extension)
+		viper.AddConfigPath("$HOME")   // adding home directory as first search path
 	}
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.SetEnvPrefix("podium")
-	viper.SetConfigName(".podium") // name of config file (without extension)
-	viper.AddConfigPath("$HOME")   // adding home directory as first search path
-	viper.AutomaticEnv()           // read in environment variables that match
+	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {

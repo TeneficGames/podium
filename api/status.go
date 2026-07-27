@@ -18,7 +18,6 @@ import (
 	"go.uber.org/zap"
 
 	api "github.com/TeneficGames/podium/proto/podium/api/v1"
-	empty "google.golang.org/protobuf/types/known/emptypb"
 )
 
 type statusPayload struct {
@@ -50,6 +49,6 @@ func (app *App) statusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (app *App) Status(ctx context.Context, req *empty.Empty) (*api.StatusResponse, error) {
+func (app *App) Status(ctx context.Context, req *api.StatusRequest) (*api.StatusResponse, error) {
 	return &api.StatusResponse{ErrorRate: app.Errors.Rate()}, nil
 }

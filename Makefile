@@ -12,15 +12,16 @@ MYIP = $(shell ifconfig | egrep inet | egrep -v inet6 | egrep -v 127.0.0.1 | awk
 OS = "$(shell uname | awk '{ print tolower($$0) }')"
 PROTOTOOL := go run github.com/uber/prototool/cmd/prototool
 LOCAL_GO_MODCACHE = $(shell go env | grep GOMODCACHE | cut -d "=" -f 2 | sed 's/"//g')
-BUF := go run github.com/bufbuild/buf/cmd/buf@v1.55.1
+BUF := go run github.com/bufbuild/buf/cmd/buf@v1.72.0
 MOCKGENERATE := go run go.uber.org/mock/mockgen@v0.6.0
+GOTESTSUM := go run gotest.tools/gotestsum@v1.13.0
 
 help: Makefile ## Show list of commands
 	@echo "Choose a command run in "$(PROJECT_NAME)":"
 	@echo ""
 	@awk 'BEGIN {FS = ":.*?## "} /[a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf "\033[36m%-40s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
 
-.PHONY: build lint proto proto-setup proto-tools test test-client test-leaderboard test-podium test-unit
+.PHONY: build coverage-check lint proto proto-check proto-setup proto-tools test test-client test-leaderboard test-podium test-unit
 
 setup-hooks: ## Create pre-commit git hooks
 	@cd .git/hooks && ln -sf ../../hooks/pre-commit.sh pre-commit
@@ -50,13 +51,16 @@ test-unit: ## Execute Redis-independent unit tests
 	@cd client && go test ./...
 
 test-podium: ## Execute all API tests
-	@go test -coverprofile=podium.coverprofile ./...
+	@mkdir -p _build/test-results
+	@$(GOTESTSUM) --junitfile=_build/test-results/podium.xml -- -coverprofile=podium.coverprofile ./...
 
 test-leaderboard: ## Execute all leaderboard tests
-	@cd leaderboard && go test -coverprofile=leaderboard.coverprofile ./...
+	@mkdir -p _build/test-results
+	@cd leaderboard && $(GOTESTSUM) --junitfile=../_build/test-results/leaderboard.xml -- -coverprofile=leaderboard.coverprofile ./...
 
 test-client: ## Execute all client tests
-	@cd client && go test -coverprofile=client.coverprofile ./...
+	@mkdir -p _build/test-results
+	@cd client && $(GOTESTSUM) --junitfile=../_build/test-results/client.xml -- -coverprofile=client.coverprofile ./...
 
 lint: ## Run golangci-lint for all Go modules
 	@golangci-lint run ./...
@@ -64,10 +68,13 @@ lint: ## Run golangci-lint for all Go modules
 	@cd client && golangci-lint run ./...
 
 coverage: ## Generate code coverage file
-	@rm -rf _build
 	@mkdir -p _build
+	@rm -f _build/test-coverage-all.out
 	@echo "mode: count" > _build/test-coverage-all.out
-	@bash -c 'for f in podium.coverprofile leaderboard/leaderboard.coverprofile client/client.coverprofile; do tail -n +2 $$f >> _build/test-coverage-all.out; done'
+	@bash -eu -o pipefail -c 'for f in podium.coverprofile leaderboard/leaderboard.coverprofile client/client.coverprofile; do tail -n +2 $$f >> _build/test-coverage-all.out; done'
+
+coverage-check: coverage ## Require at least 80% coverage in every production Go package
+	@awk -v threshold=80 -f scripts/check-package-coverage.awk _build/test-coverage-all.out
 
 test-coverage-html: test coverage ## Generate HTML coverage reports for all Go modules
 	@go tool cover -html=podium.coverprofile -o _build/podium-coverage.html
@@ -132,6 +139,12 @@ proto-tools:
 	@go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.29.0
 	@go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.29.0
 
-proto: ## Generate protobuf files
+proto-check: proto-tools ## Lint and build protobuf schemas
+	@mkdir -p _build
+	@$(BUF) format -d --exit-code
+	@$(BUF) lint
+	@$(BUF) build -o _build/proto.binpb
+
+proto: proto-tools ## Generate protobuf files
 	@rm proto/podium/api/v1/*.go > /dev/null 2>&1 || true
 	@$(BUF) generate
