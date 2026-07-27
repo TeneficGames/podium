@@ -1,6 +1,6 @@
 # Podium
 
-[![Podium](https://github.com/TeneficGames/podium/actions/workflows/go.yml/badge.svg)](https://github.com/TeneficGames/podium/actions/workflows/go.yml)
+[![CI](https://github.com/TeneficGames/podium/actions/workflows/ci.yml/badge.svg)](https://github.com/TeneficGames/podium/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/TeneficGames/podium/branch/main/graph/badge.svg)](https://codecov.io/gh/TeneficGames/podium)
 [![Go Reference](https://pkg.go.dev/badge/github.com/TeneficGames/podium/leaderboard.svg)](https://pkg.go.dev/github.com/TeneficGames/podium/leaderboard)
 
