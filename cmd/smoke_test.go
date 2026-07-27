@@ -190,3 +190,74 @@ func TestSmokeOperationsReturnConnectionError(t *testing.T) {
 		t.Fatal("expected operation connection error")
 	}
 }
+
+func TestSmokeCommandPropagatesOperationErrors(t *testing.T) {
+	tests := []struct {
+		name string
+		fail func(*http.Request) bool
+	}{
+		{name: "health check", fail: func(r *http.Request) bool {
+			return r.URL.Path == "/healthcheck"
+		}},
+		{name: "add score", fail: func(r *http.Request) bool {
+			return r.Method == http.MethodPut
+		}},
+		{name: "get member", fail: func(r *http.Request) bool {
+			return r.Method == http.MethodGet &&
+				strings.Contains(r.URL.Path, "/members/member-") &&
+				!strings.HasSuffix(r.URL.Path, "/rank") &&
+				!strings.HasSuffix(r.URL.Path, "/around")
+		}},
+		{name: "get members", fail: func(r *http.Request) bool {
+			return r.Method == http.MethodGet && r.URL.Query().Has("ids")
+		}},
+		{name: "get rank", fail: func(r *http.Request) bool {
+			return strings.HasSuffix(r.URL.Path, "/rank")
+		}},
+		{name: "get around", fail: func(r *http.Request) bool {
+			return strings.HasSuffix(r.URL.Path, "/around")
+		}},
+		{name: "get member count", fail: func(r *http.Request) bool {
+			return strings.HasSuffix(r.URL.Path, "/members-count")
+		}},
+		{name: "get top members", fail: func(r *http.Request) bool {
+			return strings.Contains(r.URL.Path, "/top/")
+		}},
+		{name: "get top percentage", fail: func(r *http.Request) bool {
+			return strings.Contains(r.URL.Path, "/top-percent/")
+		}},
+		{name: "remove member", fail: func(r *http.Request) bool {
+			return r.Method == http.MethodDelete && strings.Contains(r.URL.Path, "/members/")
+		}},
+		{name: "remove leaderboard", fail: func(r *http.Request) bool {
+			return r.Method == http.MethodDelete && !strings.Contains(r.URL.Path, "/members/")
+		}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if tt.fail(r) {
+					http.Error(w, "unavailable", http.StatusServiceUnavailable)
+					return
+				}
+				if r.URL.Path == "/healthcheck" {
+					_, _ = w.Write([]byte("WORKING"))
+					return
+				}
+				_, _ = w.Write([]byte("{}"))
+			}))
+			defer server.Close()
+
+			previousBaseURL := baseURL
+			baseURL = server.URL
+			t.Cleanup(func() {
+				baseURL = previousBaseURL
+			})
+
+			if err := smokeCmd.RunE(smokeCmd, nil); err == nil {
+				t.Fatal("expected smoke command to propagate the operation error")
+			}
+		})
+	}
+}
