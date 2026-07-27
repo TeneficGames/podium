@@ -109,7 +109,7 @@ var _ = Describe("Service SetMembersScore", func() {
 				gomock.Any(),
 				gomock.Eq(leaderboard),
 				gomock.Eq("desc"),
-				gomock.Eq(true),
+				gomock.Eq(false),
 				gomock.Eq(databaseMembersToGetRank[0]),
 				gomock.Eq(databaseMembersToGetRank[1]),
 			).Return(databaseMembersReturned, nil)
@@ -155,7 +155,7 @@ var _ = Describe("Service SetMembersScore", func() {
 				gomock.Any(),
 				gomock.Eq(leaderboard),
 				gomock.Eq("desc"),
-				gomock.Eq(true),
+				gomock.Eq(false),
 				gomock.Eq(databaseMembersToGetRank[0]),
 				gomock.Eq(databaseMembersToGetRank[1]),
 			).Times(1).Return(databaseMembersPreviousRankReturned, nil)
@@ -165,7 +165,7 @@ var _ = Describe("Service SetMembersScore", func() {
 				gomock.Any(),
 				gomock.Eq(leaderboard),
 				gomock.Eq("desc"),
-				gomock.Eq(true),
+				gomock.Eq(false),
 				gomock.Eq(databaseMembersToGetRank[0]),
 				gomock.Eq(databaseMembersToGetRank[1]),
 			).Return(databaseMembersReturned, nil)
@@ -215,7 +215,7 @@ var _ = Describe("Service SetMembersScore", func() {
 				gomock.Any(),
 				gomock.Eq(leaderboard),
 				gomock.Eq("desc"),
-				gomock.Eq(true),
+				gomock.Eq(false),
 				gomock.Eq(databaseMembersToGetRank[0]),
 				gomock.Eq(databaseMembersToGetRank[1]),
 			).Times(1).Return(databaseMembersPreviousRankReturned, nil)
@@ -225,7 +225,7 @@ var _ = Describe("Service SetMembersScore", func() {
 				gomock.Any(),
 				gomock.Eq(leaderboard),
 				gomock.Eq("desc"),
-				gomock.Eq(true),
+				gomock.Eq(false),
 				gomock.Eq(databaseMembersToGetRank[0]),
 				gomock.Eq(databaseMembersToGetRank[1]),
 			).Return(databaseMembersReturned, nil)
@@ -252,7 +252,7 @@ var _ = Describe("Service SetMembersScore", func() {
 				gomock.Any(),
 				gomock.Eq(leaderboard),
 				gomock.Eq("desc"),
-				gomock.Eq(true),
+				gomock.Eq(false),
 				gomock.Eq(databaseMembersToGetRank[0]),
 				gomock.Eq(databaseMembersToGetRank[1]),
 			).Times(1).Return(nil, fmt.Errorf("New database error"))
@@ -294,7 +294,7 @@ var _ = Describe("Service SetMembersScore", func() {
 				gomock.Any(),
 				gomock.Eq(leaderboard),
 				gomock.Eq("desc"),
-				gomock.Eq(true),
+				gomock.Eq(false),
 				gomock.Eq(databaseMembersToGetRank[0]),
 				gomock.Eq(databaseMembersToGetRank[1]),
 			).Return(databaseMembersReturned, nil)
@@ -326,7 +326,7 @@ var _ = Describe("Service SetMembersScore", func() {
 				gomock.Any(),
 				gomock.Eq(leaderboard),
 				gomock.Eq("desc"),
-				gomock.Eq(true),
+				gomock.Eq(false),
 				gomock.Eq(databaseMembersToGetRank[0]),
 				gomock.Eq(databaseMembersToGetRank[1]),
 			).Return(databaseMembersReturned, nil)
@@ -361,7 +361,7 @@ var _ = Describe("Service SetMembersScore", func() {
 				gomock.Any(),
 				gomock.Eq(leaderboard),
 				gomock.Eq("desc"),
-				gomock.Eq(true),
+				gomock.Eq(false),
 				gomock.Eq(databaseMembersToGetRank[0]),
 				gomock.Eq(databaseMembersToGetRank[1]),
 			).Return(databaseMembersReturned, nil)
@@ -407,7 +407,7 @@ var _ = Describe("Service SetMembersScore", func() {
 			gomock.Any(),
 			gomock.Eq(leaderboard),
 			gomock.Eq("desc"),
-			gomock.Eq(true),
+			gomock.Eq(false),
 			gomock.Eq(databaseMembersToGetRank[0]),
 			gomock.Eq(databaseMembersToGetRank[1]),
 		).Return(nil, fmt.Errorf("New database error"))
@@ -449,7 +449,7 @@ var _ = Describe("Service SetMembersScore", func() {
 			gomock.Any(),
 			gomock.Eq(leaderboard),
 			gomock.Eq("desc"),
-			gomock.Eq(true),
+			gomock.Eq(false),
 			gomock.Eq(databaseMembersToGetRank[0]),
 			gomock.Eq(databaseMembersToGetRank[1]),
 		).Return(databaseMembersReturned, nil)
@@ -481,7 +481,7 @@ var _ = Describe("Service SetMembersScore", func() {
 			gomock.Any(),
 			gomock.Eq(leaderboardExpiration),
 			gomock.Eq("desc"),
-			gomock.Eq(true),
+			gomock.Eq(false),
 			gomock.Eq(databaseMembersToGetRank[0]),
 			gomock.Eq(databaseMembersToGetRank[1]),
 		).Return(databaseMembersReturned, nil)
@@ -516,7 +516,7 @@ var _ = Describe("Service SetMembersScore", func() {
 			gomock.Any(),
 			gomock.Eq(leaderboardExpiration),
 			gomock.Eq("desc"),
-			gomock.Eq(true),
+			gomock.Eq(false),
 			gomock.Eq(databaseMembersToGetRank[0]),
 			gomock.Eq(databaseMembersToGetRank[1]),
 		).Return(databaseMembersReturned, nil)
@@ -544,7 +544,7 @@ var _ = Describe("Service SetMembersScore", func() {
 			gomock.Any(),
 			gomock.Eq(leaderboardExpiration),
 			gomock.Eq("desc"),
-			gomock.Eq(true),
+			gomock.Eq(false),
 			gomock.Eq(databaseMembersToGetRank[0]),
 			gomock.Eq(databaseMembersToGetRank[1]),
 		).Return(databaseMembersReturned, nil)
@@ -575,7 +575,7 @@ var _ = Describe("Service SetMembersScore", func() {
 			gomock.Any(),
 			gomock.Eq(leaderboardExpiration),
 			gomock.Eq("desc"),
-			gomock.Eq(true),
+			gomock.Eq(false),
 			gomock.Eq(databaseMembersToGetRank[0]),
 			gomock.Eq(databaseMembersToGetRank[1]),
 		).Return(databaseMembersReturned, nil)

@@ -57,7 +57,7 @@ var _ = Describe("Service IncrementMemberScore", func() {
 			gomock.Any(),
 			gomock.Eq(leaderboard),
 			gomock.Eq("desc"),
-			gomock.Eq(true),
+			gomock.Eq(false),
 			gomock.Eq(member),
 		).Return(databaseMembersReturned, nil)
 
@@ -81,7 +81,7 @@ var _ = Describe("Service IncrementMemberScore", func() {
 				gomock.Any(),
 				gomock.Eq(leaderboard),
 				gomock.Eq("desc"),
-				gomock.Eq(true),
+				gomock.Eq(false),
 				gomock.Eq(member),
 			).Return(databaseMembersReturned, nil)
 
@@ -101,7 +101,7 @@ var _ = Describe("Service IncrementMemberScore", func() {
 				gomock.Any(),
 				gomock.Eq(leaderboard),
 				gomock.Eq("desc"),
-				gomock.Eq(true),
+				gomock.Eq(false),
 				gomock.Eq(member),
 			).Return(databaseMembersReturned, nil)
 
@@ -123,7 +123,7 @@ var _ = Describe("Service IncrementMemberScore", func() {
 				gomock.Any(),
 				gomock.Eq(leaderboard),
 				gomock.Eq("desc"),
-				gomock.Eq(true),
+				gomock.Eq(false),
 				gomock.Eq(member),
 			).Return(databaseMembersReturned, nil)
 
@@ -146,7 +146,7 @@ var _ = Describe("Service IncrementMemberScore", func() {
 			gomock.Any(),
 			gomock.Eq(leaderboard),
 			gomock.Eq("desc"),
-			gomock.Eq(true),
+			gomock.Eq(false),
 			gomock.Eq(member),
 		).Return(nil, fmt.Errorf("New database error"))
 
@@ -168,7 +168,7 @@ var _ = Describe("Service IncrementMemberScore", func() {
 			gomock.Any(),
 			gomock.Eq(leaderboard),
 			gomock.Eq("desc"),
-			gomock.Eq(true),
+			gomock.Eq(false),
 			gomock.Eq(member),
 		).Return(databaseMembersReturned, nil)
 
@@ -188,7 +188,7 @@ var _ = Describe("Service IncrementMemberScore", func() {
 			gomock.Any(),
 			gomock.Eq(leaderboardExpiration),
 			gomock.Eq("desc"),
-			gomock.Eq(true),
+			gomock.Eq(false),
 			gomock.Eq(member),
 		).Return(databaseMembersReturned, nil)
 		mock.EXPECT().GetLeaderboardExpiration(gomock.Any(), gomock.Eq(leaderboardExpiration)).Return(int64(-1), database.NewTTLNotFoundError(leaderboard))
@@ -210,7 +210,7 @@ var _ = Describe("Service IncrementMemberScore", func() {
 			gomock.Any(),
 			gomock.Eq(leaderboardExpiration),
 			gomock.Eq("desc"),
-			gomock.Eq(true),
+			gomock.Eq(false),
 			gomock.Eq(member),
 		).Return(databaseMembersReturned, nil)
 
@@ -226,7 +226,7 @@ var _ = Describe("Service IncrementMemberScore", func() {
 			gomock.Any(),
 			gomock.Eq(leaderboardExpiration),
 			gomock.Eq("desc"),
-			gomock.Eq(true),
+			gomock.Eq(false),
 			gomock.Eq(member),
 		).Return(databaseMembersReturned, nil)
 		mock.EXPECT().GetLeaderboardExpiration(gomock.Any(), gomock.Eq(leaderboardExpiration)).Return(int64(-1), fmt.Errorf("New database error"))
@@ -245,7 +245,7 @@ var _ = Describe("Service IncrementMemberScore", func() {
 			gomock.Any(),
 			gomock.Eq(leaderboardExpiration),
 			gomock.Eq("desc"),
-			gomock.Eq(true),
+			gomock.Eq(false),
 			gomock.Eq(member),
 		).Return(databaseMembersReturned, nil)
 		mock.EXPECT().GetLeaderboardExpiration(gomock.Any(), gomock.Eq(leaderboardExpiration)).Return(int64(-1), database.NewTTLNotFoundError(leaderboard))

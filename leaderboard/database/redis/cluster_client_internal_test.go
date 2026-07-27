@@ -35,7 +35,7 @@ func TestClusterClientAgainstStandaloneRedis(t *testing.T) {
 		},
 	})
 	t.Cleanup(func() {
-		_ = goRedisClient.Del(context.Background(), key).Err()
+		_ = goRedisClient.Del(context.Background(), key, key+":ttl", key+"-writes").Err()
 		_ = goRedisClient.Close()
 	})
 
@@ -112,6 +112,35 @@ func TestClusterClientAgainstStandaloneRedis(t *testing.T) {
 	}
 	if rank, err := client.ZRevRank(ctx, key, "member-1"); err != nil || rank != 0 {
 		t.Fatalf("expected descending rank 0, got %d, %v", rank, err)
+	}
+	if err := client.ZAdd(ctx, key+":ttl", &Member{Member: "member-1", Score: 10000}); err != nil {
+		t.Fatalf("add member TTL: %v", err)
+	}
+	rankedMembers, err := client.ZMembers(ctx, key, "desc", true, "member-1", "missing", "member-2")
+	if err != nil {
+		t.Fatalf("get members: %v", err)
+	}
+	if len(rankedMembers) != 3 ||
+		rankedMembers[0] == nil || rankedMembers[0].Score != 3 || rankedMembers[0].Rank != 0 || rankedMembers[0].TTL.Unix() != 10000 ||
+		rankedMembers[1] != nil ||
+		rankedMembers[2] == nil || rankedMembers[2].Score != 2 || rankedMembers[2].Rank != 1 {
+		t.Fatalf("unexpected members: %#v", rankedMembers)
+	}
+
+	ranks, err := client.ZAddAndRanks(
+		ctx,
+		key+"-writes",
+		"desc",
+		&Member{Member: "member-1", Score: 5},
+		&Member{Member: "member-2", Score: 4},
+	)
+	if err != nil || len(ranks) != 2 || ranks[0] != 0 || ranks[1] != 1 {
+		t.Fatalf("unexpected write ranks: %v, %v", ranks, err)
+	}
+
+	incremented, err := client.ZIncrByAndRank(ctx, key+"-writes", "member-2", "desc", 2)
+	if err != nil || incremented.Score != 6 || incremented.Rank != 0 {
+		t.Fatalf("unexpected incremented member: %#v, %v", incremented, err)
 	}
 
 	ascending, err := client.ZRange(ctx, key, 0, -1)
@@ -212,6 +241,23 @@ func TestClusterClientWrapsConnectionErrors(t *testing.T) {
 		}},
 		{name: "sorted score", call: func() error {
 			_, err := client.ZScore(ctx, "key", "member")
+			return err
+		}},
+		{name: "sorted members", call: func() error {
+			_, err := client.(*clusterClient).ZMembers(ctx, "key", "desc", false, "member")
+			return err
+		}},
+		{name: "sorted add and ranks", call: func() error {
+			_, err := client.(*clusterClient).ZAddAndRanks(
+				ctx,
+				"key",
+				"desc",
+				&Member{Member: "member", Score: 1},
+			)
+			return err
+		}},
+		{name: "sorted increment and rank", call: func() error {
+			_, err := client.(*clusterClient).ZIncrByAndRank(ctx, "key", "member", "desc", 1)
 			return err
 		}},
 	}

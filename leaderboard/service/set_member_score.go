@@ -28,12 +28,7 @@ func (s *Service) SetMemberScore(ctx context.Context, leaderboard, member string
 		}
 	}
 
-	err := s.persistMembers(ctx, leaderboard, members)
-	if err != nil {
-		return nil, NewGeneralError(setMemberScoreServiceLabel, err.Error())
-	}
-
-	err = s.setMembersValues(ctx, leaderboard, members, setMemberOrder)
+	err := s.persistMembersAndSetValues(ctx, leaderboard, members, setMemberOrder)
 	if err != nil {
 		return nil, NewGeneralError(setMemberScoreServiceLabel, err.Error())
 	}

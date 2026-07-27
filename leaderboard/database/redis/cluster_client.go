@@ -13,6 +13,9 @@ type clusterClient struct {
 }
 
 var _ Client = &clusterClient{}
+var _ MemberReader = &clusterClient{}
+var _ MemberWriter = &clusterClient{}
+var _ MemberIncrementer = &clusterClient{}
 
 // ClusterOptions define configuration parameters to instantiate a new ClusterClient
 type ClusterOptions struct {
@@ -28,6 +31,34 @@ func NewClusterClient(clusterOptions ClusterOptions) Client {
 	})
 
 	return &clusterClient{goRedisClient}
+}
+
+// ZMembers returns scores, ranks, and optional TTLs in one Redis pipeline.
+func (cc *clusterClient) ZMembers(
+	ctx context.Context,
+	key, order string,
+	includeTTL bool,
+	members ...string,
+) ([]*Member, error) {
+	return getMembers(ctx, cc.ClusterClient, key, order, includeTTL, members...)
+}
+
+// ZAddAndRanks updates scores and returns their resulting ranks in one pipeline.
+func (cc *clusterClient) ZAddAndRanks(
+	ctx context.Context,
+	key, order string,
+	members ...*Member,
+) ([]int64, error) {
+	return addMembersAndGetRanks(ctx, cc.ClusterClient, key, order, members...)
+}
+
+// ZIncrByAndRank increments a score and returns its value and rank in one pipeline.
+func (cc *clusterClient) ZIncrByAndRank(
+	ctx context.Context,
+	key, member, order string,
+	increment float64,
+) (*Member, error) {
+	return incrementMemberAndGetRank(ctx, cc.ClusterClient, key, member, order, increment)
 }
 
 // Del call redis DEL function

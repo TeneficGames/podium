@@ -35,8 +35,25 @@ type Client interface {
 	ZScore(ctx context.Context, key, member string) (float64, error)
 }
 
+// MemberReader batches score, rank, and optional TTL lookups.
+type MemberReader interface {
+	ZMembers(ctx context.Context, key, order string, includeTTL bool, members ...string) ([]*Member, error)
+}
+
+// MemberWriter batches score updates and their resulting rank lookups.
+type MemberWriter interface {
+	ZAddAndRanks(ctx context.Context, key, order string, members ...*Member) ([]int64, error)
+}
+
+// MemberIncrementer batches a score increment and its resulting rank lookup.
+type MemberIncrementer interface {
+	ZIncrByAndRank(ctx context.Context, key, member, order string, increment float64) (*Member, error)
+}
+
 // Member is a struct to be used by sorted set range operations
 type Member struct {
 	Member string
 	Score  float64
+	Rank   int64
+	TTL    time.Time
 }
