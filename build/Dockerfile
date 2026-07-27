@@ -4,7 +4,7 @@
 # http://www.opensource.org/licenses/mit-license
 # Copyright © 2026 Tenefic Games
 
-FROM golang:1.26-alpine AS build
+FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS build
 
 ENV CGO_ENABLED=0
 
@@ -13,7 +13,11 @@ COPY . /podium
 WORKDIR /podium
 
 RUN go mod download
-RUN go build -trimpath -ldflags="-s -w" -o /podium/bin/podium ./main.go
+
+ARG TARGETOS
+ARG TARGETARCH
+
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags="-s -w" -o /podium/bin/podium ./main.go
 
 FROM gcr.io/distroless/static-debian12:nonroot
 

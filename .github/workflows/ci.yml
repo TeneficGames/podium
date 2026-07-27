@@ -1,0 +1,250 @@
+---
+name: CI
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*.*.*"
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  IMAGE_NAME: trungdlp/podium
+
+jobs:
+  verify:
+    name: Verify modules and generated code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: |
+            go.sum
+            leaderboard/go.sum
+            client/go.sum
+      - name: Download and verify dependencies
+        run: |
+          make setup
+          go mod verify
+          (cd leaderboard && go mod verify)
+          (cd client && go mod verify)
+      - name: Build
+        run: make build
+      - name: Verify Protobuf schemas and generated code
+        run: |
+          make proto-check
+          make proto
+          git diff --exit-code
+
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: |
+            go.sum
+            leaderboard/go.sum
+            client/go.sum
+      - name: Test
+        run: make test-unit
+
+  integration-tests:
+    name: Integration tests and coverage
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    services:
+      redis:
+        image: redis:8-alpine
+        options: '--health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5'
+        ports:
+          - '6379:6379'
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: |
+            go.sum
+            leaderboard/go.sum
+            client/go.sum
+      - name: Setup env
+        run: make setup
+      - name: Test
+        run: make test
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@v6
+        with:
+          disable_search: true
+          fail_ci_if_error: true
+          files: ./_build/test-results/*.xml
+          report_type: test_results
+          use_oidc: true
+      - name: Combine and check package coverage
+        if: ${{ !cancelled() }}
+        run: make coverage-check
+      - name: Upload coverage to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@v6
+        with:
+          disable_search: true
+          fail_ci_if_error: true
+          files: ./_build/test-coverage-all.out
+          use_oidc: true
+
+  golangci-lint:
+    name: golangci-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: |
+            go.sum
+            leaderboard/go.sum
+            client/go.sum
+      - name: Install golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.12.2
+          install-only: true
+      - name: Lint
+        run: make lint
+
+  govulncheck:
+    name: govulncheck (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: server
+            workdir: .
+            go_sum: go.sum
+          - name: leaderboard
+            workdir: leaderboard
+            go_sum: leaderboard/go.sum
+          - name: client
+            workdir: client
+            go_sum: client/go.sum
+    steps:
+      - uses: actions/checkout@v7
+      - name: Scan
+        uses: golang/govulncheck-action@v1
+        with:
+          cache-dependency-path: ${{ matrix.go_sum }}
+          go-package: ./...
+          go-version-input: 1.26.5
+          repo-checkout: false
+          work-dir: ${{ matrix.workdir }}
+
+  docker:
+    name: Build and publish image
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    needs:
+      - verify
+      - unit-tests
+      - integration-tests
+      - golangci-lint
+      - govulncheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to Docker Hub
+        if: github.ref == 'refs/heads/main'
+        uses: docker/login-action@v4
+        with:
+          username: trungdlp
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Validate image build
+        if: github.event_name == 'pull_request'
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./build/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          outputs: type=cacheonly
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push image
+        if: github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./build/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  release:
+    name: Publish version tags
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs:
+      - verify
+      - unit-tests
+      - integration-tests
+      - golangci-lint
+      - govulncheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Generate release metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          flavor: latest=false
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: trungdlp
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Verify commit image exists
+        env:
+          SOURCE_IMAGE: ${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
+        run: docker buildx imagetools inspect "$SOURCE_IMAGE"
+
+      - name: Publish version tags
+        env:
+          RELEASE_TAGS: ${{ steps.meta.outputs.tags }}
+          SOURCE_IMAGE: ${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
+        run: |
+          tag_args=()
+          while IFS= read -r tag; do
+            if [[ -n "$tag" ]]; then
+              tag_args+=(--tag "$tag")
+            fi
+          done <<< "$RELEASE_TAGS"
+          docker buildx imagetools create "${tag_args[@]}" "$SOURCE_IMAGE"
