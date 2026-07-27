@@ -21,7 +21,7 @@ help: Makefile ## Show list of commands
 	@echo ""
 	@awk 'BEGIN {FS = ":.*?## "} /[a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf "\033[36m%-40s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
 
-.PHONY: build lint proto proto-setup proto-tools test test-client test-leaderboard test-podium test-unit
+.PHONY: build coverage-check lint proto proto-setup proto-tools test test-client test-leaderboard test-podium test-unit
 
 setup-hooks: ## Create pre-commit git hooks
 	@cd .git/hooks && ln -sf ../../hooks/pre-commit.sh pre-commit
@@ -71,7 +71,10 @@ coverage: ## Generate code coverage file
 	@mkdir -p _build
 	@rm -f _build/test-coverage-all.out
 	@echo "mode: count" > _build/test-coverage-all.out
-	@bash -c 'for f in podium.coverprofile leaderboard/leaderboard.coverprofile client/client.coverprofile; do tail -n +2 $$f >> _build/test-coverage-all.out; done'
+	@bash -eu -o pipefail -c 'for f in podium.coverprofile leaderboard/leaderboard.coverprofile client/client.coverprofile; do tail -n +2 $$f >> _build/test-coverage-all.out; done'
+
+coverage-check: coverage ## Require at least 80% coverage in every production Go package
+	@awk -v threshold=80 -f scripts/check-package-coverage.awk _build/test-coverage-all.out
 
 test-coverage-html: test coverage ## Generate HTML coverage reports for all Go modules
 	@go tool cover -html=podium.coverprofile -o _build/podium-coverage.html

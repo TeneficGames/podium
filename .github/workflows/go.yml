@@ -88,9 +88,9 @@ jobs:
           files: ./_build/test-results/*.xml
           report_type: test_results
           use_oidc: true
-      - name: Combine coverage
+      - name: Combine and check package coverage
         if: ${{ !cancelled() }}
-        run: make coverage
+        run: make coverage-check
       - name: Upload coverage to Codecov
         if: ${{ !cancelled() }}
         uses: codecov/codecov-action@v6
