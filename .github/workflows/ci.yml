@@ -13,7 +13,6 @@ permissions:
 
 env:
   IMAGE_NAME: trungdlp/podium
-  DOCKER_METADATA_SHORT_SHA_LENGTH: 12
 
 jobs:
   verify:
@@ -209,6 +208,8 @@ jobs:
         if: github.ref == 'refs/heads/main'
         id: meta
         uses: docker/metadata-action@v6
+        env:
+          DOCKER_METADATA_SHORT_SHA_LENGTH: 12
         with:
           images: ${{ env.IMAGE_NAME }}
           tags: |
@@ -256,6 +257,8 @@ jobs:
       - name: Generate source image metadata
         id: source
         uses: docker/metadata-action@v6
+        env:
+          DOCKER_METADATA_SHORT_SHA_LENGTH: 12
         with:
           images: ${{ env.IMAGE_NAME }}
           flavor: latest=false
