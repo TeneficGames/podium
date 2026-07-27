@@ -79,9 +79,20 @@ jobs:
         run: make setup
       - name: Test
         run: make test
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@v6
+        with:
+          disable_search: true
+          fail_ci_if_error: true
+          files: ./_build/test-results/*.xml
+          report_type: test_results
+          use_oidc: true
       - name: Combine coverage
+        if: ${{ !cancelled() }}
         run: make coverage
       - name: Upload coverage to Codecov
+        if: ${{ !cancelled() }}
         uses: codecov/codecov-action@v6
         with:
           disable_search: true

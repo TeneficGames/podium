@@ -17,12 +17,17 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
 
 var baseURL string
+
+var smokeHTTPClient = &http.Client{
+	Timeout: 10 * time.Second,
+}
 
 func doRequest(method, url, reqBody string) (int, string, error) {
 	absURL := fmt.Sprintf("%s%s", baseURL, url)
@@ -38,8 +43,7 @@ func doRequest(method, url, reqBody string) (int, string, error) {
 		return http.StatusInternalServerError, "", err
 	}
 
-	client := &http.Client{}
-	response, err := client.Do(req)
+	response, err := smokeHTTPClient.Do(req)
 	if err != nil {
 		return 500, "", err
 	}

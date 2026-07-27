@@ -14,6 +14,7 @@ PROTOTOOL := go run github.com/uber/prototool/cmd/prototool
 LOCAL_GO_MODCACHE = $(shell go env | grep GOMODCACHE | cut -d "=" -f 2 | sed 's/"//g')
 BUF := go run github.com/bufbuild/buf/cmd/buf@v1.55.1
 MOCKGENERATE := go run go.uber.org/mock/mockgen@v0.6.0
+GOTESTSUM := go run gotest.tools/gotestsum@v1.13.0
 
 help: Makefile ## Show list of commands
 	@echo "Choose a command run in "$(PROJECT_NAME)":"
@@ -50,13 +51,16 @@ test-unit: ## Execute Redis-independent unit tests
 	@cd client && go test ./...
 
 test-podium: ## Execute all API tests
-	@go test -coverprofile=podium.coverprofile ./...
+	@mkdir -p _build/test-results
+	@$(GOTESTSUM) --junitfile=_build/test-results/podium.xml -- -coverprofile=podium.coverprofile ./...
 
 test-leaderboard: ## Execute all leaderboard tests
-	@cd leaderboard && go test -coverprofile=leaderboard.coverprofile ./...
+	@mkdir -p _build/test-results
+	@cd leaderboard && $(GOTESTSUM) --junitfile=../_build/test-results/leaderboard.xml -- -coverprofile=leaderboard.coverprofile ./...
 
 test-client: ## Execute all client tests
-	@cd client && go test -coverprofile=client.coverprofile ./...
+	@mkdir -p _build/test-results
+	@cd client && $(GOTESTSUM) --junitfile=../_build/test-results/client.xml -- -coverprofile=client.coverprofile ./...
 
 lint: ## Run golangci-lint for all Go modules
 	@golangci-lint run ./...
@@ -64,8 +68,8 @@ lint: ## Run golangci-lint for all Go modules
 	@cd client && golangci-lint run ./...
 
 coverage: ## Generate code coverage file
-	@rm -rf _build
 	@mkdir -p _build
+	@rm -f _build/test-coverage-all.out
 	@echo "mode: count" > _build/test-coverage-all.out
 	@bash -c 'for f in podium.coverprofile leaderboard/leaderboard.coverprofile client/client.coverprofile; do tail -n +2 $$f >> _build/test-coverage-all.out; done'
 

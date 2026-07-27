@@ -8,12 +8,12 @@ coverage:
   status:
     project:
       default:
-        target: auto
-        threshold: 1%
+        target: 80%
+        threshold: 0%
     patch:
       default:
         target: 80%
-        threshold: 1%
+        threshold: 0%
 
 comment:
   layout: "reach, diff, flags, files"
@@ -26,6 +26,8 @@ ignore:
   - "**/*_grpc.pb.go"
   - "**/mocks/**"
   - "**/*_mock.go"
+  - "leaderboard/database/mock.go"
+  - "leaderboard/database/redis/mock.go"
   - "bench/**"
   - "testing/**"
   - "leaderboard/testing/**"
