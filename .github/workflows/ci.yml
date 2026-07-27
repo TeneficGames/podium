@@ -61,16 +61,13 @@ jobs:
       - name: Test
         run: make test-unit
 
-  integration-tests:
-    name: Integration tests and coverage
+  integration-podium:
+    name: Integration tests (server)
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     services:
       redis:
         image: redis:8-alpine
-        options: '--health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5'
+        options: '--health-cmd "redis-cli ping" --health-interval 1s --health-timeout 3s --health-retries 10'
         ports:
           - '6379:6379'
     steps:
@@ -83,13 +80,95 @@ jobs:
             go.sum
             leaderboard/go.sum
             proto/go.sum
-            client/go.sum
-      - name: Setup env
-        run: make setup
       - name: Test
-        run: make test
-      - name: Upload test results to Codecov
+        run: make test-podium
+      - name: Save test results and coverage
         if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-podium
+          path: |
+            podium.coverprofile
+            _build/test-results/podium.xml
+
+  integration-leaderboard:
+    name: Integration tests (leaderboard)
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:8-alpine
+        options: '--health-cmd "redis-cli ping" --health-interval 1s --health-timeout 3s --health-retries 10'
+        ports:
+          - '6379:6379'
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: leaderboard/go.mod
+          cache-dependency-path: leaderboard/go.sum
+      - name: Test
+        run: make test-leaderboard
+      - name: Save test results and coverage
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-leaderboard
+          path: |
+            leaderboard/leaderboard.coverprofile
+            _build/test-results/leaderboard.xml
+
+  integration-client:
+    name: Integration tests (client)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: client/go.mod
+          cache-dependency-path: |
+            proto/go.sum
+            client/go.sum
+      - name: Test
+        run: make test-client
+      - name: Save test results and coverage
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-client
+          path: |
+            client/client.coverprofile
+            _build/test-results/client.xml
+
+  coverage:
+    name: Integration coverage
+    needs:
+      - integration-podium
+      - integration-leaderboard
+      - integration-client
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: Download server results
+        uses: actions/download-artifact@v5
+        with:
+          name: integration-podium
+          path: .
+      - name: Download leaderboard results
+        uses: actions/download-artifact@v5
+        with:
+          name: integration-leaderboard
+          path: .
+      - name: Download client results
+        uses: actions/download-artifact@v5
+        with:
+          name: integration-client
+          path: .
+      - name: Upload test results to Codecov
         uses: codecov/codecov-action@v6
         with:
           disable_search: true
@@ -98,10 +177,8 @@ jobs:
           report_type: test_results
           use_oidc: true
       - name: Combine and check package coverage
-        if: ${{ !cancelled() }}
         run: make coverage-check
       - name: Upload coverage to Codecov
-        if: ${{ !cancelled() }}
         uses: codecov/codecov-action@v6
         with:
           disable_search: true
@@ -186,7 +263,7 @@ jobs:
     needs:
       - verify
       - unit-tests
-      - integration-tests
+      - coverage
       - golangci-lint
       - govulncheck
       - client-compatibility
@@ -210,10 +287,10 @@ jobs:
         with:
           context: .
           file: ./build/Dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           outputs: type=cacheonly
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=min
 
       - name: Build and push image
         if: github.ref == 'refs/heads/main'
@@ -233,7 +310,7 @@ jobs:
     needs:
       - verify
       - unit-tests
-      - integration-tests
+      - coverage
       - golangci-lint
       - govulncheck
       - client-compatibility

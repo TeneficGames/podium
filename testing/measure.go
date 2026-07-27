@@ -2,13 +2,15 @@ package testing
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
-const measureLoops = 200
+const defaultMeasureLoops = 5
 
 type measureFlag int
 
@@ -36,16 +38,15 @@ func XHTTPMeasure(description string, setup func(map[string]interface{}), f func
 func measure(description string, setup func(map[string]interface{}), f func(string, map[string]interface{}), timeout float64, flag measureFlag) bool {
 	app := GetDefaultTestApp()
 
-	d := func(t string, f func()) { ginkgo.Describe(t, f) }
+	d := ginkgo.Describe
 	if flag == measureFlagFocused {
-		d = func(t string, f func()) { ginkgo.FDescribe(t, f) }
+		d = ginkgo.FDescribe
 	}
 	if flag == measureFlagPending {
-		d = func(t string, f func()) { ginkgo.XDescribe(t, f) }
+		d = ginkgo.XDescribe
 	}
 
-	d("Measure", func() {
-		var loops int
+	d("Measure", ginkgo.Label("performance"), func() {
 		var ctx map[string]interface{}
 
 		BeforeOnce(func() {
@@ -55,14 +56,11 @@ func measure(description string, setup func(map[string]interface{}), f func(stri
 		})
 
 		ginkgo.AfterEach(func() {
-			loops++
-			if loops == measureLoops {
-				transport.CloseIdleConnections()
-			}
+			transport.CloseIdleConnections()
 		})
 
 		ginkgo.It(description, func() {
-			for i := 0; i < measureLoops; i++ {
+			for i := 0; i < measureLoopCount(); i++ {
 				start := time.Now()
 				f(app.HTTPEndpoint, ctx)
 				runtime := time.Since(start)
@@ -75,4 +73,12 @@ func measure(description string, setup func(map[string]interface{}), f func(stri
 	})
 
 	return true
+}
+
+func measureLoopCount() int {
+	loops, err := strconv.Atoi(os.Getenv("PODIUM_MEASURE_LOOPS"))
+	if err != nil || loops < 1 {
+		return defaultMeasureLoops
+	}
+	return loops
 }

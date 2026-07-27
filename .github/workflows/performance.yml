@@ -1,0 +1,35 @@
+---
+name: Performance measurements
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  api:
+    name: API performance measurements
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:8-alpine
+        options: '--health-cmd "redis-cli ping" --health-interval 1s --health-timeout 3s --health-retries 10'
+        ports:
+          - "6379:6379"
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: |
+            go.sum
+            leaderboard/go.sum
+            proto/go.sum
+      - name: Run API performance measurements
+        env:
+          PODIUM_MEASURE_LOOPS: "200"
+        run: go test ./api -count=1 -ginkgo.label-filter=performance
