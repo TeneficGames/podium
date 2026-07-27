@@ -11,6 +11,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/TeneficGames/podium/api"
@@ -30,7 +31,7 @@ var startCmd = &cobra.Command{
 	Short: "starts the podium API server",
 	Long: `Starts podium server with the specified arguments. You can use
 	environment variables to override configuration keys.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		ll := zap.InfoLevel
 		if debug {
 			ll = zap.DebugLevel
@@ -58,7 +59,7 @@ var startCmd = &cobra.Command{
 		)
 
 		if err != nil {
-			logger.Fatal("Could not get podium application.", zap.Error(err))
+			return fmt.Errorf("create podium application: %w", err)
 		}
 
 		ctx := context.Background()
@@ -67,8 +68,10 @@ var startCmd = &cobra.Command{
 
 		err = app.Start(ctx)
 		if err != nil {
-			logger.Fatal("Could not start podium application.", zap.Error(err))
+			return fmt.Errorf("start podium application: %w", err)
 		}
+
+		return nil
 	},
 }
 

@@ -14,7 +14,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -64,21 +63,27 @@ var smokeCmd = &cobra.Command{
 	Long: `Runs a smoke test in a given instance of podium.
 A smoke test will perform all the available operations in a leaderboard and then remove it.
 `,
-	Run: func(cmd *cobra.Command, args []string) {
-		doHealthCheck()
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if err := doHealthCheck(); err != nil {
+			return err
+		}
 
 		leaderboardID := uuid.New().String()
 		fmt.Printf("Creating leaderboard %s...\n\n", leaderboardID)
 
 		fmt.Println("Adding member scores to leaderboard...")
 		for i := 0; i < 100; i++ {
-			addMemberScore(leaderboardID, fmt.Sprintf("member-%d", i), 100-i)
+			if err := addMemberScore(leaderboardID, fmt.Sprintf("member-%d", i), 100-i); err != nil {
+				return err
+			}
 		}
 		fmt.Println("Member scores added to leaderboard successfully.")
 
 		fmt.Println("Getting member details from leaderboard...")
 		for i := 0; i < 100; i++ {
-			getMember(leaderboardID, fmt.Sprintf("member-%d", i))
+			if err := getMember(leaderboardID, fmt.Sprintf("member-%d", i)); err != nil {
+				return err
+			}
 		}
 		fmt.Println("Member details retrieved successfully.")
 
@@ -87,205 +92,175 @@ A smoke test will perform all the available operations in a leaderboard and then
 		for i := 0; i < 100; i++ {
 			memberIDs = append(memberIDs, fmt.Sprintf("member-%d", i))
 		}
-		getMembers(leaderboardID, strings.Join(memberIDs, ","))
+		if err := getMembers(leaderboardID, strings.Join(memberIDs, ",")); err != nil {
+			return err
+		}
 		fmt.Println("Members retrieved successfully.")
 
 		fmt.Println("Getting members ranks from leaderboard...")
 		for i := 0; i < 100; i++ {
-			getRank(leaderboardID, fmt.Sprintf("member-%d", i))
+			if err := getRank(leaderboardID, fmt.Sprintf("member-%d", i)); err != nil {
+				return err
+			}
 		}
 		fmt.Println("Members ranks retrieved successfully.")
 
 		fmt.Println("Getting members around a member from leaderboard...")
 		for i := 0; i < 100; i++ {
-			getAround(leaderboardID, fmt.Sprintf("member-%d", i))
+			if err := getAround(leaderboardID, fmt.Sprintf("member-%d", i)); err != nil {
+				return err
+			}
 		}
 		fmt.Println("Members around a member retrieved successfully.")
 
 		fmt.Println("Getting number of members in a leaderboard...")
-		getNumberOfMembers(leaderboardID)
+		if err := getNumberOfMembers(leaderboardID); err != nil {
+			return err
+		}
 		fmt.Println("Number of members retrieved successfully.")
 
 		fmt.Println("Getting top members in a leaderboard...")
-		getTopMembers(leaderboardID)
+		if err := getTopMembers(leaderboardID); err != nil {
+			return err
+		}
 		fmt.Println("Top members retrieved successfully.")
 
 		fmt.Println("Getting top 5% members in a leaderboard...")
-		getTopPercentage(leaderboardID)
+		if err := getTopPercentage(leaderboardID); err != nil {
+			return err
+		}
 		fmt.Println("Top 5% retrieved successfully.")
 
 		fmt.Println("Removing members from leaderboard...")
 		for i := 0; i < 100; i++ {
-			removeMember(leaderboardID, fmt.Sprintf("member-%d", i))
+			if err := removeMember(leaderboardID, fmt.Sprintf("member-%d", i)); err != nil {
+				return err
+			}
 		}
 		fmt.Println("Members removed successfully.")
 
 		fmt.Println("Removing leaderboard...")
-		removeLeaderboard(leaderboardID)
+		if err := removeLeaderboard(leaderboardID); err != nil {
+			return err
+		}
 		fmt.Println("Leaderboard removed successfully.")
+		return nil
 	},
 }
 
-func doHealthCheck() {
+func doHealthCheck() error {
 	fmt.Println("Starting smoke test...")
 	status, body, err := doRequest("GET", "/healthcheck", "")
 	if err != nil {
-		log.Fatalf("Could not reach %s. Error: %s", baseURL, err.Error())
+		return fmt.Errorf("could not reach %s: %w", baseURL, err)
 	}
 	if status != 200 || body != "WORKING" {
-		log.Fatalf("Could not reach %s (Status: %d). Error: %s", baseURL, status, body)
+		return fmt.Errorf("could not reach %s (status: %d): %s", baseURL, status, body)
 	}
+	return nil
 }
 
-func addMemberScore(leaderboardID, memberID string, score int) {
+func doOKRequest(method, url, requestBody string) error {
+	status, responseBody, err := doRequest(method, url, requestBody)
+	if err != nil {
+		return err
+	}
+	if status != http.StatusOK {
+		return fmt.Errorf("unexpected HTTP status %d: %s", status, responseBody)
+	}
+	return nil
+}
+
+func addMemberScore(leaderboardID, memberID string, score int) error {
 	url := fmt.Sprintf("/l/%s/members/%s/score", leaderboardID, memberID)
-	status, body, err := doRequest(
+	return doOKRequest(
 		"PUT",
 		url,
 		fmt.Sprintf("{\"score\":%d}", score),
 	)
-	if err != nil {
-		log.Fatalf("Could not set member score at %s. Error: %s", baseURL, err.Error())
-	}
-	if status != 200 {
-		log.Fatalf("Could not set member score at %s (Status: %d). Error: %s", baseURL, status, body)
-	}
 }
 
-func getMember(leaderboardID, memberID string) {
+func getMember(leaderboardID, memberID string) error {
 	url := fmt.Sprintf("/l/%s/members/%s", leaderboardID, memberID)
-	status, body, err := doRequest(
+	return doOKRequest(
 		"GET",
 		url,
 		"",
 	)
-	if err != nil {
-		log.Fatalf("Could not get member at %s. Error: %s", baseURL, err.Error())
-	}
-	if status != 200 {
-		log.Fatalf("Could not get member at %s (Status: %d). Error: %s", baseURL, status, body)
-	}
 }
 
-func getMembers(leaderboardID, memberIDs string) {
+func getMembers(leaderboardID, memberIDs string) error {
 	url := fmt.Sprintf("/l/%s/members?ids=%s", leaderboardID, memberIDs)
-	status, body, err := doRequest(
+	return doOKRequest(
 		"GET",
 		url,
 		"",
 	)
-	if err != nil {
-		log.Fatalf("Could not get members at %s. Error: %s", baseURL, err.Error())
-	}
-	if status != 200 {
-		log.Fatalf("Could not get members at %s (Status: %d). Error: %s", baseURL, status, body)
-	}
 }
-func getRank(leaderboardID, memberID string) {
+
+func getRank(leaderboardID, memberID string) error {
 	url := fmt.Sprintf("/l/%s/members/%s/rank", leaderboardID, memberID)
-	status, body, err := doRequest(
+	return doOKRequest(
 		"GET",
 		url,
 		"",
 	)
-	if err != nil {
-		log.Fatalf("Could not get member rank at %s. Error: %s", baseURL, err.Error())
-	}
-	if status != 200 {
-		log.Fatalf("Could not get member rank at %s (Status: %d). Error: %s", baseURL, status, body)
-	}
 }
 
-func getAround(leaderboardID, memberID string) {
+func getAround(leaderboardID, memberID string) error {
 	url := fmt.Sprintf("/l/%s/members/%s/around", leaderboardID, memberID)
-	status, body, err := doRequest(
+	return doOKRequest(
 		"GET",
 		url,
 		"",
 	)
-	if err != nil {
-		log.Fatalf("Could not get member around at %s. Error: %s", baseURL, err.Error())
-	}
-	if status != 200 {
-		log.Fatalf("Could not get member around at %s (Status: %d). Error: %s", baseURL, status, body)
-	}
 }
 
-func getNumberOfMembers(leaderboardID string) {
+func getNumberOfMembers(leaderboardID string) error {
 	url := fmt.Sprintf("/l/%s/members-count", leaderboardID)
-	status, body, err := doRequest(
+	return doOKRequest(
 		"GET",
 		url,
 		"",
 	)
-	if err != nil {
-		log.Fatalf("Could not get members count at %s. Error: %s", baseURL, err.Error())
-	}
-	if status != 200 {
-		log.Fatalf("Could not get members count at %s (Status: %d). Error: %s", baseURL, status, body)
-	}
 }
 
-func getTopMembers(leaderboardID string) {
+func getTopMembers(leaderboardID string) error {
 	url := fmt.Sprintf("/l/%s/top/1?pageSize=20", leaderboardID)
 
-	status, body, err := doRequest(
+	return doOKRequest(
 		"GET",
 		url,
 		"",
 	)
-	if err != nil {
-		log.Fatalf("Could not get top members at %s. Error: %s", baseURL, err.Error())
-	}
-	if status != 200 {
-		log.Fatalf("Could not get top members at %s (Status: %d). Error: %s", baseURL, status, body)
-	}
 }
 
-func getTopPercentage(leaderboardID string) {
+func getTopPercentage(leaderboardID string) error {
 	url := fmt.Sprintf("/l/%s/top-percent/5", leaderboardID)
 
-	status, body, err := doRequest(
+	return doOKRequest(
 		"GET",
 		url,
 		"",
 	)
-	if err != nil {
-		log.Fatalf("Could not get top 5%% at %s . Error: %s", baseURL, err.Error())
-	}
-	if status != 200 {
-		log.Fatalf("Could not get top 5%% at %s (Status: %d ). Error: %s", baseURL, status, body)
-	}
 }
 
-func removeMember(leaderboardID, memberID string) {
+func removeMember(leaderboardID, memberID string) error {
 	url := fmt.Sprintf("/l/%s/members/%s", leaderboardID, memberID)
-	status, body, err := doRequest(
+	return doOKRequest(
 		"DELETE",
 		url,
 		"",
 	)
-	if err != nil {
-		log.Fatalf("Could not remove member at %s. Error: %s", baseURL, err.Error())
-	}
-	if status != 200 {
-		log.Fatalf("Could not remove member at %s (Status: %d). Error: %s", baseURL, status, body)
-	}
 }
 
-func removeLeaderboard(leaderboardID string) {
+func removeLeaderboard(leaderboardID string) error {
 	url := fmt.Sprintf("/l/%s", leaderboardID)
-	status, body, err := doRequest(
+	return doOKRequest(
 		"DELETE",
 		url,
 		"",
 	)
-	if err != nil {
-		log.Fatalf("Could not delete leaderboard at %s. Error: %s", baseURL, err.Error())
-	}
-	if status != 200 {
-		log.Fatalf("Could not delete leaderboard at %s (Status: %d). Error: %s", baseURL, status, body)
-	}
 }
 
 func init() {

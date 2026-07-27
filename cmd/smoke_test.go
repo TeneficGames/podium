@@ -126,10 +126,67 @@ func TestSmokeCommand(t *testing.T) {
 		baseURL = previousBaseURL
 	})
 
-	smokeCmd.Run(smokeCmd, nil)
+	if err := smokeCmd.RunE(smokeCmd, nil); err != nil {
+		t.Fatalf("run smoke command: %v", err)
+	}
 
 	const expectedRequests = 506
 	if requestCount != expectedRequests {
 		t.Fatalf("expected %d smoke-test requests, got %d", expectedRequests, requestCount)
+	}
+}
+
+func TestSmokeOperationsReturnHTTPError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		http.Error(w, "unavailable", http.StatusServiceUnavailable)
+	}))
+	defer server.Close()
+
+	previousBaseURL := baseURL
+	baseURL = server.URL
+	t.Cleanup(func() {
+		baseURL = previousBaseURL
+	})
+
+	tests := []struct {
+		name string
+		call func() error
+	}{
+		{name: "health check", call: doHealthCheck},
+		{name: "add score", call: func() error { return addMemberScore("board", "member", 10) }},
+		{name: "get member", call: func() error { return getMember("board", "member") }},
+		{name: "get members", call: func() error { return getMembers("board", "member") }},
+		{name: "get rank", call: func() error { return getRank("board", "member") }},
+		{name: "get around", call: func() error { return getAround("board", "member") }},
+		{name: "get member count", call: func() error { return getNumberOfMembers("board") }},
+		{name: "get top", call: func() error { return getTopMembers("board") }},
+		{name: "get percentage", call: func() error { return getTopPercentage("board") }},
+		{name: "remove member", call: func() error { return removeMember("board", "member") }},
+		{name: "remove leaderboard", call: func() error { return removeLeaderboard("board") }},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := tt.call(); err == nil {
+				t.Fatal("expected failed HTTP response to return an error")
+			}
+		})
+	}
+}
+
+func TestSmokeOperationsReturnConnectionError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))
+	previousBaseURL := baseURL
+	baseURL = server.URL
+	server.Close()
+	t.Cleanup(func() {
+		baseURL = previousBaseURL
+	})
+
+	if err := doHealthCheck(); err == nil {
+		t.Fatal("expected health check connection error")
+	}
+	if err := getMember("board", "member"); err == nil {
+		t.Fatal("expected operation connection error")
 	}
 }

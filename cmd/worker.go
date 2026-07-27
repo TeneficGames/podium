@@ -11,6 +11,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"time"
 
@@ -27,7 +28,7 @@ var workerCmd = &cobra.Command{
 	Short: "starts the podium scores expirer worker",
 	Long: `starts the podium worker that expires scores with the specified arguments. you can use environment variables to override
 	configuration keys`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		ll := zap.InfoLevel
 		if debug {
 			ll = zap.DebugLevel
@@ -48,7 +49,7 @@ var workerCmd = &cobra.Command{
 
 		telemetry, err := observability.New(cmd.Context(), "podium-worker")
 		if err != nil {
-			logger.Fatal("Could not configure observability.", zap.Error(err))
+			return fmt.Errorf("configure observability: %w", err)
 		}
 		defer func() {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -61,7 +62,7 @@ var workerCmd = &cobra.Command{
 		w, err := worker.GetExpirationWorker(ConfigFile)
 
 		if err != nil {
-			logger.Fatal("Could not get podium worker.", zap.Error(err))
+			return fmt.Errorf("create podium worker: %w", err)
 		}
 
 		expirationsChan := make(chan []*worker.ExpirationResult)
@@ -79,6 +80,7 @@ var workerCmd = &cobra.Command{
 		}()
 
 		w.Run(expirationsChan, errChan)
+		return nil
 	},
 }
 

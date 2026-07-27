@@ -78,3 +78,39 @@ func TestInitConfigUsesExplicitFile(t *testing.T) {
 func TestVersionCommand(t *testing.T) {
 	versionCmd.Run(versionCmd, nil)
 }
+
+func TestStartCommandReturnsConfigurationError(t *testing.T) {
+	previousConfigFile := ConfigFile
+	previousDebug := debug
+	previousQuiet := quiet
+	ConfigFile = filepath.Join(t.TempDir(), "missing.yaml")
+	debug = true
+	quiet = true
+	t.Cleanup(func() {
+		ConfigFile = previousConfigFile
+		debug = previousDebug
+		quiet = previousQuiet
+	})
+
+	if err := startCmd.RunE(startCmd, nil); err == nil {
+		t.Fatal("expected invalid configuration to fail")
+	}
+}
+
+func TestWorkerCommandReturnsConfigurationError(t *testing.T) {
+	previousConfigFile := ConfigFile
+	previousDebug := debug
+	previousQuiet := quiet
+	ConfigFile = filepath.Join(t.TempDir(), "missing.yaml")
+	debug = true
+	quiet = true
+	t.Cleanup(func() {
+		ConfigFile = previousConfigFile
+		debug = previousDebug
+		quiet = previousQuiet
+	})
+
+	if err := workerCmd.RunE(workerCmd, nil); err == nil {
+		t.Fatal("expected invalid configuration to fail")
+	}
+}
