@@ -2,8 +2,8 @@ package client
 
 import "context"
 
-// PodiumInterface defines the interface to be implemented
-type PodiumInterface interface {
+// Client defines the operations supported by the Podium API client.
+type Client interface {
 	DeleteLeaderboard(ctx context.Context, leaderboard string) (*Response, error)
 	GetCount(ctx context.Context, leaderboard string) (int, error)
 	GetMember(ctx context.Context, leaderboard, memberID string) (*Member, error)

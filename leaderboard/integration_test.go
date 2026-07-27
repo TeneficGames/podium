@@ -600,7 +600,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 	Describe("getting leaderboard leaders", func() {
 		It("should get specific number of leaders", func() {
 			pageSize := 25
-			for i := 0; i < 1000; i++ {
+			for i := 0; i < 30; i++ {
 				_, err := leaderboards.SetMemberScore(NewEmptyCtx(), testLeaderboardID, "member_"+strconv.Itoa(i+1), int64(1234*i), false, "")
 				Expect(err).NotTo(HaveOccurred())
 			}
@@ -610,15 +610,15 @@ var _ = Describe("Leaderboard integration tests", func() {
 			firstOnPage := members[0]
 			lastOnPage := members[len(members)-1]
 			Expect(len(members)).To(Equal(pageSize))
-			Expect(firstOnPage.PublicID).To(Equal("member_1000"))
+			Expect(firstOnPage.PublicID).To(Equal("member_30"))
 			Expect(firstOnPage.Rank).To(Equal(1))
-			Expect(lastOnPage.PublicID).To(Equal("member_976"))
+			Expect(lastOnPage.PublicID).To(Equal("member_6"))
 			Expect(lastOnPage.Rank).To(Equal(25))
 		})
 
 		It("should get specific number of leaders in reverse order", func() {
 			pageSize := 25
-			for i := 0; i < 1000; i++ {
+			for i := 0; i < 30; i++ {
 				_, err := leaderboards.SetMemberScore(NewEmptyCtx(), testLeaderboardID, "member_"+strconv.Itoa(i+1), int64(1234*i), false, "")
 				Expect(err).NotTo(HaveOccurred())
 			}

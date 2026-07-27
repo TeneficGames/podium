@@ -6,6 +6,7 @@ toolchain go1.26.5
 
 require (
 	github.com/TeneficGames/podium/leaderboard v1.0.0
+	github.com/TeneficGames/podium/proto v1.0.0
 	github.com/getsentry/sentry-go v0.48.0
 	github.com/getsentry/sentry-go/otel v0.48.0
 	github.com/google/uuid v1.6.0
@@ -32,7 +33,6 @@ require (
 	go.opentelemetry.io/otel/trace v1.44.0
 	go.uber.org/mock v0.6.0
 	go.uber.org/zap v1.28.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20260724162435-b2f20204f0df
 	google.golang.org/grpc v1.82.1
 	google.golang.org/protobuf v1.36.11
 )
@@ -74,7 +74,10 @@ require (
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.40.0 // indirect
 	golang.org/x/tools v0.48.0 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20260724162435-b2f20204f0df // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260724162435-b2f20204f0df // indirect
 )
 
 replace github.com/TeneficGames/podium/leaderboard v1.0.0 => ./leaderboard
+
+replace github.com/TeneficGames/podium/proto v1.0.0 => ./proto

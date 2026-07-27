@@ -32,6 +32,7 @@ clear-hooks: ## Remove pre-commit git hooks
 setup: ## Download dependencies for all Go modules
 	@go mod download
 	@cd leaderboard && go mod download
+	@cd proto && go mod download
 	@cd client && go mod download
 
 setup-docs: ## Install dependencies necessary for building docs
@@ -48,6 +49,7 @@ test: test-podium test-leaderboard test-client ## Execute all tests
 test-unit: ## Execute Redis-independent unit tests
 	@go test ./cmd ./observability
 	@cd leaderboard && go test ./database ./enriching ./expiration ./service
+	@cd proto && go test ./...
 	@cd client && go test ./...
 
 test-podium: ## Execute all API tests
@@ -65,6 +67,7 @@ test-client: ## Execute all client tests
 lint: ## Run golangci-lint for all Go modules
 	@golangci-lint run ./...
 	@cd leaderboard && golangci-lint run ./...
+	@cd proto && golangci-lint run ./...
 	@cd client && golangci-lint run ./...
 
 coverage: ## Generate code coverage file
@@ -124,7 +127,7 @@ rtfd: ## Build and open podium documentation
 	@open docs/_build/html/index.html
 
 mock-lib: ## Generate mocks
-	@mockgen github.com/TeneficGames/podium/lib PodiumInterface | sed 's/mock_lib/mocks/' > lib/mocks/podium.go
+	@cd client && $(MOCKGENERATE) -destination=mocks/podium.go -package=mocks github.com/TeneficGames/podium/client Client
 
 mock-generate:
 	$(MOCKGENERATE) -source=leaderboard/enriching/interfaces.go -destination=leaderboard/mocks/enriching.go

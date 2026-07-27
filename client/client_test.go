@@ -12,7 +12,7 @@ import (
 )
 
 var _ = Describe("client", func() {
-	var p client.PodiumInterface
+	var p client.Client
 	var config *viper.Viper
 	var globalLeaderboard string
 	var localeLeaderboard string

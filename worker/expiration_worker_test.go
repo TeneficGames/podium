@@ -32,22 +32,41 @@ var _ = Describe("Scores Expirer Worker", func() {
 
 	const lbName string = "test-expire-leaderboard"
 
-	expirationSink := make(chan []*worker.ExpirationResult)
-	errorSink := make(chan error)
+	var expirationSink chan []*worker.ExpirationResult
+	var errorSink chan error
 
-	go func() {
-		for {
+	runWorker := func(runs int) []*worker.ExpirationResult {
+		done := make(chan struct{})
+		go func() {
+			expirationWorker.Run(expirationSink, errorSink)
+			close(done)
+		}()
+
+		var results []*worker.ExpirationResult
+		for range runs {
 			select {
-			case <-expirationSink:
-			case <-errorSink:
+			case results = <-expirationSink:
+			case err := <-errorSink:
+				expirationWorker.Stop()
+				Fail(fmt.Sprintf("expiration worker failed: %v", err))
+			case <-time.After(time.Second):
+				expirationWorker.Stop()
+				Fail("expiration worker did not complete a run")
 			}
 		}
-	}()
+
+		expirationWorker.Stop()
+		Eventually(done).Should(BeClosed())
+		return results
+	}
 
 	BeforeEach(func() {
 		var err error
 
 		expirationWorker, err = worker.GetExpirationWorker("../config/test.yaml")
+		expirationWorker.ExpirationCheckInterval = 10 * time.Millisecond
+		expirationSink = make(chan []*worker.ExpirationResult, 10)
+		errorSink = make(chan error, 10)
 		redisClient = database.NewRedisDatabase(database.RedisOptions{
 			ClusterEnabled: expirationWorker.Config.GetBool("redis.cluster.enabled"),
 			Addrs:          expirationWorker.Config.GetStringSlice("redis.addrs"),
@@ -88,11 +107,12 @@ var _ = Describe("Scores Expirer Worker", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(len(result4)).To(Equal(1))
 		Expect(result4[0].Member).To(Equal("denix"))
-		go func() {
-			time.Sleep(time.Duration(6) * time.Second)
-			expirationWorker.Stop()
-		}()
-		expirationWorker.Run(expirationSink, errorSink)
+		err = redisClient.ZAdd(context.Background(), redisLBExpirationKey, &redis.Member{
+			Member: "denix",
+			Score:  float64(time.Now().Add(-time.Second).Unix()),
+		})
+		Expect(err).NotTo(HaveOccurred())
+		runWorker(2)
 
 		res, err := redisClient.ZRange(context.Background(), lbName, 0, 1)
 		Expect(err).NotTo(HaveOccurred())
@@ -127,11 +147,7 @@ var _ = Describe("Scores Expirer Worker", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(len(result4)).To(Equal(1))
 		Expect(result4[0].Member).To(Equal("denix"))
-		go func() {
-			time.Sleep(time.Duration(6) * time.Second)
-			expirationWorker.Stop()
-		}()
-		expirationWorker.Run(expirationSink, errorSink)
+		runWorker(1)
 
 		res, err := redisClient.ZRange(context.Background(), lbName, 0, 1)
 		Expect(err).NotTo(HaveOccurred())
@@ -158,11 +174,7 @@ var _ = Describe("Scores Expirer Worker", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(len(result4)).To(Equal(1))
 		Expect(result4[0].Member).To(Equal("denix"))
-		go func() {
-			time.Sleep(time.Duration(5) * time.Second)
-			expirationWorker.Stop()
-		}()
-		expirationWorker.Run(expirationSink, errorSink)
+		runWorker(1)
 
 		res, err := redisClient.ZRange(context.Background(), lbName, 0, 1)
 		Expect(err).NotTo(HaveOccurred())
@@ -178,7 +190,6 @@ var _ = Describe("Scores Expirer Worker", func() {
 
 	It("a call to expireScores should only remove ExpirationLimitPerRun members from a set", func() {
 		expirationWorker.ExpirationLimitPerRun = 1
-		expirationWorker.ExpirationCheckInterval = time.Duration(4) * time.Second
 
 		ttl := "2"
 		_, err := leaderboards.SetMemberScore(context.Background(), lbName, "denix", 481516, false, ttl)
@@ -203,12 +214,14 @@ var _ = Describe("Scores Expirer Worker", func() {
 		Expect(result4[0].Member).To(Equal("denix2"))
 		Expect(result4[1].Member).To(Equal("denix"))
 
-		go func() {
-			time.Sleep(time.Duration(6) * time.Second)
-			expirationWorker.Stop()
-		}()
-
-		expirationWorker.Run(expirationSink, errorSink)
+		err = redisClient.ZAdd(
+			context.Background(),
+			redisLBExpirationKey,
+			&redis.Member{Member: "denix", Score: 0},
+			&redis.Member{Member: "denix2", Score: 0},
+		)
+		Expect(err).NotTo(HaveOccurred())
+		runWorker(1)
 
 		res, err := redisClient.ZRange(context.Background(), lbName, 0, 2)
 		Expect(err).NotTo(HaveOccurred())
