@@ -204,18 +204,6 @@ jobs:
           username: trungdlp
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Generate image metadata
-        if: github.ref == 'refs/heads/main'
-        id: meta
-        uses: docker/metadata-action@v6
-        env:
-          DOCKER_METADATA_SHORT_SHA_LENGTH: 12
-        with:
-          images: ${{ env.IMAGE_NAME }}
-          tags: |
-            type=raw,value=latest
-            type=sha,prefix=sha-,format=short
-
       - name: Validate image build
         if: github.event_name == 'pull_request'
         uses: docker/build-push-action@v7
@@ -235,7 +223,7 @@ jobs:
           file: ./build/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ env.IMAGE_NAME }}:edge
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -251,28 +239,21 @@ jobs:
       - client-compatibility
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v7
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
-
-      - name: Generate source image metadata
-        id: source
-        uses: docker/metadata-action@v6
-        env:
-          DOCKER_METADATA_SHORT_SHA_LENGTH: 12
-        with:
-          images: ${{ env.IMAGE_NAME }}
-          flavor: latest=false
-          tags: type=sha,prefix=sha-,format=short
 
       - name: Generate release metadata
         id: meta
         uses: docker/metadata-action@v6
         with:
           images: ${{ env.IMAGE_NAME }}
-          flavor: latest=false
+          flavor: latest=true
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v4
@@ -280,20 +261,13 @@ jobs:
           username: trungdlp
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Verify commit image exists
-        env:
-          SOURCE_IMAGE: ${{ steps.source.outputs.tags }}
-        run: docker buildx imagetools inspect "$SOURCE_IMAGE"
-
-      - name: Publish version tags
-        env:
-          RELEASE_TAGS: ${{ steps.meta.outputs.tags }}
-          SOURCE_IMAGE: ${{ steps.source.outputs.tags }}
-        run: |
-          tag_args=()
-          while IFS= read -r tag; do
-            if [[ -n "$tag" ]]; then
-              tag_args+=(--tag "$tag")
-            fi
-          done <<< "$RELEASE_TAGS"
-          docker buildx imagetools create "${tag_args[@]}" "$SOURCE_IMAGE"
+      - name: Build and publish release image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./build/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
