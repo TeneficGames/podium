@@ -84,7 +84,7 @@ jobs:
         run: make test-podium
       - name: Save test results and coverage
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: integration-podium
           path: |
@@ -111,7 +111,7 @@ jobs:
         run: make test-leaderboard
       - name: Save test results and coverage
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: integration-leaderboard
           path: |
@@ -134,7 +134,7 @@ jobs:
         run: make test-client
       - name: Save test results and coverage
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: integration-client
           path: |
@@ -154,17 +154,17 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Download server results
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: integration-podium
           path: .
       - name: Download leaderboard results
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: integration-leaderboard
           path: .
       - name: Download client results
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: integration-client
           path: .
