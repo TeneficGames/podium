@@ -64,6 +64,27 @@ func (r *Redis) GetMembers(ctx context.Context, leaderboard, order string, inclu
 		return nil, NewInvalidOrderError(order)
 	}
 
+	if reader, ok := r.Client.(redis.MemberReader); ok {
+		redisMembers, err := reader.ZMembers(ctx, leaderboard, order, includeTTL, members...)
+		if err != nil {
+			return nil, NewGeneralError(err.Error())
+		}
+
+		membersToReturn := make([]*Member, len(redisMembers))
+		for i, member := range redisMembers {
+			if member == nil {
+				continue
+			}
+			membersToReturn[i] = &Member{
+				Member: member.Member,
+				Score:  member.Score,
+				Rank:   member.Rank,
+				TTL:    member.TTL,
+			}
+		}
+		return membersToReturn, nil
+	}
+
 	membersToReturn := make([]*Member, 0, len(members))
 
 	for _, member := range members {
@@ -225,6 +246,34 @@ func (r *Redis) IncrementMemberScore(ctx context.Context, leaderboard, member st
 	return nil
 }
 
+// IncrementMemberScoreAndGetRank increments a score and returns its resulting value and rank.
+func (r *Redis) IncrementMemberScoreAndGetRank(
+	ctx context.Context,
+	leaderboard, member, order string,
+	increment float64,
+) (*Member, error) {
+	if incrementer, ok := r.Client.(redis.MemberIncrementer); ok {
+		redisMember, err := incrementer.ZIncrByAndRank(ctx, leaderboard, member, order, increment)
+		if err != nil {
+			return nil, NewGeneralError(err.Error())
+		}
+		return &Member{
+			Member: redisMember.Member,
+			Score:  redisMember.Score,
+			Rank:   redisMember.Rank,
+		}, nil
+	}
+
+	if err := r.IncrementMemberScore(ctx, leaderboard, member, increment); err != nil {
+		return nil, err
+	}
+	members, err := r.GetMembers(ctx, leaderboard, order, false, member)
+	if err != nil {
+		return nil, err
+	}
+	return members[0], nil
+}
+
 // RemoveLeaderboard delete leaderboard key from redis
 func (r *Redis) RemoveLeaderboard(ctx context.Context, leaderboard string) error {
 	err := r.Client.Del(ctx, leaderboard)
@@ -266,6 +315,45 @@ func (r *Redis) SetMembers(ctx context.Context, leaderboard string, databaseMemb
 		return NewGeneralError(err.Error())
 	}
 	return nil
+}
+
+// SetMembersAndGetRanks updates scores and returns their resulting ranks.
+func (r *Redis) SetMembersAndGetRanks(
+	ctx context.Context,
+	leaderboard, order string,
+	databaseMembers []*Member,
+) ([]int64, error) {
+	if writer, ok := r.Client.(redis.MemberWriter); ok {
+		redisMembers := make([]*redis.Member, len(databaseMembers))
+		for i, member := range databaseMembers {
+			redisMembers[i] = &redis.Member{
+				Member: member.Member,
+				Score:  member.Score,
+			}
+		}
+		ranks, err := writer.ZAddAndRanks(ctx, leaderboard, order, redisMembers...)
+		if err != nil {
+			return nil, NewGeneralError(err.Error())
+		}
+		return ranks, nil
+	}
+
+	if err := r.SetMembers(ctx, leaderboard, databaseMembers); err != nil {
+		return nil, err
+	}
+	memberIDs := make([]string, len(databaseMembers))
+	for i, member := range databaseMembers {
+		memberIDs[i] = member.Member
+	}
+	members, err := r.GetMembers(ctx, leaderboard, order, false, memberIDs...)
+	if err != nil {
+		return nil, err
+	}
+	ranks := make([]int64, len(members))
+	for i, member := range members {
+		ranks[i] = member.Rank
+	}
+	return ranks, nil
 }
 
 // SetMembersTTL set member ttl in an OrderedSet and add this to expiration_worker set

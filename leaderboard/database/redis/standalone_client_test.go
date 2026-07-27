@@ -39,7 +39,7 @@ var _ = Describe("Standalone Client", func() {
 	})
 
 	AfterEach(func() {
-		err := goRedis.Del(context.Background(), testKey).Err()
+		err := goRedis.Del(context.Background(), testKey, testKey+":ttl").Err()
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -447,6 +447,111 @@ var _ = Describe("Standalone Client", func() {
 
 			_, err = standaloneClient.ZScore(context.Background(), testKey, "wrongKey")
 			Expect(err).To(Equal(redis.NewMemberNotFoundError(testKey, "wrongKey")))
+		})
+	})
+
+	Describe("ZMembers", func() {
+		It("Should return an empty result when no members are requested", func() {
+			reader := standaloneClient.(redis.MemberReader)
+			members, err := reader.ZMembers(context.Background(), testKey, "desc", false)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(members).To(BeEmpty())
+		})
+
+		It("Should return scores, descending ranks, TTLs, and missing members", func() {
+			ctx := context.Background()
+			err := goRedis.ZAdd(
+				ctx,
+				testKey,
+				goredis.Z{Member: "member1", Score: 10},
+				goredis.Z{Member: "member2", Score: 20},
+			).Err()
+			Expect(err).NotTo(HaveOccurred())
+
+			err = goRedis.ZAdd(
+				ctx,
+				testKey+":ttl",
+				goredis.Z{Member: "member1", Score: 10000},
+			).Err()
+			Expect(err).NotTo(HaveOccurred())
+
+			reader := standaloneClient.(redis.MemberReader)
+			members, err := reader.ZMembers(ctx, testKey, "desc", true, "member1", "missing", "member2")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(members).To(Equal([]*redis.Member{
+				{Member: "member1", Score: 10, Rank: 1, TTL: time.Unix(10000, 0)},
+				nil,
+				{Member: "member2", Score: 20, Rank: 0},
+			}))
+		})
+
+		It("Should return ascending ranks without TTLs", func() {
+			ctx := context.Background()
+			err := goRedis.ZAdd(
+				ctx,
+				testKey,
+				goredis.Z{Member: "member1", Score: 10},
+				goredis.Z{Member: "member2", Score: 20},
+			).Err()
+			Expect(err).NotTo(HaveOccurred())
+
+			reader := standaloneClient.(redis.MemberReader)
+			members, err := reader.ZMembers(ctx, testKey, "asc", false, "member1", "member2")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(members).To(Equal([]*redis.Member{
+				{Member: "member1", Score: 10, Rank: 0},
+				{Member: "member2", Score: 20, Rank: 1},
+			}))
+		})
+	})
+
+	Describe("Pipelined writes", func() {
+		It("Should update scores and return their resulting ranks", func() {
+			writer := standaloneClient.(redis.MemberWriter)
+			ranks, err := writer.ZAddAndRanks(
+				context.Background(),
+				testKey,
+				"desc",
+				&redis.Member{Member: "member1", Score: 10},
+				&redis.Member{Member: "member2", Score: 20},
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(ranks).To(Equal([]int64{1, 0}))
+		})
+
+		It("Should increment a score and return its value and rank", func() {
+			writer := standaloneClient.(redis.MemberWriter)
+			_, err := writer.ZAddAndRanks(
+				context.Background(),
+				testKey,
+				"desc",
+				&redis.Member{Member: "member1", Score: 10},
+				&redis.Member{Member: "member2", Score: 20},
+			)
+			Expect(err).NotTo(HaveOccurred())
+
+			incrementer := standaloneClient.(redis.MemberIncrementer)
+			member, err := incrementer.ZIncrByAndRank(context.Background(), testKey, "member1", "desc", 20)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(member).To(Equal(&redis.Member{Member: "member1", Score: 30, Rank: 0}))
+		})
+
+		It("Should return ascending ranks after writes and increments", func() {
+			writer := standaloneClient.(redis.MemberWriter)
+			ranks, err := writer.ZAddAndRanks(
+				context.Background(),
+				testKey,
+				"asc",
+				&redis.Member{Member: "member1", Score: 10},
+				&redis.Member{Member: "member2", Score: 20},
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(ranks).To(Equal([]int64{0, 1}))
+
+			incrementer := standaloneClient.(redis.MemberIncrementer)
+			member, err := incrementer.ZIncrByAndRank(context.Background(), testKey, "member1", "asc", 20)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(member).To(Equal(&redis.Member{Member: "member1", Score: 30, Rank: 1}))
 		})
 	})
 })

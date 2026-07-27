@@ -84,6 +84,36 @@ func (s *Service) persistMembers(ctx context.Context, leaderboard string, member
 	return nil
 }
 
+type membersWriter interface {
+	SetMembersAndGetRanks(ctx context.Context, leaderboard, order string, members []*database.Member) ([]int64, error)
+}
+
+func (s *Service) persistMembersAndSetValues(ctx context.Context, leaderboard string, members []*model.Member, order string) error {
+	writer, ok := s.Database.(membersWriter)
+	if !ok {
+		if err := s.persistMembers(ctx, leaderboard, members); err != nil {
+			return err
+		}
+		return s.setMembersValues(ctx, leaderboard, members, order)
+	}
+
+	databaseMembers := make([]*database.Member, len(members))
+	for i, member := range members {
+		databaseMembers[i] = &database.Member{
+			Member: member.PublicID,
+			Score:  float64(member.Score),
+		}
+	}
+	ranks, err := writer.SetMembersAndGetRanks(ctx, leaderboard, order, databaseMembers)
+	if err != nil {
+		return err
+	}
+	for i, rank := range ranks {
+		members[i].Rank = int(rank + 1)
+	}
+	return nil
+}
+
 func (s *Service) setMembersValues(ctx context.Context, leaderboard string, members []*model.Member, order string) error {
 	databaseMembers, err := s.getDatabaseMembers(ctx, leaderboard, members, order)
 	if err != nil {
@@ -130,7 +160,7 @@ func (s *Service) getDatabaseMembers(ctx context.Context, leaderboard string, me
 		memberIDs = append(memberIDs, member.PublicID)
 	}
 
-	databaseMembers, err := s.Database.GetMembers(ctx, leaderboard, order, true, memberIDs...)
+	databaseMembers, err := s.Database.GetMembers(ctx, leaderboard, order, false, memberIDs...)
 	if err != nil {
 		return nil, err
 	}

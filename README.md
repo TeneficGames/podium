@@ -4,133 +4,228 @@
 [![codecov](https://codecov.io/gh/TeneficGames/podium/branch/main/graph/badge.svg)](https://codecov.io/gh/TeneficGames/podium)
 [![Go Reference](https://pkg.go.dev/badge/github.com/TeneficGames/podium/leaderboard.svg)](https://pkg.go.dev/github.com/TeneficGames/podium/leaderboard)
 
-A leaderboard system written in [Go](https://go.dev/) using [Redis](https://redis.io/). See the [documentation](docs/overview.md) for an overview.
+**Fast, Redis-backed leaderboards for games and competitive applications.**
 
-Requirements
-------------
+Podium is an open-source leaderboard service built in Go. It gives game and
+application teams a ready-to-run HTTP and gRPC API for scores, ranks, seasons,
+and player-relative views without defining every leaderboard in advance.
 
-Development and CI use Go 1.26 and Redis 8.
+Run Podium as a service with Docker, connect through the Go client, or embed the
+leaderboard module directly in your application.
 
-The completed modernization and observability assessment is documented in
-[docs/upgrade-review.md](docs/upgrade-review.md).
+[Quickstart](#quickstart) · [API](docs/API.md) ·
+[Documentation](docs/overview.md) ·
+[Docker Hub](https://hub.docker.com/r/trungdlp/podium)
 
-Module paths
-------------
+## Why Podium?
 
-The canonical Go modules are:
+- **No upfront configuration:** a leaderboard is ready as soon as its first
+  score is submitted.
+- **Multi-tenant by design:** isolate global, regional, clan, event, or game
+  leaderboards with simple names.
+- **Season-aware naming:** names such as `year2026week01` and
+  `year2026month06` support expiring seasonal leaderboards.
+- **Flexible ranking views:** query top members, top percentages, individual
+  ranks, members around a player, or members around a score.
+- **Efficient score updates:** update one or many members, increment scores,
+  or submit one member to multiple leaderboards.
+- **Built-in expiration:** expire entire seasonal leaderboards or individual
+  member scores.
+- **Production interfaces:** use HTTP/JSON, gRPC, the Go API client, or the
+  embeddable Go library.
+- **Operational visibility:** export OpenTelemetry traces and metrics over
+  OTLP/gRPC, with optional Sentry error reporting.
 
-* `github.com/TeneficGames/podium`
-* `github.com/TeneficGames/podium/leaderboard`
-* `github.com/TeneficGames/podium/proto`
-* `github.com/TeneficGames/podium/client`
+## Quickstart
 
-The nested modules start at v1. Go v1 module paths intentionally omit a `/v1`
-suffix; releases use prefixed tags such as `leaderboard/v1.0.0`,
-`proto/v1.0.0`, and `client/v1.0.0`.
+### 1. Start Podium with Docker
 
-The move from `github.com/topfreegames/podium` changes import paths and should be
-treated as a breaking change by downstream consumers.
+Podium requires Redis. The following commands create an isolated Docker
+network, start Redis, and run the
+[`trungdlp/podium:latest`](https://hub.docker.com/r/trungdlp/podium) image:
 
-Features
---------
+```bash
+docker network create podium
+docker run --detach --name podium-redis --network podium redis:8-alpine
 
-* **Multi-tenant** - Just vary the name of the leaderboard and you can have any number of tenants using leaderboards;
-* **Seasonal Leaderboards** - Including suffixes like `year2016week01` or `year2016month06` is all you need to create seasonal leaders. I'm serious! That's all there is to it;
-* **No leaderboard configuration** - Just start notifying scores for members of a leaderboard. There's no need to create, configure or maintain leaderboards. Let Podium do that for you;
-* **Top Members** - Get the top members of a leaderboard whether you need by absolute value (top 200 members) or percentage (top 3% members);
-* **Members around me** - Podium easily returns members around a specific member in the leaderboard. It will even compensate if you ask for the top member or last member to make sure you get a consistent amount of members;
-* **Batch score update** - In a single operation, send a member score to many different leaderboards or many members score to the same leaderboard. This allows easy tracking of member rankings in several leaderboards at once (global, regional, clan, etc.);
-* **Easy to deploy** - Podium comes with containers already exported to docker hub for every single of our successful builds. Just pick your choice!
-* **Leaderboards with expiration** - If a player last update is older than (timeNow - X seconds), delete it from the leaderboard;
-* **Use as library** - You can use podium as a library as well, adding leaderboard functionality directly to your application;
-
-Installation
-------------
-
-Install Leaderboard using the "go get" command:
-
-    go get github.com/TeneficGames/podium/leaderboard@v1
-
-And then run
-
-    make setup
-    
-Quickstart (for using as library)
---------------------------------
-
+docker run --detach --rm --name podium \
+  --network podium \
+  --publish 8880:8880 \
+  --env PODIUM_REDIS_HOST=podium-redis \
+  --env PODIUM_REDIS_PORT=6379 \
+  trungdlp/podium:latest start
 ```
+
+Verify that Podium is ready:
+
+```bash
+curl http://localhost:8880/healthcheck
+```
+
+```text
+WORKING
+```
+
+Use `trungdlp/podium:v1` to stay on the v1 release line:
+
+```bash
+docker pull trungdlp/podium:v1
+```
+
+See [Hosting Podium](docs/hosting.md) for Redis authentication, Redis Cluster,
+basic authentication, observability, and other configuration options.
+
+### 2. Connect with the Go client
+
+Install the HTTP API client:
+
+```bash
+go get github.com/TeneficGames/podium/client@latest
+```
+
+Create a leaderboard, submit scores, and retrieve its leaders:
+
+```go
+package main
+
 import (
 	"context"
 	"fmt"
 	"log"
 
-	"github.com/TeneficGames/podium/leaderboard"
+	"github.com/TeneficGames/podium/client"
+	"github.com/spf13/viper"
 )
 
 func main() {
-	leaderboards, err := leaderboard.NewClient("localhost", 6379, "", 0, 200)
+	config := viper.New()
+	config.Set("podium.url", "http://localhost:8880")
+	podium := client.NewPodium(config)
+	ctx := context.Background()
+
+	const leaderboardID = "weekly-global"
+
+	players := []*client.Member{
+		{PublicID: "player1", Score: 10},
+		{PublicID: "player2", Score: 20},
+	}
+
+	if _, err := podium.UpdateMembersScore(ctx, leaderboardID, players, 0); err != nil {
+		log.Fatalf("update scores: %v", err)
+	}
+
+	leaders, err := podium.GetTop(ctx, leaderboardID, 1, 10)
 	if err != nil {
-		log.Fatalf("leaderboard.NewClient failed: %v", err)
+		log.Fatalf("get leaders: %v", err)
 	}
 
-	const leaderboardID = "myleaderboardID"
-
-	//setting player scores
-	players := leaderboard.Members{
-		&leaderboard.Member{Score: 10, PublicID: "player1"},
-		&leaderboard.Member{Score: 20, PublicID: "player2"},
-	}
-
-	err = leaderboards.SetMembersScore(context.Background(), leaderboardID, players, false, "")
-	if err != nil {
-		log.Fatalf("leaderboards.SetMembersScore failed: %v", err)
-	}
-
-	//getting the leaders of the leaderboard
-	leaders, err := leaderboards.GetLeaders(context.Background(), leaderboardID, 10, 1, "desc")
-	if err != nil {
-		log.Fatalf("leaderboards.GetLeaders failed: %v", err)
-	}
-
-	for _, player := range leaders {
-		fmt.Printf("Player(id: %s, score: %d rank: %d)\n", player.PublicID, player.Score, player.Rank)
+	for _, player := range leaders.Members {
+		fmt.Printf("%s: score=%d rank=%d\n", player.PublicID, player.Score, player.Rank)
 	}
 }
 ```
 
-Testing
--------
-    make test
+## Documentation
 
-Coverage
----------
-    make test-coverage test-coverage-html
+| Resource | Description |
+| --- | --- |
+| [Overview](docs/overview.md) | Concepts, architecture, and use cases |
+| [HTTP API](docs/API.md) | Endpoints and request examples |
+| [OpenAPI specification](docs/openapi/spec.swagger.yaml) | Machine-readable HTTP API contract |
+| [Leaderboard names](docs/leaderboard-names.md) | Seasonal naming and expiration rules |
+| [Hosting](docs/hosting.md) | Deployment, configuration, authentication, and observability |
+| [Go library](docs/library.md) | Use the Redis-backed leaderboard module directly |
+| [Leaderboard enrichment](docs/leaderboard-enrichment.md) | Enrich members with external metadata |
+| [Benchmark guide](docs/benchmark.md) | Benchmark workflow and test-data generation |
 
-Benchmarks
-----------
+## Go modules
 
-Podium benchmarks prove it's blazing fast:
+Podium is published as four Go modules:
 
-    BenchmarkSetMemberScore-8                           30000        284307 ns/op       0.32 MB/s        5635 B/op         81 allocs/op
-    BenchmarkSetMembersScore-8                           5000       1288746 ns/op       3.01 MB/s       51452 B/op        583 allocs/op
-    BenchmarkIncrementMemberScore-8                     30000        288306 ns/op       0.32 MB/s        5651 B/op         81 allocs/op
-    BenchmarkRemoveMember-8                             50000        202398 ns/op       0.08 MB/s        4648 B/op         68 allocs/op
-    BenchmarkGetMember-8                                30000        215802 ns/op       0.33 MB/s        4728 B/op         68 allocs/op
-    BenchmarkGetMemberRank-8                            50000        201367 ns/op       0.28 MB/s        4712 B/op         68 allocs/op
-    BenchmarkGetAroundMember-8                          20000        397849 ns/op       3.14 MB/s        8703 B/op         69 allocs/op
-    BenchmarkGetTotalMembers-8                          50000        192860 ns/op       0.16 MB/s        4536 B/op         64 allocs/op
-    BenchmarkGetTopMembers-8                            20000        306186 ns/op       3.85 MB/s        8585 B/op         66 allocs/op
-    BenchmarkGetTopPercentage-8                          1000      10011287 ns/op      11.88 MB/s      510300 B/op         77 allocs/op
-    BenchmarkSetMemberScoreForSeveralLeaderboards-8      1000     106129629 ns/op       1.03 MB/s      516103 B/op         98 allocs/op
-    BenchmarkGetMembers-8                                2000       3931289 ns/op       9.13 MB/s      243755 B/op         76 allocs/op
+| Module | Purpose |
+| --- | --- |
+| `github.com/TeneficGames/podium` | Podium service and CLI |
+| `github.com/TeneficGames/podium/client` | HTTP and gRPC API clients |
+| `github.com/TeneficGames/podium/leaderboard` | Embeddable Redis-backed leaderboard library |
+| `github.com/TeneficGames/podium/proto` | Protobuf and gRPC contracts |
 
-To run the benchmarks: `make bench-redis bench-podium-app bench-run`.
+The move from `github.com/topfreegames/podium` changed import paths and is a
+breaking change for downstream consumers. Go v1 module paths intentionally omit
+a `/v1` suffix; releases use module-prefixed tags such as
+`leaderboard/v1.0.0`, `proto/v1.0.0`, and `client/v1.0.0`.
 
-Our builds also show the difference to the previous build.
+## Development
 
-License
--------
-© 2026, Tenefic Games. Released under the [MIT License](LICENSE).
+Development and CI use Go 1.26 and Redis 8.
 
-Forked from:
-[© 2016, Top Free Games.](https://github.com/topfreegames/podium)
+```bash
+make setup
+make build
+make test
+```
+
+Generate HTML coverage reports:
+
+```bash
+make test-coverage-html
+```
+
+## Benchmarks
+
+These end-to-end benchmarks measure HTTP requests through Podium backed by
+Redis. Results were recorded on July 27, 2026, using Go 1.26.5, Redis 8, and an
+Apple M4 Pro. Performance-sensitive paths were repeated five times and report
+the median run:
+
+```text
+BenchmarkSetMemberScore-14                           4466        277589 ns/op       0.45 MB/s        6581 B/op         80 allocs/op
+BenchmarkSetMembersScore-14                          2394        551913 ns/op      10.19 MB/s       35796 B/op        336 allocs/op
+BenchmarkIncrementMemberScore-14                     4028        279474 ns/op       0.45 MB/s        6605 B/op         80 allocs/op
+BenchmarkRemoveMember-14                             4452        272088 ns/op       0.11 MB/s        5336 B/op         69 allocs/op
+BenchmarkGetMember-14                                4405        267569 ns/op       0.40 MB/s        5349 B/op         68 allocs/op
+BenchmarkGetMemberRank-14                            3783        273388 ns/op       0.21 MB/s        5318 B/op         68 allocs/op
+BenchmarkGetAroundMember-14                          2160        561633 ns/op       2.76 MB/s        9843 B/op         71 allocs/op
+BenchmarkGetTotalMembers-14                          4501        268036 ns/op       0.11 MB/s        5215 B/op         65 allocs/op
+BenchmarkGetTopMembers-14                            2713        441550 ns/op       3.39 MB/s        9461 B/op         69 allocs/op
+BenchmarkGetTopPercentage-14                          823       1869259 ns/op      32.66 MB/s      208971 B/op         84 allocs/op
+BenchmarkSetMemberScoreForSeveralLeaderboards-14      393       2853186 ns/op       5.65 MB/s       67410 B/op         98 allocs/op
+BenchmarkGetMembers-14                                894       1783058 ns/op      28.78 MB/s      222499 B/op         86 allocs/op
+```
+
+### Peak local throughput
+
+Podium sustained more than **46,000 RPS on a single leaderboard** over HTTP.
+A 100-leaderboard fan-out workload maintained the same underlying write rate,
+processing more than **46,000 individual leaderboard updates per second**.
+
+| Workload | Peak throughput | Median latency | P99 latency |
+| --- | ---: | ---: | ---: |
+| Single leaderboard, HTTP | 46,210 RPS | 11.0 ms | 17.2 ms |
+| Single leaderboard, gRPC | 44,866 calls/s | 5.2 ms | 15.5 ms |
+| 100-leaderboard fan-out, HTTP | 46,170 leaderboard updates/s | 34.3 ms | 41.8 ms |
+
+The fan-out result is 461.7 compound API requests per second, with each request
+updating 100 leaderboards. At this throughput, Redis writes are the limiting
+factor, so HTTP and gRPC converge near the same ceiling.
+
+During the fan-out test, process RSS increased from 20.3 MiB idle to 63.7 MiB.
+Live goroutines increased from 18 to 562 and settled at 37 after the load ended,
+with no continuing growth. Multi-leaderboard requests use at most 32 worker
+goroutines each.
+
+Benchmark results vary with hardware, Redis topology, network conditions, and
+workload. See the [benchmark guide](docs/benchmark.md) for the benchmark design.
+
+## Contributing
+
+Bug reports, feature proposals, and pull requests are welcome. Open an
+[issue](https://github.com/TeneficGames/podium/issues) to discuss substantial
+changes before implementation, and include tests and documentation with code
+changes.
+
+## License
+
+© 2026 Tenefic Games. Released under the [MIT License](LICENSE).
+
+Forked from
+[© 2026 Top Free Games](https://github.com/topfreegames/podium).

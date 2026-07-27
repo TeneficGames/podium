@@ -21,6 +21,7 @@ import (
 	lmodel "github.com/TeneficGames/podium/leaderboard/model"
 	"github.com/TeneficGames/podium/leaderboard/service"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -30,6 +31,7 @@ import (
 const (
 	notFoundError     = "Could not find data for member"
 	defaultPageSize   = 20
+	multiUpdateLimit  = 32
 	TenantIDHeaderKey = "wildlife-platform-tenant-id"
 )
 
@@ -698,17 +700,14 @@ func (app *App) GetMembers(ctx context.Context, req *api.GetMembersRequest) (*ap
 		return nil, err
 	}
 
-	var notFound []string
+	foundMembers := make(map[string]struct{}, len(members))
+	for _, member := range members {
+		foundMembers[member.PublicID] = struct{}{}
+	}
 
+	var notFound []string
 	for _, memberID := range memberIDs {
-		found := false
-		for _, member := range members {
-			if member.PublicID == memberID {
-				found = true
-				break
-			}
-		}
-		if !found {
+		if _, found := foundMembers[memberID]; !found {
 			notFound = append(notFound, memberID)
 		}
 	}
@@ -757,28 +756,37 @@ func (app *App) UpsertScoreMultiLeaderboards(ctx context.Context, req *api.Upser
 	serializedScores := make([]*api.UpsertScoreMultiLeaderboardsResponse_Member, len(req.ScoreMultiChange.Leaderboards))
 
 	err := withSegment("Model", ctx, func() error {
+		group, groupCtx := errgroup.WithContext(ctx)
+		group.SetLimit(multiUpdateLimit)
+
 		for i, leaderboardID := range req.ScoreMultiChange.Leaderboards {
-			lg.Debug("Updating score.",
-				zap.String("leaderboardID", leaderboardID),
-				zap.Int64("score", int64(req.ScoreMultiChange.Score)))
+			i, leaderboardID := i, leaderboardID
+			group.Go(func() error {
+				lg.Debug("Updating score.",
+					zap.String("leaderboardID", leaderboardID),
+					zap.Int64("score", int64(req.ScoreMultiChange.Score)))
 
-			member, err := app.Leaderboards.SetMemberScore(ctx, leaderboardID, req.MemberPublicId,
-				int64(req.ScoreMultiChange.Score), req.PrevRank, getScoreTTL(req.ScoreTtl))
+				member, err := app.Leaderboards.SetMemberScore(groupCtx, leaderboardID, req.MemberPublicId,
+					int64(req.ScoreMultiChange.Score), req.PrevRank, getScoreTTL(req.ScoreTtl))
 
-			if err != nil {
-				lg.Error("Update score failed.", zap.Error(err))
-				app.AddError()
-				return err
-			}
-			serializedScore := &api.UpsertScoreMultiLeaderboardsResponse_Member{
-				PublicId:      member.PublicID,
-				Score:         float64(member.Score),
-				Rank:          int32(member.Rank),
-				PreviousRank:  int32(member.PreviousRank),
-				ExpireAt:      int32(member.ExpireAt),
-				LeaderboardId: leaderboardID,
-			}
-			serializedScores[i] = serializedScore
+				if err != nil {
+					return err
+				}
+				serializedScores[i] = &api.UpsertScoreMultiLeaderboardsResponse_Member{
+					PublicId:      member.PublicID,
+					Score:         float64(member.Score),
+					Rank:          int32(member.Rank),
+					PreviousRank:  int32(member.PreviousRank),
+					ExpireAt:      int32(member.ExpireAt),
+					LeaderboardId: leaderboardID,
+				}
+				return nil
+			})
+		}
+		if err := group.Wait(); err != nil {
+			lg.Error("Update score failed.", zap.Error(err))
+			app.AddError()
+			return err
 		}
 		lg.Debug("Update score succeeded.")
 		return nil

@@ -18,7 +18,6 @@ import (
 	"github.com/TeneficGames/podium/config"
 	"github.com/TeneficGames/podium/leaderboard/database"
 	"github.com/TeneficGames/podium/leaderboard/service"
-	"github.com/onsi/gomega"
 )
 
 func getRoute(url string) string {
@@ -83,12 +82,18 @@ func validateResp(statusCode int, body string, err error) {
 }
 
 func generateNMembers(amount int) string {
+	return generateNMembersForLeaderboard("leaderboard-0", amount)
+}
+
+func generateNMembersForLeaderboard(lbID string, amount int) string {
 	config, err := config.GetDefaultConfig("../config/default.yaml")
-	gomega.Expect(err).NotTo(gomega.HaveOccurred())
+	if err != nil {
+		panic(err)
+	}
 
 	client := service.NewService(
 		database.NewRedisDatabase(database.RedisOptions{
-			ClusterEnabled: config.GetBool("redis.clusterEnabled"),
+			ClusterEnabled: config.GetBool("redis.cluster.enabled"),
 			Addrs:          config.GetStringSlice("redis.addrs"),
 			Host:           config.GetString("redis.host"),
 			Port:           config.GetInt("redis.port"),
@@ -97,10 +102,8 @@ func generateNMembers(amount int) string {
 		}),
 	)
 
-	lbID := "leaderboard-0"
-
 	for i := 0; i < amount; i++ {
-		if _, err := client.SetMemberScore(context.Background(), lbID, fmt.Sprintf("bench-member-%d", i), int64(100+i), false, "inf"); err != nil {
+		if _, err := client.SetMemberScore(context.Background(), lbID, fmt.Sprintf("bench-member-%d", i), int64(100+i), false, ""); err != nil {
 			panic(err)
 		}
 	}

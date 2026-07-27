@@ -12,6 +12,32 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+type fastRedisClient struct {
+	redis.Client
+	ranks  []int64
+	member *redis.Member
+	err    error
+}
+
+func (c *fastRedisClient) ZAddAndRanks(
+	context.Context,
+	string,
+	string,
+	...*redis.Member,
+) ([]int64, error) {
+	return c.ranks, c.err
+}
+
+func (c *fastRedisClient) ZIncrByAndRank(
+	context.Context,
+	string,
+	string,
+	string,
+	float64,
+) (*redis.Member, error) {
+	return c.member, c.err
+}
+
 var _ = Describe("Redis Database", func() {
 	var ctrl *gomock.Controller
 	var mock *redis.MockRedis
@@ -715,6 +741,167 @@ var _ = Describe("Redis Database", func() {
 
 			err := redisDatabase.SetMembers(context.Background(), leaderboard, databaseMembers)
 			Expect(err).To(Equal(database.NewGeneralError("New redis error")))
+		})
+	})
+
+	Describe("Pipelined score writes", func() {
+		databaseMembers := []*database.Member{
+			{Member: member, Score: score},
+			{Member: "member2", Score: 2},
+		}
+
+		It("Should update members and return ranks through the fast client", func() {
+			client := &fastRedisClient{
+				Client: mock,
+				ranks:  []int64{1, 0},
+			}
+			fastDatabase := &database.Redis{Client: client}
+
+			ranks, err := fastDatabase.SetMembersAndGetRanks(
+				context.Background(),
+				leaderboard,
+				"desc",
+				databaseMembers,
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(ranks).To(Equal([]int64{1, 0}))
+		})
+
+		It("Should return an error from a fast member update", func() {
+			client := &fastRedisClient{
+				Client: mock,
+				err:    fmt.Errorf("write error"),
+			}
+			fastDatabase := &database.Redis{Client: client}
+
+			_, err := fastDatabase.SetMembersAndGetRanks(
+				context.Background(),
+				leaderboard,
+				"desc",
+				databaseMembers,
+			)
+			Expect(err).To(Equal(database.NewGeneralError("write error")))
+		})
+
+		It("Should increment a member and return its value and rank through the fast client", func() {
+			client := &fastRedisClient{
+				Client: mock,
+				member: &redis.Member{Member: member, Score: 3, Rank: 0},
+			}
+			fastDatabase := &database.Redis{Client: client}
+
+			result, err := fastDatabase.IncrementMemberScoreAndGetRank(
+				context.Background(),
+				leaderboard,
+				member,
+				"desc",
+				2,
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result).To(Equal(&database.Member{Member: member, Score: 3, Rank: 0}))
+		})
+
+		It("Should return an error from a fast member increment", func() {
+			client := &fastRedisClient{
+				Client: mock,
+				err:    fmt.Errorf("increment error"),
+			}
+			fastDatabase := &database.Redis{Client: client}
+
+			_, err := fastDatabase.IncrementMemberScoreAndGetRank(
+				context.Background(),
+				leaderboard,
+				member,
+				"desc",
+				2,
+			)
+			Expect(err).To(Equal(database.NewGeneralError("increment error")))
+		})
+
+		It("Should fall back to separate member updates and rank reads", func() {
+			mock.EXPECT().ZAdd(
+				gomock.Any(),
+				gomock.Eq(leaderboard),
+				gomock.Eq(&redis.Member{Member: member, Score: score}),
+				gomock.Eq(&redis.Member{Member: "member2", Score: 2}),
+			).Return(nil)
+			mock.EXPECT().ZScore(gomock.Any(), gomock.Eq(leaderboard), gomock.Eq(member)).Return(score, nil)
+			mock.EXPECT().ZRevRank(gomock.Any(), gomock.Eq(leaderboard), gomock.Eq(member)).Return(int64(1), nil)
+			mock.EXPECT().ZScore(gomock.Any(), gomock.Eq(leaderboard), gomock.Eq("member2")).Return(float64(2), nil)
+			mock.EXPECT().ZRevRank(gomock.Any(), gomock.Eq(leaderboard), gomock.Eq("member2")).Return(int64(0), nil)
+
+			fallbackDatabase := &database.Redis{Client: mock}
+			ranks, err := fallbackDatabase.SetMembersAndGetRanks(
+				context.Background(),
+				leaderboard,
+				"desc",
+				databaseMembers,
+			)
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(ranks).To(Equal([]int64{1, 0}))
+		})
+
+		It("Should return an error when the fallback member update fails", func() {
+			mock.EXPECT().ZAdd(
+				gomock.Any(),
+				gomock.Eq(leaderboard),
+				gomock.Eq(&redis.Member{Member: member, Score: score}),
+				gomock.Eq(&redis.Member{Member: "member2", Score: 2}),
+			).Return(fmt.Errorf("write error"))
+
+			fallbackDatabase := &database.Redis{Client: mock}
+			_, err := fallbackDatabase.SetMembersAndGetRanks(
+				context.Background(),
+				leaderboard,
+				"desc",
+				databaseMembers,
+			)
+
+			Expect(err).To(Equal(database.NewGeneralError("write error")))
+		})
+
+		It("Should fall back to separate increment and member reads", func() {
+			mock.EXPECT().ZIncrBy(
+				gomock.Any(),
+				gomock.Eq(leaderboard),
+				gomock.Eq(member),
+				gomock.Eq(float64(2)),
+			).Return(nil)
+			mock.EXPECT().ZScore(gomock.Any(), gomock.Eq(leaderboard), gomock.Eq(member)).Return(float64(3), nil)
+			mock.EXPECT().ZRevRank(gomock.Any(), gomock.Eq(leaderboard), gomock.Eq(member)).Return(int64(0), nil)
+
+			fallbackDatabase := &database.Redis{Client: mock}
+			result, err := fallbackDatabase.IncrementMemberScoreAndGetRank(
+				context.Background(),
+				leaderboard,
+				member,
+				"desc",
+				2,
+			)
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result).To(Equal(&database.Member{Member: member, Score: 3, Rank: 0}))
+		})
+
+		It("Should return an error when the fallback increment fails", func() {
+			mock.EXPECT().ZIncrBy(
+				gomock.Any(),
+				gomock.Eq(leaderboard),
+				gomock.Eq(member),
+				gomock.Eq(float64(2)),
+			).Return(fmt.Errorf("increment error"))
+
+			fallbackDatabase := &database.Redis{Client: mock}
+			_, err := fallbackDatabase.IncrementMemberScoreAndGetRank(
+				context.Background(),
+				leaderboard,
+				member,
+				"desc",
+				2,
+			)
+
+			Expect(err).To(Equal(database.NewGeneralError("increment error")))
 		})
 	})
 

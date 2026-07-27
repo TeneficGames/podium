@@ -13,6 +13,9 @@ type standaloneClient struct {
 }
 
 var _ Client = &standaloneClient{}
+var _ MemberReader = &standaloneClient{}
+var _ MemberWriter = &standaloneClient{}
+var _ MemberIncrementer = &standaloneClient{}
 
 // StandaloneOptions define configuration parameters to instantiate a new StandaloneClient
 type StandaloneOptions struct {
@@ -31,6 +34,34 @@ func NewStandaloneClient(options StandaloneOptions) Client {
 	})
 
 	return &standaloneClient{goRedisClient}
+}
+
+// ZMembers returns scores, ranks, and optional TTLs in one Redis pipeline.
+func (c *standaloneClient) ZMembers(
+	ctx context.Context,
+	key, order string,
+	includeTTL bool,
+	members ...string,
+) ([]*Member, error) {
+	return getMembers(ctx, c.Client, key, order, includeTTL, members...)
+}
+
+// ZAddAndRanks updates scores and returns their resulting ranks in one pipeline.
+func (c *standaloneClient) ZAddAndRanks(
+	ctx context.Context,
+	key, order string,
+	members ...*Member,
+) ([]int64, error) {
+	return addMembersAndGetRanks(ctx, c.Client, key, order, members...)
+}
+
+// ZIncrByAndRank increments a score and returns its value and rank in one pipeline.
+func (c *standaloneClient) ZIncrByAndRank(
+	ctx context.Context,
+	key, member, order string,
+	increment float64,
+) (*Member, error) {
+	return incrementMemberAndGetRank(ctx, c.Client, key, member, order, increment)
 }
 
 // Del call redis DEL function

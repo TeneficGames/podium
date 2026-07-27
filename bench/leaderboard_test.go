@@ -184,9 +184,15 @@ func BenchmarkGetTopPercentage(b *testing.B) {
 }
 
 func BenchmarkSetMemberScoreForSeveralLeaderboards(b *testing.B) {
-	leaderboards := make([]string, b.N)
-	for i := 0; i < b.N; i++ {
-		lbID := generateNMembers(b.N)
+	const (
+		leaderboardCount      = 100
+		membersPerLeaderboard = 100
+	)
+
+	leaderboards := make([]string, leaderboardCount)
+	for i := 0; i < leaderboardCount; i++ {
+		lbID := fmt.Sprintf("benchmark-multi-leaderboard-%d", i)
+		generateNMembersForLeaderboard(lbID, membersPerLeaderboard)
 		leaderboards[i] = lbID
 	}
 	b.ResetTimer()
@@ -208,9 +214,11 @@ func BenchmarkSetMemberScoreForSeveralLeaderboards(b *testing.B) {
 }
 
 func BenchmarkGetMembers(b *testing.B) {
-	lbID := generateNMembers(b.N)
-	memberIDs := []string{}
-	for i := 0; i <= 500; i++ {
+	const memberCount = 501
+
+	lbID := generateNMembersForLeaderboard("benchmark-get-members", memberCount)
+	memberIDs := make([]string, 0, memberCount)
+	for i := 0; i < memberCount; i++ {
 		memberID := fmt.Sprintf("bench-member-%d", i)
 		memberIDs = append(memberIDs, memberID)
 	}
