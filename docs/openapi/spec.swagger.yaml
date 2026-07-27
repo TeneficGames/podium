@@ -1,10 +1,10 @@
 swagger: "2.0"
 info:
-  title: leaderboard/enriching/proto/webhook/v1/podium_webhook.proto
+  title: podium/api/v1/podium.proto
   version: version not set
 tags:
+  - name: PodiumService
   - name: LeaderboardsEnrichmentService
-  - name: Podium
 consumes:
   - application/json
 produces:
@@ -22,14 +22,14 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/Status'
+            $ref: '#/definitions/rpc.Status'
       parameters:
         - name: leaderboardId
           in: path
           required: true
           type: string
       tags:
-        - Podium
+        - PodiumService
   /l/{leaderboardId}/members:
     get:
       summary: GetMembers retrieves information about multiple members of a leaderboard.
@@ -42,7 +42,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/Status'
+            $ref: '#/definitions/rpc.Status'
       parameters:
         - name: leaderboardId
           in: path
@@ -52,7 +52,7 @@ paths:
           in: query
           required: false
           type: string
-        - name: scoreTTL
+        - name: scoreTtl
           in: query
           required: false
           type: boolean
@@ -61,7 +61,7 @@ paths:
           required: false
           type: string
       tags:
-        - Podium
+        - PodiumService
     delete:
       summary: RemoveMembers allows the removal of multiple members of a leaderboard.
       operationId: RemoveMembers
@@ -73,7 +73,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/Status'
+            $ref: '#/definitions/rpc.Status'
       parameters:
         - name: leaderboardId
           description: The leaderboard identification.
@@ -86,7 +86,7 @@ paths:
           required: false
           type: string
       tags:
-        - Podium
+        - PodiumService
   /l/{leaderboardId}/members-count:
     get:
       summary: TotalMembers returns the number of members on a leaderboard.
@@ -99,14 +99,14 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/Status'
+            $ref: '#/definitions/rpc.Status'
       parameters:
         - name: leaderboardId
           in: path
           required: true
           type: string
       tags:
-        - Podium
+        - PodiumService
   /l/{leaderboardId}/members/{memberPublicId}:
     get:
       summary: GetMember retrieves leaderboard information from a member.
@@ -119,7 +119,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/Status'
+            $ref: '#/definitions/rpc.Status'
       parameters:
         - name: leaderboardId
           in: path
@@ -133,12 +133,12 @@ paths:
           in: query
           required: false
           type: string
-        - name: scoreTTL
+        - name: scoreTtl
           in: query
           required: false
           type: boolean
       tags:
-        - Podium
+        - PodiumService
     delete:
       summary: RemoveMember removes a member from a leaderboard.
       operationId: RemoveMember
@@ -150,7 +150,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/Status'
+            $ref: '#/definitions/rpc.Status'
       parameters:
         - name: leaderboardId
           in: path
@@ -161,7 +161,7 @@ paths:
           required: true
           type: string
       tags:
-        - Podium
+        - PodiumService
   /l/{leaderboardId}/members/{memberPublicId}/around:
     get:
       summary: GetAroundMember retrieves the closest members to another member on the leaderboard.
@@ -174,7 +174,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/Status'
+            $ref: '#/definitions/rpc.Status'
       parameters:
         - name: leaderboardId
           in: path
@@ -198,7 +198,7 @@ paths:
           type: integer
           format: int32
       tags:
-        - Podium
+        - PodiumService
   /l/{leaderboardId}/members/{memberPublicId}/rank:
     get:
       summary: GetRank retrieves ranking information about a member.
@@ -211,7 +211,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/Status'
+            $ref: '#/definitions/rpc.Status'
       parameters:
         - name: leaderboardId
           description: The leaderboard identification.
@@ -229,7 +229,7 @@ paths:
           required: false
           type: string
       tags:
-        - Podium
+        - PodiumService
   /l/{leaderboardId}/members/{memberPublicId}/score:
     put:
       summary: UpsertScore submits a single leaderboard score to Podium.
@@ -242,7 +242,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/Status'
+            $ref: '#/definitions/rpc.Status'
       parameters:
         - name: leaderboardId
           description: The leaderboard identification.
@@ -264,14 +264,14 @@ paths:
           in: query
           required: false
           type: boolean
-        - name: scoreTTL
-          description: If set to more than zero, the score of the player will be expired from the leaderboard past scoreTTL seconds.
+        - name: scoreTtl
+          description: If set to more than zero, the score of the player will be expired from the leaderboard past score_ttl seconds.
           in: query
           required: false
           type: integer
           format: int32
       tags:
-        - Podium
+        - PodiumService
     patch:
       summary: IncrementScore increments a member score.
       operationId: IncrementScore
@@ -283,7 +283,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/Status'
+            $ref: '#/definitions/rpc.Status'
       parameters:
         - name: leaderboardId
           description: The leaderboard identification.
@@ -300,14 +300,14 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/Body'
-        - name: scoreTTL
-          description: If set to more than zero, the score of the player will be expired from the leaderboard past scoreTTL seconds.
+        - name: scoreTtl
+          description: If set to more than zero, the score of the player will be expired from the leaderboard past score_ttl seconds.
           in: query
           required: false
           type: integer
           format: int32
       tags:
-        - Podium
+        - PodiumService
   /l/{leaderboardId}/scores:
     put:
       summary: BulkUpsertScores allows clients to send multiple scores in a single request.
@@ -320,7 +320,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/Status'
+            $ref: '#/definitions/rpc.Status'
       parameters:
         - name: leaderboardId
           description: The leaderboard identification.
@@ -339,14 +339,14 @@ paths:
           in: query
           required: false
           type: boolean
-        - name: scoreTTL
-          description: If set to more than zero, the score of the player will be expired from the leaderboard past scoreTTL seconds.
+        - name: scoreTtl
+          description: If set to more than zero, the score of the player will be expired from the leaderboard past score_ttl seconds.
           in: query
           required: false
           type: integer
           format: int32
       tags:
-        - Podium
+        - PodiumService
   /l/{leaderboardId}/scores/{score}/around:
     get:
       summary: GetAroundScore retrieves the closest members to a score on the leaderboard.
@@ -359,7 +359,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/Status'
+            $ref: '#/definitions/rpc.Status'
       parameters:
         - name: leaderboardId
           in: path
@@ -380,7 +380,7 @@ paths:
           type: integer
           format: int32
       tags:
-        - Podium
+        - PodiumService
   /l/{leaderboardId}/top-percent/{percentage}:
     get:
       summary: GetTopPercentage retrieves a percentage of the top members of the leaderboard.
@@ -393,7 +393,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/Status'
+            $ref: '#/definitions/rpc.Status'
       parameters:
         - name: leaderboardId
           in: path
@@ -409,7 +409,7 @@ paths:
           required: false
           type: string
       tags:
-        - Podium
+        - PodiumService
   /l/{leaderboardId}/top/{pageNumber}:
     get:
       summary: GetTopMembers retrieves the top ranking members of a leaderboard.
@@ -422,7 +422,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/Status'
+            $ref: '#/definitions/rpc.Status'
       parameters:
         - name: leaderboardId
           in: path
@@ -443,7 +443,7 @@ paths:
           type: integer
           format: int32
       tags:
-        - Podium
+        - PodiumService
   /m/{memberPublicId}/scores:
     get:
       summary: GetRankMultiLeaderboards retrieves information about a member in multiple leaderboards.
@@ -456,7 +456,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/Status'
+            $ref: '#/definitions/rpc.Status'
       parameters:
         - name: memberPublicId
           in: path
@@ -470,12 +470,12 @@ paths:
           in: query
           required: false
           type: string
-        - name: scoreTTL
+        - name: scoreTtl
           in: query
           required: false
           type: boolean
       tags:
-        - Podium
+        - PodiumService
     put:
       summary: UpsertScoreMultiLeaderboards sends a member score to multiple leaderboards.
       operationId: UpsertScoreMultiLeaderboards
@@ -487,7 +487,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/Status'
+            $ref: '#/definitions/rpc.Status'
       parameters:
         - name: memberPublicId
           in: path
@@ -498,7 +498,7 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/ScoreMultiChange'
-        - name: scoreTTL
+        - name: scoreTtl
           in: query
           required: false
           type: integer
@@ -508,7 +508,7 @@ paths:
           required: false
           type: boolean
       tags:
-        - Podium
+        - PodiumService
   /v1/leaderboards/enrich:
     post:
       summary: |-
@@ -523,7 +523,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/Status'
+            $ref: '#/definitions/rpc.Status'
       parameters:
         - name: members
           description: The members to enrich.
@@ -533,34 +533,10 @@ paths:
             type: array
             items:
               type: object
-              $ref: '#/definitions/.Member'
+              $ref: '#/definitions/webhook.v1.Member'
       tags:
         - LeaderboardsEnrichmentService
 definitions:
-  .Member:
-    type: object
-    properties:
-      leaderboardId:
-        type: string
-        description: The leaderboard's ID.
-      id:
-        type: string
-        description: The member's ID.
-      scores:
-        type: array
-        items:
-          type: object
-          $ref: '#/definitions/Score'
-        description: The member's scores.
-      rank:
-        type: integer
-        format: int32
-        description: The member's rank in the leaderboard.
-      metadata:
-        type: object
-        additionalProperties:
-          type: string
-        description: The member's metadata.
   Any:
     type: object
     properties:
@@ -587,7 +563,7 @@ definitions:
   BulkUpsertScoresResponse.Member:
     type: object
     properties:
-      publicID:
+      publicId:
         type: string
       score:
         type: number
@@ -602,7 +578,7 @@ definitions:
       expireAt:
         type: integer
         format: int32
-        description: Unix timestamp of when the member's score will be erased (only if scoreTTL was requested).
+        description: Unix timestamp of when the member's score will be erased (only if score_ttl was requested).
     description: Member information returned for BulkUpsertScores request.
   EnrichLeaderboardsResponse:
     type: object
@@ -611,7 +587,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/.Member'
+          $ref: '#/definitions/webhook.v1.Member'
         description: The enriched members.
   GetAroundMemberResponse:
     type: object
@@ -622,7 +598,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/v1.Member'
+          $ref: '#/definitions/api.v1.Member'
   GetAroundScoreResponse:
     type: object
     properties:
@@ -632,13 +608,13 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/v1.Member'
+          $ref: '#/definitions/api.v1.Member'
   GetMemberResponse:
     type: object
     properties:
       success:
         type: boolean
-      publicID:
+      publicId:
         type: string
       score:
         type: number
@@ -653,7 +629,7 @@ definitions:
       expireAt:
         type: integer
         format: int32
-        title: Unix timestamp of when the member's score will be erased (only if scoreTTL was requested)
+        title: Unix timestamp of when the member's score will be erased (only if score_ttl was requested)
   GetMembersResponse:
     type: object
     properties:
@@ -671,7 +647,7 @@ definitions:
   GetMembersResponse.Member:
     type: object
     properties:
-      publicID:
+      publicId:
         type: string
       score:
         type: number
@@ -682,7 +658,7 @@ definitions:
       expireAt:
         type: integer
         format: int32
-        description: Unix timestamp of when the member's score will be erased (only if scoreTTL was requested).
+        description: Unix timestamp of when the member's score will be erased (only if score_ttl was requested).
       position:
         type: integer
         format: int32
@@ -705,7 +681,7 @@ definitions:
   GetRankMultiLeaderboardsResponse.Member:
     type: object
     properties:
-      leaderboardID:
+      leaderboardId:
         type: string
       rank:
         type: integer
@@ -722,7 +698,7 @@ definitions:
     properties:
       success:
         type: boolean
-      publicID:
+      publicId:
         type: string
       rank:
         type: integer
@@ -736,7 +712,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/v1.Member'
+          $ref: '#/definitions/api.v1.Member'
   GetTopPercentageResponse:
     type: object
     properties:
@@ -746,13 +722,13 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/v1.Member'
+          $ref: '#/definitions/api.v1.Member'
   IncrementScoreResponse:
     type: object
     properties:
       success:
         type: boolean
-      publicID:
+      publicId:
         type: string
       score:
         type: number
@@ -767,13 +743,12 @@ definitions:
       expireAt:
         type: integer
         format: int32
-        title: Unix timestamp of when the member's score will be erased (only if scoreTTL was requested)
+        title: Unix timestamp of when the member's score will be erased (only if score_ttl was requested)
   MemberScore:
     type: object
     properties:
-      publicID:
+      publicId:
         type: string
-        description: 'TODO: use json_name on variables like this to respect .proto naming format.'
       score:
         type: number
         format: double
@@ -842,19 +817,6 @@ definitions:
         items:
           type: string
     description: ScoreMultiChange is the payload to update the score of a member on multiple leaderboards.
-  Status:
-    type: object
-    properties:
-      code:
-        type: integer
-        format: int32
-      message:
-        type: string
-      details:
-        type: array
-        items:
-          type: object
-          $ref: '#/definitions/Any'
   TotalMembersResponse:
     type: object
     properties:
@@ -876,7 +838,7 @@ definitions:
   UpsertScoreMultiLeaderboardsResponse.Member:
     type: object
     properties:
-      publicID:
+      publicId:
         type: string
       score:
         type: number
@@ -891,8 +853,8 @@ definitions:
       expireAt:
         type: integer
         format: int32
-        description: Unix timestamp of when the member's score will be erased (only if scoreTTL was requested).
-      leaderboardID:
+        description: Unix timestamp of when the member's score will be erased (only if score_ttl was requested).
+      leaderboardId:
         type: string
     description: Member represents the information regarding a single member in response to a multi upsert score.
   UpsertScoreResponse:
@@ -900,7 +862,7 @@ definitions:
     properties:
       success:
         type: boolean
-      publicID:
+      publicId:
         type: string
       score:
         type: number
@@ -915,11 +877,11 @@ definitions:
       expireAt:
         type: integer
         format: int32
-        title: Unix timestamp of when the member's score will be erased (only if scoreTTL was requested)
-  v1.Member:
+        title: Unix timestamp of when the member's score will be erased (only if score_ttl was requested)
+  api.v1.Member:
     type: object
     properties:
-      publicID:
+      publicId:
         type: string
       score:
         type: number
@@ -934,3 +896,40 @@ definitions:
     description: |-
       TODO: Create a single Member structure and make all requests use the same structure (document parts of the requests that are not returned)
       Member is a basic payload for a leaderboard member used by some responses.
+  rpc.Status:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      details:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/Any'
+  webhook.v1.Member:
+    type: object
+    properties:
+      leaderboardId:
+        type: string
+        description: The leaderboard's ID.
+      id:
+        type: string
+        description: The member's ID.
+      scores:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/Score'
+        description: The member's scores.
+      rank:
+        type: integer
+        format: int32
+        description: The member's rank in the leaderboard.
+      metadata:
+        type: object
+        additionalProperties:
+          type: string
+        description: The member's metadata.

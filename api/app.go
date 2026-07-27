@@ -52,7 +52,7 @@ type JSON map[string]interface{}
 
 // App is a struct that represents a podium Application
 type App struct {
-	api.UnimplementedPodiumServer
+	api.UnimplementedPodiumServiceServer
 
 	ConfigPath string
 	Debug      bool
@@ -404,7 +404,7 @@ func (app *App) startGRPCServer(lis net.Listener) error {
 		app.recoveryMiddleware,
 		app.responseTimeMetricsMiddleware,
 	), grpc.StatsHandler(otelgrpc.NewServerHandler()))
-	api.RegisterPodiumServer(app.grpcServer, app)
+	api.RegisterPodiumServiceServer(app.grpcServer, app)
 
 	app.grpcReady <- true
 	if err := app.grpcServer.Serve(lis); err != nil {
@@ -452,7 +452,7 @@ func (app *App) startHTTPServer(ctx context.Context, lis net.Listener) error {
 		grpc.WithStatsHandler(otelgrpc.NewClientHandler()),
 	}
 
-	if err := api.RegisterPodiumHandlerFromEndpoint(ctx, gatewayMux, app.GRPCEndpoint, opts); err != nil {
+	if err := api.RegisterPodiumServiceHandlerFromEndpoint(ctx, gatewayMux, app.GRPCEndpoint, opts); err != nil {
 		return fmt.Errorf("error registering multiplexer for grpc gateway: %w", err)
 	}
 

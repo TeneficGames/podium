@@ -35,7 +35,7 @@ var _ = Describe("Healthcheck Handler", func() {
 	It("Should respond with default WORKING string (grpc)", func() {
 		a := testing.GetDefaultTestApp()
 
-		testing.SetupGRPC(a, func(cli api.PodiumClient) {
+		testing.SetupGRPC(a, func(cli api.PodiumServiceClient) {
 			resp, err := cli.HealthCheck(context.Background(), &api.HealthCheckRequest{})
 
 			Expect(err).NotTo(HaveOccurred())
@@ -56,7 +56,7 @@ var _ = Describe("Healthcheck Handler", func() {
 		a := testing.GetDefaultTestApp()
 		a.Config.Set("healthcheck.workingText", "OTHERWORKING")
 
-		testing.SetupGRPC(a, func(cli api.PodiumClient) {
+		testing.SetupGRPC(a, func(cli api.PodiumServiceClient) {
 			resp, err := cli.HealthCheck(context.Background(), &api.HealthCheckRequest{})
 
 			Expect(err).NotTo(HaveOccurred())
@@ -76,7 +76,7 @@ var _ = Describe("Healthcheck Handler", func() {
 	It("Should fail if redis failing (grpc)", func() {
 		a := testing.GetDefaultTestAppWithFaultyRedis()
 
-		testing.SetupGRPC(a, func(cli api.PodiumClient) {
+		testing.SetupGRPC(a, func(cli api.PodiumServiceClient) {
 			resp, err := cli.HealthCheck(context.Background(), &api.HealthCheckRequest{})
 
 			Expect(err).To(HaveOccurred())

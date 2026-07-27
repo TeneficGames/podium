@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             (unknown)
-// source: proto/podium/api/v1/podium.proto
+// source: podium/api/v1/podium.proto
 
 package api
 
@@ -11,7 +11,6 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -20,38 +19,38 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Podium_HealthCheck_FullMethodName                  = "/podium.api.v1.Podium/HealthCheck"
-	Podium_Status_FullMethodName                       = "/podium.api.v1.Podium/Status"
-	Podium_RemoveLeaderboard_FullMethodName            = "/podium.api.v1.Podium/RemoveLeaderboard"
-	Podium_BulkUpsertScores_FullMethodName             = "/podium.api.v1.Podium/BulkUpsertScores"
-	Podium_UpsertScore_FullMethodName                  = "/podium.api.v1.Podium/UpsertScore"
-	Podium_TotalMembers_FullMethodName                 = "/podium.api.v1.Podium/TotalMembers"
-	Podium_IncrementScore_FullMethodName               = "/podium.api.v1.Podium/IncrementScore"
-	Podium_GetMember_FullMethodName                    = "/podium.api.v1.Podium/GetMember"
-	Podium_GetMembers_FullMethodName                   = "/podium.api.v1.Podium/GetMembers"
-	Podium_RemoveMember_FullMethodName                 = "/podium.api.v1.Podium/RemoveMember"
-	Podium_RemoveMembers_FullMethodName                = "/podium.api.v1.Podium/RemoveMembers"
-	Podium_GetRank_FullMethodName                      = "/podium.api.v1.Podium/GetRank"
-	Podium_GetAroundMember_FullMethodName              = "/podium.api.v1.Podium/GetAroundMember"
-	Podium_GetAroundScore_FullMethodName               = "/podium.api.v1.Podium/GetAroundScore"
-	Podium_GetTopMembers_FullMethodName                = "/podium.api.v1.Podium/GetTopMembers"
-	Podium_GetTopPercentage_FullMethodName             = "/podium.api.v1.Podium/GetTopPercentage"
-	Podium_UpsertScoreMultiLeaderboards_FullMethodName = "/podium.api.v1.Podium/UpsertScoreMultiLeaderboards"
-	Podium_GetRankMultiLeaderboards_FullMethodName     = "/podium.api.v1.Podium/GetRankMultiLeaderboards"
+	PodiumService_HealthCheck_FullMethodName                  = "/podium.api.v1.PodiumService/HealthCheck"
+	PodiumService_Status_FullMethodName                       = "/podium.api.v1.PodiumService/Status"
+	PodiumService_RemoveLeaderboard_FullMethodName            = "/podium.api.v1.PodiumService/RemoveLeaderboard"
+	PodiumService_BulkUpsertScores_FullMethodName             = "/podium.api.v1.PodiumService/BulkUpsertScores"
+	PodiumService_UpsertScore_FullMethodName                  = "/podium.api.v1.PodiumService/UpsertScore"
+	PodiumService_TotalMembers_FullMethodName                 = "/podium.api.v1.PodiumService/TotalMembers"
+	PodiumService_IncrementScore_FullMethodName               = "/podium.api.v1.PodiumService/IncrementScore"
+	PodiumService_GetMember_FullMethodName                    = "/podium.api.v1.PodiumService/GetMember"
+	PodiumService_GetMembers_FullMethodName                   = "/podium.api.v1.PodiumService/GetMembers"
+	PodiumService_RemoveMember_FullMethodName                 = "/podium.api.v1.PodiumService/RemoveMember"
+	PodiumService_RemoveMembers_FullMethodName                = "/podium.api.v1.PodiumService/RemoveMembers"
+	PodiumService_GetRank_FullMethodName                      = "/podium.api.v1.PodiumService/GetRank"
+	PodiumService_GetAroundMember_FullMethodName              = "/podium.api.v1.PodiumService/GetAroundMember"
+	PodiumService_GetAroundScore_FullMethodName               = "/podium.api.v1.PodiumService/GetAroundScore"
+	PodiumService_GetTopMembers_FullMethodName                = "/podium.api.v1.PodiumService/GetTopMembers"
+	PodiumService_GetTopPercentage_FullMethodName             = "/podium.api.v1.PodiumService/GetTopPercentage"
+	PodiumService_UpsertScoreMultiLeaderboards_FullMethodName = "/podium.api.v1.PodiumService/UpsertScoreMultiLeaderboards"
+	PodiumService_GetRankMultiLeaderboards_FullMethodName     = "/podium.api.v1.PodiumService/GetRankMultiLeaderboards"
 )
 
-// PodiumClient is the client API for Podium service.
+// PodiumServiceClient is the client API for PodiumService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
 // Podium is a service that provides leaderboard functionality.
 // Games can manage multiple leaderboards with this service.
-type PodiumClient interface {
+type PodiumServiceClient interface {
 	// HealthCheck verifies and returns service health.
 	HealthCheck(ctx context.Context, in *HealthCheckRequest, opts ...grpc.CallOption) (*HealthCheckResponse, error)
 	// Status allows to clients to know additional information about Podium execution.
 	// Currently only returns error rate of the service.
-	Status(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*StatusResponse, error)
+	Status(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (*StatusResponse, error)
 	// RemoveLeaderboard removes a specified leaderboard.
 	RemoveLeaderboard(ctx context.Context, in *RemoveLeaderboardRequest, opts ...grpc.CallOption) (*RemoveLeaderboardResponse, error)
 	// BulkUpsertScores allows clients to send multiple scores in a single request.
@@ -86,206 +85,206 @@ type PodiumClient interface {
 	GetRankMultiLeaderboards(ctx context.Context, in *GetRankMultiLeaderboardsRequest, opts ...grpc.CallOption) (*GetRankMultiLeaderboardsResponse, error)
 }
 
-type podiumClient struct {
+type podiumServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewPodiumClient(cc grpc.ClientConnInterface) PodiumClient {
-	return &podiumClient{cc}
+func NewPodiumServiceClient(cc grpc.ClientConnInterface) PodiumServiceClient {
+	return &podiumServiceClient{cc}
 }
 
-func (c *podiumClient) HealthCheck(ctx context.Context, in *HealthCheckRequest, opts ...grpc.CallOption) (*HealthCheckResponse, error) {
+func (c *podiumServiceClient) HealthCheck(ctx context.Context, in *HealthCheckRequest, opts ...grpc.CallOption) (*HealthCheckResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(HealthCheckResponse)
-	err := c.cc.Invoke(ctx, Podium_HealthCheck_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, PodiumService_HealthCheck_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *podiumClient) Status(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*StatusResponse, error) {
+func (c *podiumServiceClient) Status(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (*StatusResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(StatusResponse)
-	err := c.cc.Invoke(ctx, Podium_Status_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, PodiumService_Status_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *podiumClient) RemoveLeaderboard(ctx context.Context, in *RemoveLeaderboardRequest, opts ...grpc.CallOption) (*RemoveLeaderboardResponse, error) {
+func (c *podiumServiceClient) RemoveLeaderboard(ctx context.Context, in *RemoveLeaderboardRequest, opts ...grpc.CallOption) (*RemoveLeaderboardResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(RemoveLeaderboardResponse)
-	err := c.cc.Invoke(ctx, Podium_RemoveLeaderboard_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, PodiumService_RemoveLeaderboard_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *podiumClient) BulkUpsertScores(ctx context.Context, in *BulkUpsertScoresRequest, opts ...grpc.CallOption) (*BulkUpsertScoresResponse, error) {
+func (c *podiumServiceClient) BulkUpsertScores(ctx context.Context, in *BulkUpsertScoresRequest, opts ...grpc.CallOption) (*BulkUpsertScoresResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(BulkUpsertScoresResponse)
-	err := c.cc.Invoke(ctx, Podium_BulkUpsertScores_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, PodiumService_BulkUpsertScores_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *podiumClient) UpsertScore(ctx context.Context, in *UpsertScoreRequest, opts ...grpc.CallOption) (*UpsertScoreResponse, error) {
+func (c *podiumServiceClient) UpsertScore(ctx context.Context, in *UpsertScoreRequest, opts ...grpc.CallOption) (*UpsertScoreResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpsertScoreResponse)
-	err := c.cc.Invoke(ctx, Podium_UpsertScore_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, PodiumService_UpsertScore_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *podiumClient) TotalMembers(ctx context.Context, in *TotalMembersRequest, opts ...grpc.CallOption) (*TotalMembersResponse, error) {
+func (c *podiumServiceClient) TotalMembers(ctx context.Context, in *TotalMembersRequest, opts ...grpc.CallOption) (*TotalMembersResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(TotalMembersResponse)
-	err := c.cc.Invoke(ctx, Podium_TotalMembers_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, PodiumService_TotalMembers_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *podiumClient) IncrementScore(ctx context.Context, in *IncrementScoreRequest, opts ...grpc.CallOption) (*IncrementScoreResponse, error) {
+func (c *podiumServiceClient) IncrementScore(ctx context.Context, in *IncrementScoreRequest, opts ...grpc.CallOption) (*IncrementScoreResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(IncrementScoreResponse)
-	err := c.cc.Invoke(ctx, Podium_IncrementScore_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, PodiumService_IncrementScore_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *podiumClient) GetMember(ctx context.Context, in *GetMemberRequest, opts ...grpc.CallOption) (*GetMemberResponse, error) {
+func (c *podiumServiceClient) GetMember(ctx context.Context, in *GetMemberRequest, opts ...grpc.CallOption) (*GetMemberResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetMemberResponse)
-	err := c.cc.Invoke(ctx, Podium_GetMember_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, PodiumService_GetMember_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *podiumClient) GetMembers(ctx context.Context, in *GetMembersRequest, opts ...grpc.CallOption) (*GetMembersResponse, error) {
+func (c *podiumServiceClient) GetMembers(ctx context.Context, in *GetMembersRequest, opts ...grpc.CallOption) (*GetMembersResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetMembersResponse)
-	err := c.cc.Invoke(ctx, Podium_GetMembers_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, PodiumService_GetMembers_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *podiumClient) RemoveMember(ctx context.Context, in *RemoveMemberRequest, opts ...grpc.CallOption) (*RemoveMemberResponse, error) {
+func (c *podiumServiceClient) RemoveMember(ctx context.Context, in *RemoveMemberRequest, opts ...grpc.CallOption) (*RemoveMemberResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(RemoveMemberResponse)
-	err := c.cc.Invoke(ctx, Podium_RemoveMember_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, PodiumService_RemoveMember_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *podiumClient) RemoveMembers(ctx context.Context, in *RemoveMembersRequest, opts ...grpc.CallOption) (*RemoveMembersResponse, error) {
+func (c *podiumServiceClient) RemoveMembers(ctx context.Context, in *RemoveMembersRequest, opts ...grpc.CallOption) (*RemoveMembersResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(RemoveMembersResponse)
-	err := c.cc.Invoke(ctx, Podium_RemoveMembers_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, PodiumService_RemoveMembers_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *podiumClient) GetRank(ctx context.Context, in *GetRankRequest, opts ...grpc.CallOption) (*GetRankResponse, error) {
+func (c *podiumServiceClient) GetRank(ctx context.Context, in *GetRankRequest, opts ...grpc.CallOption) (*GetRankResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetRankResponse)
-	err := c.cc.Invoke(ctx, Podium_GetRank_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, PodiumService_GetRank_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *podiumClient) GetAroundMember(ctx context.Context, in *GetAroundMemberRequest, opts ...grpc.CallOption) (*GetAroundMemberResponse, error) {
+func (c *podiumServiceClient) GetAroundMember(ctx context.Context, in *GetAroundMemberRequest, opts ...grpc.CallOption) (*GetAroundMemberResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetAroundMemberResponse)
-	err := c.cc.Invoke(ctx, Podium_GetAroundMember_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, PodiumService_GetAroundMember_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *podiumClient) GetAroundScore(ctx context.Context, in *GetAroundScoreRequest, opts ...grpc.CallOption) (*GetAroundScoreResponse, error) {
+func (c *podiumServiceClient) GetAroundScore(ctx context.Context, in *GetAroundScoreRequest, opts ...grpc.CallOption) (*GetAroundScoreResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetAroundScoreResponse)
-	err := c.cc.Invoke(ctx, Podium_GetAroundScore_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, PodiumService_GetAroundScore_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *podiumClient) GetTopMembers(ctx context.Context, in *GetTopMembersRequest, opts ...grpc.CallOption) (*GetTopMembersResponse, error) {
+func (c *podiumServiceClient) GetTopMembers(ctx context.Context, in *GetTopMembersRequest, opts ...grpc.CallOption) (*GetTopMembersResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetTopMembersResponse)
-	err := c.cc.Invoke(ctx, Podium_GetTopMembers_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, PodiumService_GetTopMembers_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *podiumClient) GetTopPercentage(ctx context.Context, in *GetTopPercentageRequest, opts ...grpc.CallOption) (*GetTopPercentageResponse, error) {
+func (c *podiumServiceClient) GetTopPercentage(ctx context.Context, in *GetTopPercentageRequest, opts ...grpc.CallOption) (*GetTopPercentageResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetTopPercentageResponse)
-	err := c.cc.Invoke(ctx, Podium_GetTopPercentage_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, PodiumService_GetTopPercentage_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *podiumClient) UpsertScoreMultiLeaderboards(ctx context.Context, in *UpsertScoreMultiLeaderboardsRequest, opts ...grpc.CallOption) (*UpsertScoreMultiLeaderboardsResponse, error) {
+func (c *podiumServiceClient) UpsertScoreMultiLeaderboards(ctx context.Context, in *UpsertScoreMultiLeaderboardsRequest, opts ...grpc.CallOption) (*UpsertScoreMultiLeaderboardsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpsertScoreMultiLeaderboardsResponse)
-	err := c.cc.Invoke(ctx, Podium_UpsertScoreMultiLeaderboards_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, PodiumService_UpsertScoreMultiLeaderboards_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *podiumClient) GetRankMultiLeaderboards(ctx context.Context, in *GetRankMultiLeaderboardsRequest, opts ...grpc.CallOption) (*GetRankMultiLeaderboardsResponse, error) {
+func (c *podiumServiceClient) GetRankMultiLeaderboards(ctx context.Context, in *GetRankMultiLeaderboardsRequest, opts ...grpc.CallOption) (*GetRankMultiLeaderboardsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetRankMultiLeaderboardsResponse)
-	err := c.cc.Invoke(ctx, Podium_GetRankMultiLeaderboards_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, PodiumService_GetRankMultiLeaderboards_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// PodiumServer is the server API for Podium service.
-// All implementations must embed UnimplementedPodiumServer
+// PodiumServiceServer is the server API for PodiumService service.
+// All implementations must embed UnimplementedPodiumServiceServer
 // for forward compatibility.
 //
 // Podium is a service that provides leaderboard functionality.
 // Games can manage multiple leaderboards with this service.
-type PodiumServer interface {
+type PodiumServiceServer interface {
 	// HealthCheck verifies and returns service health.
 	HealthCheck(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error)
 	// Status allows to clients to know additional information about Podium execution.
 	// Currently only returns error rate of the service.
-	Status(context.Context, *emptypb.Empty) (*StatusResponse, error)
+	Status(context.Context, *StatusRequest) (*StatusResponse, error)
 	// RemoveLeaderboard removes a specified leaderboard.
 	RemoveLeaderboard(context.Context, *RemoveLeaderboardRequest) (*RemoveLeaderboardResponse, error)
 	// BulkUpsertScores allows clients to send multiple scores in a single request.
@@ -318,495 +317,495 @@ type PodiumServer interface {
 	UpsertScoreMultiLeaderboards(context.Context, *UpsertScoreMultiLeaderboardsRequest) (*UpsertScoreMultiLeaderboardsResponse, error)
 	// GetRankMultiLeaderboards retrieves information about a member in multiple leaderboards.
 	GetRankMultiLeaderboards(context.Context, *GetRankMultiLeaderboardsRequest) (*GetRankMultiLeaderboardsResponse, error)
-	mustEmbedUnimplementedPodiumServer()
+	mustEmbedUnimplementedPodiumServiceServer()
 }
 
-// UnimplementedPodiumServer must be embedded to have
+// UnimplementedPodiumServiceServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedPodiumServer struct{}
+type UnimplementedPodiumServiceServer struct{}
 
-func (UnimplementedPodiumServer) HealthCheck(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error) {
+func (UnimplementedPodiumServiceServer) HealthCheck(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method HealthCheck not implemented")
 }
-func (UnimplementedPodiumServer) Status(context.Context, *emptypb.Empty) (*StatusResponse, error) {
+func (UnimplementedPodiumServiceServer) Status(context.Context, *StatusRequest) (*StatusResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Status not implemented")
 }
-func (UnimplementedPodiumServer) RemoveLeaderboard(context.Context, *RemoveLeaderboardRequest) (*RemoveLeaderboardResponse, error) {
+func (UnimplementedPodiumServiceServer) RemoveLeaderboard(context.Context, *RemoveLeaderboardRequest) (*RemoveLeaderboardResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RemoveLeaderboard not implemented")
 }
-func (UnimplementedPodiumServer) BulkUpsertScores(context.Context, *BulkUpsertScoresRequest) (*BulkUpsertScoresResponse, error) {
+func (UnimplementedPodiumServiceServer) BulkUpsertScores(context.Context, *BulkUpsertScoresRequest) (*BulkUpsertScoresResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BulkUpsertScores not implemented")
 }
-func (UnimplementedPodiumServer) UpsertScore(context.Context, *UpsertScoreRequest) (*UpsertScoreResponse, error) {
+func (UnimplementedPodiumServiceServer) UpsertScore(context.Context, *UpsertScoreRequest) (*UpsertScoreResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpsertScore not implemented")
 }
-func (UnimplementedPodiumServer) TotalMembers(context.Context, *TotalMembersRequest) (*TotalMembersResponse, error) {
+func (UnimplementedPodiumServiceServer) TotalMembers(context.Context, *TotalMembersRequest) (*TotalMembersResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method TotalMembers not implemented")
 }
-func (UnimplementedPodiumServer) IncrementScore(context.Context, *IncrementScoreRequest) (*IncrementScoreResponse, error) {
+func (UnimplementedPodiumServiceServer) IncrementScore(context.Context, *IncrementScoreRequest) (*IncrementScoreResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method IncrementScore not implemented")
 }
-func (UnimplementedPodiumServer) GetMember(context.Context, *GetMemberRequest) (*GetMemberResponse, error) {
+func (UnimplementedPodiumServiceServer) GetMember(context.Context, *GetMemberRequest) (*GetMemberResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetMember not implemented")
 }
-func (UnimplementedPodiumServer) GetMembers(context.Context, *GetMembersRequest) (*GetMembersResponse, error) {
+func (UnimplementedPodiumServiceServer) GetMembers(context.Context, *GetMembersRequest) (*GetMembersResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetMembers not implemented")
 }
-func (UnimplementedPodiumServer) RemoveMember(context.Context, *RemoveMemberRequest) (*RemoveMemberResponse, error) {
+func (UnimplementedPodiumServiceServer) RemoveMember(context.Context, *RemoveMemberRequest) (*RemoveMemberResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RemoveMember not implemented")
 }
-func (UnimplementedPodiumServer) RemoveMembers(context.Context, *RemoveMembersRequest) (*RemoveMembersResponse, error) {
+func (UnimplementedPodiumServiceServer) RemoveMembers(context.Context, *RemoveMembersRequest) (*RemoveMembersResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RemoveMembers not implemented")
 }
-func (UnimplementedPodiumServer) GetRank(context.Context, *GetRankRequest) (*GetRankResponse, error) {
+func (UnimplementedPodiumServiceServer) GetRank(context.Context, *GetRankRequest) (*GetRankResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetRank not implemented")
 }
-func (UnimplementedPodiumServer) GetAroundMember(context.Context, *GetAroundMemberRequest) (*GetAroundMemberResponse, error) {
+func (UnimplementedPodiumServiceServer) GetAroundMember(context.Context, *GetAroundMemberRequest) (*GetAroundMemberResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetAroundMember not implemented")
 }
-func (UnimplementedPodiumServer) GetAroundScore(context.Context, *GetAroundScoreRequest) (*GetAroundScoreResponse, error) {
+func (UnimplementedPodiumServiceServer) GetAroundScore(context.Context, *GetAroundScoreRequest) (*GetAroundScoreResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetAroundScore not implemented")
 }
-func (UnimplementedPodiumServer) GetTopMembers(context.Context, *GetTopMembersRequest) (*GetTopMembersResponse, error) {
+func (UnimplementedPodiumServiceServer) GetTopMembers(context.Context, *GetTopMembersRequest) (*GetTopMembersResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetTopMembers not implemented")
 }
-func (UnimplementedPodiumServer) GetTopPercentage(context.Context, *GetTopPercentageRequest) (*GetTopPercentageResponse, error) {
+func (UnimplementedPodiumServiceServer) GetTopPercentage(context.Context, *GetTopPercentageRequest) (*GetTopPercentageResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetTopPercentage not implemented")
 }
-func (UnimplementedPodiumServer) UpsertScoreMultiLeaderboards(context.Context, *UpsertScoreMultiLeaderboardsRequest) (*UpsertScoreMultiLeaderboardsResponse, error) {
+func (UnimplementedPodiumServiceServer) UpsertScoreMultiLeaderboards(context.Context, *UpsertScoreMultiLeaderboardsRequest) (*UpsertScoreMultiLeaderboardsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpsertScoreMultiLeaderboards not implemented")
 }
-func (UnimplementedPodiumServer) GetRankMultiLeaderboards(context.Context, *GetRankMultiLeaderboardsRequest) (*GetRankMultiLeaderboardsResponse, error) {
+func (UnimplementedPodiumServiceServer) GetRankMultiLeaderboards(context.Context, *GetRankMultiLeaderboardsRequest) (*GetRankMultiLeaderboardsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetRankMultiLeaderboards not implemented")
 }
-func (UnimplementedPodiumServer) mustEmbedUnimplementedPodiumServer() {}
-func (UnimplementedPodiumServer) testEmbeddedByValue()                {}
+func (UnimplementedPodiumServiceServer) mustEmbedUnimplementedPodiumServiceServer() {}
+func (UnimplementedPodiumServiceServer) testEmbeddedByValue()                       {}
 
-// UnsafePodiumServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to PodiumServer will
+// UnsafePodiumServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to PodiumServiceServer will
 // result in compilation errors.
-type UnsafePodiumServer interface {
-	mustEmbedUnimplementedPodiumServer()
+type UnsafePodiumServiceServer interface {
+	mustEmbedUnimplementedPodiumServiceServer()
 }
 
-func RegisterPodiumServer(s grpc.ServiceRegistrar, srv PodiumServer) {
-	// If the following call panics, it indicates UnimplementedPodiumServer was
+func RegisterPodiumServiceServer(s grpc.ServiceRegistrar, srv PodiumServiceServer) {
+	// If the following call panics, it indicates UnimplementedPodiumServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&Podium_ServiceDesc, srv)
+	s.RegisterService(&PodiumService_ServiceDesc, srv)
 }
 
-func _Podium_HealthCheck_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _PodiumService_HealthCheck_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(HealthCheckRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PodiumServer).HealthCheck(ctx, in)
+		return srv.(PodiumServiceServer).HealthCheck(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Podium_HealthCheck_FullMethodName,
+		FullMethod: PodiumService_HealthCheck_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PodiumServer).HealthCheck(ctx, req.(*HealthCheckRequest))
+		return srv.(PodiumServiceServer).HealthCheck(ctx, req.(*HealthCheckRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Podium_Status_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+func _PodiumService_Status_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StatusRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PodiumServer).Status(ctx, in)
+		return srv.(PodiumServiceServer).Status(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Podium_Status_FullMethodName,
+		FullMethod: PodiumService_Status_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PodiumServer).Status(ctx, req.(*emptypb.Empty))
+		return srv.(PodiumServiceServer).Status(ctx, req.(*StatusRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Podium_RemoveLeaderboard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _PodiumService_RemoveLeaderboard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RemoveLeaderboardRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PodiumServer).RemoveLeaderboard(ctx, in)
+		return srv.(PodiumServiceServer).RemoveLeaderboard(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Podium_RemoveLeaderboard_FullMethodName,
+		FullMethod: PodiumService_RemoveLeaderboard_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PodiumServer).RemoveLeaderboard(ctx, req.(*RemoveLeaderboardRequest))
+		return srv.(PodiumServiceServer).RemoveLeaderboard(ctx, req.(*RemoveLeaderboardRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Podium_BulkUpsertScores_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _PodiumService_BulkUpsertScores_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(BulkUpsertScoresRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PodiumServer).BulkUpsertScores(ctx, in)
+		return srv.(PodiumServiceServer).BulkUpsertScores(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Podium_BulkUpsertScores_FullMethodName,
+		FullMethod: PodiumService_BulkUpsertScores_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PodiumServer).BulkUpsertScores(ctx, req.(*BulkUpsertScoresRequest))
+		return srv.(PodiumServiceServer).BulkUpsertScores(ctx, req.(*BulkUpsertScoresRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Podium_UpsertScore_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _PodiumService_UpsertScore_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpsertScoreRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PodiumServer).UpsertScore(ctx, in)
+		return srv.(PodiumServiceServer).UpsertScore(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Podium_UpsertScore_FullMethodName,
+		FullMethod: PodiumService_UpsertScore_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PodiumServer).UpsertScore(ctx, req.(*UpsertScoreRequest))
+		return srv.(PodiumServiceServer).UpsertScore(ctx, req.(*UpsertScoreRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Podium_TotalMembers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _PodiumService_TotalMembers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TotalMembersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PodiumServer).TotalMembers(ctx, in)
+		return srv.(PodiumServiceServer).TotalMembers(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Podium_TotalMembers_FullMethodName,
+		FullMethod: PodiumService_TotalMembers_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PodiumServer).TotalMembers(ctx, req.(*TotalMembersRequest))
+		return srv.(PodiumServiceServer).TotalMembers(ctx, req.(*TotalMembersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Podium_IncrementScore_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _PodiumService_IncrementScore_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(IncrementScoreRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PodiumServer).IncrementScore(ctx, in)
+		return srv.(PodiumServiceServer).IncrementScore(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Podium_IncrementScore_FullMethodName,
+		FullMethod: PodiumService_IncrementScore_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PodiumServer).IncrementScore(ctx, req.(*IncrementScoreRequest))
+		return srv.(PodiumServiceServer).IncrementScore(ctx, req.(*IncrementScoreRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Podium_GetMember_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _PodiumService_GetMember_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetMemberRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PodiumServer).GetMember(ctx, in)
+		return srv.(PodiumServiceServer).GetMember(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Podium_GetMember_FullMethodName,
+		FullMethod: PodiumService_GetMember_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PodiumServer).GetMember(ctx, req.(*GetMemberRequest))
+		return srv.(PodiumServiceServer).GetMember(ctx, req.(*GetMemberRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Podium_GetMembers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _PodiumService_GetMembers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetMembersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PodiumServer).GetMembers(ctx, in)
+		return srv.(PodiumServiceServer).GetMembers(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Podium_GetMembers_FullMethodName,
+		FullMethod: PodiumService_GetMembers_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PodiumServer).GetMembers(ctx, req.(*GetMembersRequest))
+		return srv.(PodiumServiceServer).GetMembers(ctx, req.(*GetMembersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Podium_RemoveMember_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _PodiumService_RemoveMember_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RemoveMemberRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PodiumServer).RemoveMember(ctx, in)
+		return srv.(PodiumServiceServer).RemoveMember(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Podium_RemoveMember_FullMethodName,
+		FullMethod: PodiumService_RemoveMember_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PodiumServer).RemoveMember(ctx, req.(*RemoveMemberRequest))
+		return srv.(PodiumServiceServer).RemoveMember(ctx, req.(*RemoveMemberRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Podium_RemoveMembers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _PodiumService_RemoveMembers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RemoveMembersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PodiumServer).RemoveMembers(ctx, in)
+		return srv.(PodiumServiceServer).RemoveMembers(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Podium_RemoveMembers_FullMethodName,
+		FullMethod: PodiumService_RemoveMembers_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PodiumServer).RemoveMembers(ctx, req.(*RemoveMembersRequest))
+		return srv.(PodiumServiceServer).RemoveMembers(ctx, req.(*RemoveMembersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Podium_GetRank_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _PodiumService_GetRank_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetRankRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PodiumServer).GetRank(ctx, in)
+		return srv.(PodiumServiceServer).GetRank(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Podium_GetRank_FullMethodName,
+		FullMethod: PodiumService_GetRank_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PodiumServer).GetRank(ctx, req.(*GetRankRequest))
+		return srv.(PodiumServiceServer).GetRank(ctx, req.(*GetRankRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Podium_GetAroundMember_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _PodiumService_GetAroundMember_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetAroundMemberRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PodiumServer).GetAroundMember(ctx, in)
+		return srv.(PodiumServiceServer).GetAroundMember(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Podium_GetAroundMember_FullMethodName,
+		FullMethod: PodiumService_GetAroundMember_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PodiumServer).GetAroundMember(ctx, req.(*GetAroundMemberRequest))
+		return srv.(PodiumServiceServer).GetAroundMember(ctx, req.(*GetAroundMemberRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Podium_GetAroundScore_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _PodiumService_GetAroundScore_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetAroundScoreRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PodiumServer).GetAroundScore(ctx, in)
+		return srv.(PodiumServiceServer).GetAroundScore(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Podium_GetAroundScore_FullMethodName,
+		FullMethod: PodiumService_GetAroundScore_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PodiumServer).GetAroundScore(ctx, req.(*GetAroundScoreRequest))
+		return srv.(PodiumServiceServer).GetAroundScore(ctx, req.(*GetAroundScoreRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Podium_GetTopMembers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _PodiumService_GetTopMembers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetTopMembersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PodiumServer).GetTopMembers(ctx, in)
+		return srv.(PodiumServiceServer).GetTopMembers(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Podium_GetTopMembers_FullMethodName,
+		FullMethod: PodiumService_GetTopMembers_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PodiumServer).GetTopMembers(ctx, req.(*GetTopMembersRequest))
+		return srv.(PodiumServiceServer).GetTopMembers(ctx, req.(*GetTopMembersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Podium_GetTopPercentage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _PodiumService_GetTopPercentage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetTopPercentageRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PodiumServer).GetTopPercentage(ctx, in)
+		return srv.(PodiumServiceServer).GetTopPercentage(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Podium_GetTopPercentage_FullMethodName,
+		FullMethod: PodiumService_GetTopPercentage_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PodiumServer).GetTopPercentage(ctx, req.(*GetTopPercentageRequest))
+		return srv.(PodiumServiceServer).GetTopPercentage(ctx, req.(*GetTopPercentageRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Podium_UpsertScoreMultiLeaderboards_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _PodiumService_UpsertScoreMultiLeaderboards_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpsertScoreMultiLeaderboardsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PodiumServer).UpsertScoreMultiLeaderboards(ctx, in)
+		return srv.(PodiumServiceServer).UpsertScoreMultiLeaderboards(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Podium_UpsertScoreMultiLeaderboards_FullMethodName,
+		FullMethod: PodiumService_UpsertScoreMultiLeaderboards_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PodiumServer).UpsertScoreMultiLeaderboards(ctx, req.(*UpsertScoreMultiLeaderboardsRequest))
+		return srv.(PodiumServiceServer).UpsertScoreMultiLeaderboards(ctx, req.(*UpsertScoreMultiLeaderboardsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Podium_GetRankMultiLeaderboards_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _PodiumService_GetRankMultiLeaderboards_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetRankMultiLeaderboardsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PodiumServer).GetRankMultiLeaderboards(ctx, in)
+		return srv.(PodiumServiceServer).GetRankMultiLeaderboards(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Podium_GetRankMultiLeaderboards_FullMethodName,
+		FullMethod: PodiumService_GetRankMultiLeaderboards_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PodiumServer).GetRankMultiLeaderboards(ctx, req.(*GetRankMultiLeaderboardsRequest))
+		return srv.(PodiumServiceServer).GetRankMultiLeaderboards(ctx, req.(*GetRankMultiLeaderboardsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Podium_ServiceDesc is the grpc.ServiceDesc for Podium service.
+// PodiumService_ServiceDesc is the grpc.ServiceDesc for PodiumService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Podium_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "podium.api.v1.Podium",
-	HandlerType: (*PodiumServer)(nil),
+var PodiumService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "podium.api.v1.PodiumService",
+	HandlerType: (*PodiumServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "HealthCheck",
-			Handler:    _Podium_HealthCheck_Handler,
+			Handler:    _PodiumService_HealthCheck_Handler,
 		},
 		{
 			MethodName: "Status",
-			Handler:    _Podium_Status_Handler,
+			Handler:    _PodiumService_Status_Handler,
 		},
 		{
 			MethodName: "RemoveLeaderboard",
-			Handler:    _Podium_RemoveLeaderboard_Handler,
+			Handler:    _PodiumService_RemoveLeaderboard_Handler,
 		},
 		{
 			MethodName: "BulkUpsertScores",
-			Handler:    _Podium_BulkUpsertScores_Handler,
+			Handler:    _PodiumService_BulkUpsertScores_Handler,
 		},
 		{
 			MethodName: "UpsertScore",
-			Handler:    _Podium_UpsertScore_Handler,
+			Handler:    _PodiumService_UpsertScore_Handler,
 		},
 		{
 			MethodName: "TotalMembers",
-			Handler:    _Podium_TotalMembers_Handler,
+			Handler:    _PodiumService_TotalMembers_Handler,
 		},
 		{
 			MethodName: "IncrementScore",
-			Handler:    _Podium_IncrementScore_Handler,
+			Handler:    _PodiumService_IncrementScore_Handler,
 		},
 		{
 			MethodName: "GetMember",
-			Handler:    _Podium_GetMember_Handler,
+			Handler:    _PodiumService_GetMember_Handler,
 		},
 		{
 			MethodName: "GetMembers",
-			Handler:    _Podium_GetMembers_Handler,
+			Handler:    _PodiumService_GetMembers_Handler,
 		},
 		{
 			MethodName: "RemoveMember",
-			Handler:    _Podium_RemoveMember_Handler,
+			Handler:    _PodiumService_RemoveMember_Handler,
 		},
 		{
 			MethodName: "RemoveMembers",
-			Handler:    _Podium_RemoveMembers_Handler,
+			Handler:    _PodiumService_RemoveMembers_Handler,
 		},
 		{
 			MethodName: "GetRank",
-			Handler:    _Podium_GetRank_Handler,
+			Handler:    _PodiumService_GetRank_Handler,
 		},
 		{
 			MethodName: "GetAroundMember",
-			Handler:    _Podium_GetAroundMember_Handler,
+			Handler:    _PodiumService_GetAroundMember_Handler,
 		},
 		{
 			MethodName: "GetAroundScore",
-			Handler:    _Podium_GetAroundScore_Handler,
+			Handler:    _PodiumService_GetAroundScore_Handler,
 		},
 		{
 			MethodName: "GetTopMembers",
-			Handler:    _Podium_GetTopMembers_Handler,
+			Handler:    _PodiumService_GetTopMembers_Handler,
 		},
 		{
 			MethodName: "GetTopPercentage",
-			Handler:    _Podium_GetTopPercentage_Handler,
+			Handler:    _PodiumService_GetTopPercentage_Handler,
 		},
 		{
 			MethodName: "UpsertScoreMultiLeaderboards",
-			Handler:    _Podium_UpsertScoreMultiLeaderboards_Handler,
+			Handler:    _PodiumService_UpsertScoreMultiLeaderboards_Handler,
 		},
 		{
 			MethodName: "GetRankMultiLeaderboards",
-			Handler:    _Podium_GetRankMultiLeaderboards_Handler,
+			Handler:    _PodiumService_GetRankMultiLeaderboards_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/podium/api/v1/podium.proto",
+	Metadata: "podium/api/v1/podium.proto",
 }

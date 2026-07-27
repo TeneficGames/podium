@@ -31,9 +31,9 @@ jobs:
           (cd client && go mod verify)
       - name: Build
         run: make build
-      - name: Verify generated code
+      - name: Verify Protobuf schemas and generated code
         run: |
-          make proto-tools
+          make proto-check
           make proto
           git diff --exit-code
 

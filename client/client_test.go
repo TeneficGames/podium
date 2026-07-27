@@ -42,7 +42,7 @@ var _ = Describe("client", func() {
 		It("Should call podium API to get a member score and rank in many leaderboards", func() {
 			url := "http://podium/m/1/scores?leaderboardIds=l1,l2,l3&order=desc"
 			httpmock.RegisterResponder("GET", url,
-				httpmock.NewStringResponder(200, `{ "success": true, "scores": [ { "leaderboardID": "l1", "publicID": "1", "score": 3, "rank": 3, "previousRank": 1 }, { "leaderboardID": "l2", "publicID": "1", "score": 1, "rank": 3, "previousRank": 1 }, { "leaderboardID": "l3", "publicID": "1", "score": 1, "rank": 3, "previousRank": 1 } ] }`))
+				httpmock.NewStringResponder(200, `{ "success": true, "scores": [ { "leaderboardId": "l1", "publicId": "1", "score": 3, "rank": 3, "previousRank": 1 }, { "leaderboardId": "l2", "publicId": "1", "score": 1, "rank": 3, "previousRank": 1 }, { "leaderboardId": "l3", "publicId": "1", "score": 1, "rank": 3, "previousRank": 1 } ] }`))
 			scores, err := p.GetMemberInLeaderboards(nil, []string{"l1,l2,l3"}, "1")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(scores).NotTo(BeNil())
@@ -63,7 +63,7 @@ var _ = Describe("client", func() {
 			//mock url that should be called
 			url := "http://podium/l/" + leaderboard + "/top/1?pageSize=1"
 			httpmock.RegisterResponder("GET", url,
-				httpmock.NewStringResponder(200, `{ "success": true, "members": [ { "publicID": "1", "score": 2, "rank": 1 } ] }`))
+				httpmock.NewStringResponder(200, `{ "success": true, "members": [ { "publicId": "1", "score": 2, "rank": 1 } ] }`))
 
 			members, err := p.GetTop(nil, leaderboard, 1, 1)
 
@@ -82,7 +82,7 @@ var _ = Describe("client", func() {
 			//mock url that should be called
 			url := "http://podium/l/" + leaderboard + "/top-percent/1"
 			httpmock.RegisterResponder("GET", url,
-				httpmock.NewStringResponder(200, `{ "success": true, "members": [ { "publicID": "1", "score": 2, "rank": 1 } ] }`))
+				httpmock.NewStringResponder(200, `{ "success": true, "members": [ { "publicId": "1", "score": 2, "rank": 1 } ] }`))
 
 			members, err := p.GetTopPercent(nil, leaderboard, 1)
 
@@ -101,7 +101,7 @@ var _ = Describe("client", func() {
 			//mock url that should be called
 			url := "http://podium/l/" + leaderboard + "/members/1/score"
 			httpmock.RegisterResponder("PUT", url,
-				httpmock.NewStringResponder(200, `{ "success": true, "publicID": "1", "score": 2, "rank": 1 }`))
+				httpmock.NewStringResponder(200, `{ "success": true, "publicId": "1", "score": 2, "rank": 1 }`))
 
 			member, err := p.UpdateScore(nil, leaderboard, "1", 10, 0)
 
@@ -115,9 +115,9 @@ var _ = Describe("client", func() {
 			leaderboard := globalLeaderboard
 
 			//mock url that should be called
-			url := "http://podium/l/" + leaderboard + "/members/1/score?prevRank=true&scoreTTL=10"
+			url := "http://podium/l/" + leaderboard + "/members/1/score?prevRank=true&scoreTtl=10"
 			httpmock.RegisterResponder("PUT", url,
-				httpmock.NewStringResponder(200, `{ "success": true, "publicID": "1", "score": 2, "rank": 1 }`))
+				httpmock.NewStringResponder(200, `{ "success": true, "publicId": "1", "score": 2, "rank": 1 }`))
 
 			member, err := p.UpdateScore(nil, leaderboard, "1", 10, 10)
 
@@ -135,7 +135,7 @@ var _ = Describe("client", func() {
 			//mock url that should be called
 			url := "http://podium/l/" + leaderboard + "/members/1/score"
 			httpmock.RegisterResponder("PATCH", url,
-				httpmock.NewStringResponder(200, `{ "success": true, "publicID": "123", "score": 12, "rank": 1, "previousRank": 0, "expireAt": 0 }`))
+				httpmock.NewStringResponder(200, `{ "success": true, "publicId": "123", "score": 12, "rank": 1, "previousRank": 0, "expireAt": 0 }`))
 
 			member, err := p.IncrementScore(nil, leaderboard, "1", 10, 0)
 
@@ -149,9 +149,9 @@ var _ = Describe("client", func() {
 			leaderboard := globalLeaderboard
 
 			//mock url that should be called
-			url := "http://podium/l/" + leaderboard + "/members/1/score?prevRank=true&scoreTTL=10"
+			url := "http://podium/l/" + leaderboard + "/members/1/score?prevRank=true&scoreTtl=10"
 			httpmock.RegisterResponder("PATCH", url,
-				httpmock.NewStringResponder(200, `{ "success": true, "publicID": "123", "score": 12, "rank": 1, "previousRank": 0, "expireAt": 0 }`))
+				httpmock.NewStringResponder(200, `{ "success": true, "publicId": "123", "score": 12, "rank": 1, "previousRank": 0, "expireAt": 0 }`))
 
 			member, err := p.IncrementScore(nil, leaderboard, "1", 10, 10)
 
@@ -170,7 +170,7 @@ var _ = Describe("client", func() {
 			//mock url that should be called
 			url := "http://podium/m/1/scores"
 			httpmock.RegisterResponder("PUT", url,
-				httpmock.NewStringResponder(200, `{ "success": true, "scores": [ { "leaderboardID": "brazil", "publicID": "1", "score": 1, "rank": 3, "previousRank": 1 } ] }`))
+				httpmock.NewStringResponder(200, `{ "success": true, "scores": [ { "leaderboardId": "brazil", "publicId": "1", "score": 1, "rank": 3, "previousRank": 1 } ] }`))
 
 			scores, err := p.UpdateScores(nil, []string{leaderboard1, leaderboard2}, "1", 10, 0)
 
@@ -186,9 +186,9 @@ var _ = Describe("client", func() {
 			leaderboard2 := localeLeaderboard
 
 			//mock url that should be called
-			url := "http://podium/m/1/scores?prevRank=true&scoreTTL=10"
+			url := "http://podium/m/1/scores?prevRank=true&scoreTtl=10"
 			httpmock.RegisterResponder("PUT", url,
-				httpmock.NewStringResponder(200, `{ "success": true, "scores": [ { "leaderboardID": "brazil", "publicID": "1", "score": 1, "rank": 3, "previousRank": 1 } ] }`))
+				httpmock.NewStringResponder(200, `{ "success": true, "scores": [ { "leaderboardId": "brazil", "publicId": "1", "score": 1, "rank": 3, "previousRank": 1 } ] }`))
 
 			scores, err := p.UpdateScores(nil, []string{leaderboard1, leaderboard2}, "1", 10, 10)
 
@@ -207,7 +207,7 @@ var _ = Describe("client", func() {
 			//mock url that should be called
 			url := "http://podium/l/" + leaderboard + "/scores"
 			httpmock.RegisterResponder("PUT", url,
-				httpmock.NewStringResponder(200, `{ "success": true, "members": [ { "publicID": "1", "score": 2, "rank": 1, "previousRank": 1 } ] }`))
+				httpmock.NewStringResponder(200, `{ "success": true, "members": [ { "publicId": "1", "score": 2, "rank": 1, "previousRank": 1 } ] }`))
 			reqMembers := []*client.Member{{Score: 1, PublicID: "1"}}
 			members, err := p.UpdateMembersScore(nil, leaderboard, reqMembers, 0)
 
@@ -224,9 +224,9 @@ var _ = Describe("client", func() {
 			leaderboard := globalLeaderboard
 
 			//mock url that should be called
-			url := "http://podium/l/" + leaderboard + "/scores?prevRank=true&scoreTTL=10"
+			url := "http://podium/l/" + leaderboard + "/scores?prevRank=true&scoreTtl=10"
 			httpmock.RegisterResponder("PUT", url,
-				httpmock.NewStringResponder(200, `{ "success": true, "members": [ { "publicID": "1", "score": 2, "rank": 1, "previousRank": 1 } ] }`))
+				httpmock.NewStringResponder(200, `{ "success": true, "members": [ { "publicId": "1", "score": 2, "rank": 1, "previousRank": 1 } ] }`))
 			reqMembers := []*client.Member{{Score: 1, PublicID: "1"}}
 			members, err := p.UpdateMembersScore(nil, leaderboard, reqMembers, 10)
 
@@ -265,7 +265,7 @@ var _ = Describe("client", func() {
 			//mock url that should be called
 			url := "http://podium/l/" + leaderboard + "/members/1"
 			httpmock.RegisterResponder("GET", url,
-				httpmock.NewStringResponder(200, `{ "success": true,  "publicID": "1", "score": 2, "rank": 1 }`))
+				httpmock.NewStringResponder(200, `{ "success": true,  "publicId": "1", "score": 2, "rank": 1 }`))
 
 			member, err := p.GetMember(nil, leaderboard, "1")
 
@@ -302,32 +302,32 @@ var _ = Describe("client", func() {
 				{
 					"members": [
 							{
-									"publicID": "pid2",
+									"publicId": "pid2",
 									"rank": 1,
 									"score": 200
 							},
 							{
-									"publicID": "pid1",
+									"publicId": "pid1",
 									"rank": 2,
 									"score": 100
 							},
 							{
-									"publicID": "pid6",
+									"publicId": "pid6",
 									"rank": 3,
 									"score": 99
 							},
 							{
-									"publicID": "pid3",
+									"publicId": "pid3",
 									"rank": 4,
 									"score": 80
 							},
 							{
-									"publicID": "pid4",
+									"publicId": "pid4",
 									"rank": 5,
 									"score": 20
 							},
 							{
-									"publicID": "pid5",
+									"publicId": "pid5",
 									"rank": 6,
 									"score": 1
 							}
@@ -374,37 +374,37 @@ var _ = Describe("client", func() {
 				{
 					"members": [
 							{
-									"publicID": "pid2",
+									"publicId": "pid2",
 									"rank": 1,
 									"score": 200
 							},
 							{
-									"publicID": "pid1",
+									"publicId": "pid1",
 									"rank": 2,
 									"score": 100
 							},
 							{
-									"publicID": "pid6",
+									"publicId": "pid6",
 									"rank": 3,
 									"score": 99
 							},
 							{
-									"publicID": "pid3",
+									"publicId": "pid3",
 									"rank": 4,
 									"score": 80
 							},
 							{
-									"publicID": "pid4",
+									"publicId": "pid4",
 									"rank": 5,
 									"score": 20
 							},
 							{
-									"publicID": "pid5",
+									"publicId": "pid5",
 									"rank": 6,
 									"score": 1
 							},
 							{
-									"publicID": "pid0",
+									"publicId": "pid0",
 									"rank": 7,
 									"score": 0
 							}
@@ -433,32 +433,32 @@ var _ = Describe("client", func() {
 				{
 					"members": [
 							{
-									"publicID": "pid2",
+									"publicId": "pid2",
 									"rank": 1,
 									"score": 200
 							},
 							{
-									"publicID": "pid1",
+									"publicId": "pid1",
 									"rank": 2,
 									"score": 100
 							},
 							{
-									"publicID": "pid6",
+									"publicId": "pid6",
 									"rank": 3,
 									"score": 99
 							},
 							{
-									"publicID": "pid3",
+									"publicId": "pid3",
 									"rank": 4,
 									"score": 80
 							},
 							{
-									"publicID": "pid4",
+									"publicId": "pid4",
 									"rank": 5,
 									"score": 20
 							},
 							{
-									"publicID": "pid5",
+									"publicId": "pid5",
 									"rank": 6,
 									"score": 1
 							}
@@ -487,32 +487,32 @@ var _ = Describe("client", func() {
 				{
 					"members": [
 							{
-									"publicID": "pid5",
+									"publicId": "pid5",
 									"rank": 1,
 									"score": 1
 							},
 							{
-									"publicID": "pid4",
+									"publicId": "pid4",
 									"rank": 2,
 									"score": 20
 							},
 							{
-									"publicID": "pid3",
+									"publicId": "pid3",
 									"rank": 3,
 									"score": 80
 							},
 							{
-									"publicID": "pid6",
+									"publicId": "pid6",
 									"rank": 4,
 									"score": 99
 							},
 							{
-									"publicID": "pid1",
+									"publicId": "pid1",
 									"rank": 5,
 									"score": 100
 							},
 							{
-									"publicID": "pid2",
+									"publicId": "pid2",
 									"rank": 6,
 									"score": 200
 							}
@@ -542,8 +542,8 @@ var _ = Describe("client", func() {
 				httpmock.NewStringResponder(200, `{
 					"success": true,
 					"members": [
-						{ "publicID": "1", "score": 5, "rank": 1 },
-						{ "publicID": "3", "score": 4, "rank": 2 }
+						{ "publicId": "1", "score": 5, "rank": 1 },
+						{ "publicId": "3", "score": 4, "rank": 2 }
 					],
 					"notFound": ["2"]
 				}`))

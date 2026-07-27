@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             (unknown)
-// source: leaderboard/enriching/proto/webhook/v1/podium_webhook.proto
+// source: webhook/v1/podium_webhook.proto
 
 package podium_leaderboard_webhooks_v1
 
@@ -19,7 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	LeaderboardsEnrichmentService_EnrichLeaderboards_FullMethodName = "/LeaderboardsEnrichmentService/EnrichLeaderboards"
+	LeaderboardsEnrichmentService_EnrichLeaderboards_FullMethodName = "/webhook.v1.LeaderboardsEnrichmentService/EnrichLeaderboards"
 )
 
 // LeaderboardsEnrichmentServiceClient is the client API for LeaderboardsEnrichmentService service.
@@ -113,7 +113,7 @@ func _LeaderboardsEnrichmentService_EnrichLeaderboards_Handler(srv interface{}, 
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var LeaderboardsEnrichmentService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "LeaderboardsEnrichmentService",
+	ServiceName: "webhook.v1.LeaderboardsEnrichmentService",
 	HandlerType: (*LeaderboardsEnrichmentServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -122,5 +122,5 @@ var LeaderboardsEnrichmentService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "leaderboard/enriching/proto/webhook/v1/podium_webhook.proto",
+	Metadata: "webhook/v1/podium_webhook.proto",
 }

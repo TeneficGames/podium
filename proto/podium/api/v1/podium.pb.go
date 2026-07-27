@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        (unknown)
-// source: proto/podium/api/v1/podium.proto
+// source: podium/api/v1/podium.proto
 
 package api
 
@@ -10,7 +10,6 @@ import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -31,7 +30,7 @@ type HealthCheckRequest struct {
 
 func (x *HealthCheckRequest) Reset() {
 	*x = HealthCheckRequest{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[0]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +42,7 @@ func (x *HealthCheckRequest) String() string {
 func (*HealthCheckRequest) ProtoMessage() {}
 
 func (x *HealthCheckRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[0]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -56,7 +55,7 @@ func (x *HealthCheckRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HealthCheckRequest.ProtoReflect.Descriptor instead.
 func (*HealthCheckRequest) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{0}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{0}
 }
 
 type HealthCheckResponse struct {
@@ -69,7 +68,7 @@ type HealthCheckResponse struct {
 
 func (x *HealthCheckResponse) Reset() {
 	*x = HealthCheckResponse{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[1]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -81,7 +80,7 @@ func (x *HealthCheckResponse) String() string {
 func (*HealthCheckResponse) ProtoMessage() {}
 
 func (x *HealthCheckResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[1]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -94,7 +93,7 @@ func (x *HealthCheckResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HealthCheckResponse.ProtoReflect.Descriptor instead.
 func (*HealthCheckResponse) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{1}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *HealthCheckResponse) GetWorkingString() string {
@@ -102,6 +101,42 @@ func (x *HealthCheckResponse) GetWorkingString() string {
 		return x.WorkingString
 	}
 	return ""
+}
+
+type StatusRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StatusRequest) Reset() {
+	*x = StatusRequest{}
+	mi := &file_podium_api_v1_podium_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StatusRequest) ProtoMessage() {}
+
+func (x *StatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_podium_api_v1_podium_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StatusRequest.ProtoReflect.Descriptor instead.
+func (*StatusRequest) Descriptor() ([]byte, []int) {
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{2}
 }
 
 type StatusResponse struct {
@@ -114,7 +149,7 @@ type StatusResponse struct {
 
 func (x *StatusResponse) Reset() {
 	*x = StatusResponse{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[2]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -126,7 +161,7 @@ func (x *StatusResponse) String() string {
 func (*StatusResponse) ProtoMessage() {}
 
 func (x *StatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[2]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -139,7 +174,7 @@ func (x *StatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StatusResponse.ProtoReflect.Descriptor instead.
 func (*StatusResponse) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{2}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *StatusResponse) GetErrorRate() float64 {
@@ -158,7 +193,7 @@ type RemoveLeaderboardRequest struct {
 
 func (x *RemoveLeaderboardRequest) Reset() {
 	*x = RemoveLeaderboardRequest{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[3]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -170,7 +205,7 @@ func (x *RemoveLeaderboardRequest) String() string {
 func (*RemoveLeaderboardRequest) ProtoMessage() {}
 
 func (x *RemoveLeaderboardRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[3]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -183,7 +218,7 @@ func (x *RemoveLeaderboardRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveLeaderboardRequest.ProtoReflect.Descriptor instead.
 func (*RemoveLeaderboardRequest) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{3}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *RemoveLeaderboardRequest) GetLeaderboardId() string {
@@ -200,8 +235,8 @@ type BulkUpsertScoresRequest struct {
 	// If set to true, it will also return the previous rank of the player in the leaderboard.
 	// -1 if the player didn’t exist in the leaderboard.
 	PrevRank bool `protobuf:"varint,2,opt,name=prev_rank,json=prevRank,proto3" json:"prev_rank,omitempty"`
-	// If set to more than zero, the score of the player will be expired from the leaderboard past scoreTTL seconds.
-	ScoreTTL      int32                                 `protobuf:"varint,3,opt,name=scoreTTL,proto3" json:"scoreTTL,omitempty"`
+	// If set to more than zero, the score of the player will be expired from the leaderboard past score_ttl seconds.
+	ScoreTtl      int32                                 `protobuf:"varint,3,opt,name=score_ttl,json=scoreTtl,proto3" json:"score_ttl,omitempty"`
 	MemberScores  *BulkUpsertScoresRequest_MemberScores `protobuf:"bytes,4,opt,name=member_scores,json=memberScores,proto3" json:"member_scores,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -209,7 +244,7 @@ type BulkUpsertScoresRequest struct {
 
 func (x *BulkUpsertScoresRequest) Reset() {
 	*x = BulkUpsertScoresRequest{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[4]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -221,7 +256,7 @@ func (x *BulkUpsertScoresRequest) String() string {
 func (*BulkUpsertScoresRequest) ProtoMessage() {}
 
 func (x *BulkUpsertScoresRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[4]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -234,7 +269,7 @@ func (x *BulkUpsertScoresRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BulkUpsertScoresRequest.ProtoReflect.Descriptor instead.
 func (*BulkUpsertScoresRequest) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{4}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *BulkUpsertScoresRequest) GetLeaderboardId() string {
@@ -251,9 +286,9 @@ func (x *BulkUpsertScoresRequest) GetPrevRank() bool {
 	return false
 }
 
-func (x *BulkUpsertScoresRequest) GetScoreTTL() int32 {
+func (x *BulkUpsertScoresRequest) GetScoreTtl() int32 {
 	if x != nil {
-		return x.ScoreTTL
+		return x.ScoreTtl
 	}
 	return 0
 }
@@ -269,7 +304,7 @@ func (x *BulkUpsertScoresRequest) GetMemberScores() *BulkUpsertScoresRequest_Mem
 // Member is a basic payload for a leaderboard member used by some responses.
 type Member struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	PublicID      string                 `protobuf:"bytes,1,opt,name=publicID,proto3" json:"publicID,omitempty"`
+	PublicId      string                 `protobuf:"bytes,1,opt,name=public_id,json=publicId,proto3" json:"public_id,omitempty"`
 	Score         float64                `protobuf:"fixed64,2,opt,name=score,proto3" json:"score,omitempty"`
 	Rank          int32                  `protobuf:"varint,3,opt,name=rank,proto3" json:"rank,omitempty"`
 	Metadata      map[string]string      `protobuf:"bytes,4,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
@@ -279,7 +314,7 @@ type Member struct {
 
 func (x *Member) Reset() {
 	*x = Member{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[5]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -291,7 +326,7 @@ func (x *Member) String() string {
 func (*Member) ProtoMessage() {}
 
 func (x *Member) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[5]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -304,12 +339,12 @@ func (x *Member) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Member.ProtoReflect.Descriptor instead.
 func (*Member) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{5}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *Member) GetPublicID() string {
+func (x *Member) GetPublicId() string {
 	if x != nil {
-		return x.PublicID
+		return x.PublicId
 	}
 	return ""
 }
@@ -343,8 +378,8 @@ type UpsertScoreRequest struct {
 	MemberPublicId string `protobuf:"bytes,2,opt,name=member_public_id,json=memberPublicId,proto3" json:"member_public_id,omitempty"`
 	// If set to true, it will also return the previous rank of the player in the leaderboard.
 	PrevRank bool `protobuf:"varint,3,opt,name=prev_rank,json=prevRank,proto3" json:"prev_rank,omitempty"`
-	// If set to more than zero, the score of the player will be expired from the leaderboard past scoreTTL seconds.
-	ScoreTTL      int32                           `protobuf:"varint,4,opt,name=scoreTTL,proto3" json:"scoreTTL,omitempty"`
+	// If set to more than zero, the score of the player will be expired from the leaderboard past score_ttl seconds.
+	ScoreTtl      int32                           `protobuf:"varint,4,opt,name=score_ttl,json=scoreTtl,proto3" json:"score_ttl,omitempty"`
 	ScoreChange   *UpsertScoreRequest_ScoreChange `protobuf:"bytes,5,opt,name=score_change,json=scoreChange,proto3" json:"score_change,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -352,7 +387,7 @@ type UpsertScoreRequest struct {
 
 func (x *UpsertScoreRequest) Reset() {
 	*x = UpsertScoreRequest{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[6]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -364,7 +399,7 @@ func (x *UpsertScoreRequest) String() string {
 func (*UpsertScoreRequest) ProtoMessage() {}
 
 func (x *UpsertScoreRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[6]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -377,7 +412,7 @@ func (x *UpsertScoreRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpsertScoreRequest.ProtoReflect.Descriptor instead.
 func (*UpsertScoreRequest) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{6}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *UpsertScoreRequest) GetLeaderboardId() string {
@@ -401,9 +436,9 @@ func (x *UpsertScoreRequest) GetPrevRank() bool {
 	return false
 }
 
-func (x *UpsertScoreRequest) GetScoreTTL() int32 {
+func (x *UpsertScoreRequest) GetScoreTtl() int32 {
 	if x != nil {
-		return x.ScoreTTL
+		return x.ScoreTtl
 	}
 	return 0
 }
@@ -424,7 +459,7 @@ type TotalMembersRequest struct {
 
 func (x *TotalMembersRequest) Reset() {
 	*x = TotalMembersRequest{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[7]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -436,7 +471,7 @@ func (x *TotalMembersRequest) String() string {
 func (*TotalMembersRequest) ProtoMessage() {}
 
 func (x *TotalMembersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[7]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -449,7 +484,7 @@ func (x *TotalMembersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TotalMembersRequest.ProtoReflect.Descriptor instead.
 func (*TotalMembersRequest) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{7}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *TotalMembersRequest) GetLeaderboardId() string {
@@ -469,7 +504,7 @@ type TotalMembersResponse struct {
 
 func (x *TotalMembersResponse) Reset() {
 	*x = TotalMembersResponse{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[8]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -481,7 +516,7 @@ func (x *TotalMembersResponse) String() string {
 func (*TotalMembersResponse) ProtoMessage() {}
 
 func (x *TotalMembersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[8]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -494,7 +529,7 @@ func (x *TotalMembersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TotalMembersResponse.ProtoReflect.Descriptor instead.
 func (*TotalMembersResponse) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{8}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *TotalMembersResponse) GetSuccess() bool {
@@ -517,8 +552,8 @@ type IncrementScoreRequest struct {
 	LeaderboardId string `protobuf:"bytes,1,opt,name=leaderboard_id,json=leaderboardId,proto3" json:"leaderboard_id,omitempty"`
 	// The member identification.
 	MemberPublicId string `protobuf:"bytes,2,opt,name=member_public_id,json=memberPublicId,proto3" json:"member_public_id,omitempty"`
-	// If set to more than zero, the score of the player will be expired from the leaderboard past scoreTTL seconds.
-	ScoreTTL      int32                       `protobuf:"varint,3,opt,name=scoreTTL,proto3" json:"scoreTTL,omitempty"`
+	// If set to more than zero, the score of the player will be expired from the leaderboard past score_ttl seconds.
+	ScoreTtl      int32                       `protobuf:"varint,3,opt,name=score_ttl,json=scoreTtl,proto3" json:"score_ttl,omitempty"`
 	Body          *IncrementScoreRequest_Body `protobuf:"bytes,4,opt,name=body,proto3" json:"body,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -526,7 +561,7 @@ type IncrementScoreRequest struct {
 
 func (x *IncrementScoreRequest) Reset() {
 	*x = IncrementScoreRequest{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[9]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -538,7 +573,7 @@ func (x *IncrementScoreRequest) String() string {
 func (*IncrementScoreRequest) ProtoMessage() {}
 
 func (x *IncrementScoreRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[9]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -551,7 +586,7 @@ func (x *IncrementScoreRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IncrementScoreRequest.ProtoReflect.Descriptor instead.
 func (*IncrementScoreRequest) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{9}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *IncrementScoreRequest) GetLeaderboardId() string {
@@ -568,9 +603,9 @@ func (x *IncrementScoreRequest) GetMemberPublicId() string {
 	return ""
 }
 
-func (x *IncrementScoreRequest) GetScoreTTL() int32 {
+func (x *IncrementScoreRequest) GetScoreTtl() int32 {
 	if x != nil {
-		return x.ScoreTTL
+		return x.ScoreTtl
 	}
 	return 0
 }
@@ -587,14 +622,14 @@ type GetMemberRequest struct {
 	LeaderboardId  string                 `protobuf:"bytes,1,opt,name=leaderboard_id,json=leaderboardId,proto3" json:"leaderboard_id,omitempty"`
 	MemberPublicId string                 `protobuf:"bytes,2,opt,name=member_public_id,json=memberPublicId,proto3" json:"member_public_id,omitempty"`
 	Order          string                 `protobuf:"bytes,3,opt,name=order,proto3" json:"order,omitempty"`
-	ScoreTTL       bool                   `protobuf:"varint,4,opt,name=scoreTTL,proto3" json:"scoreTTL,omitempty"`
+	ScoreTtl       bool                   `protobuf:"varint,4,opt,name=score_ttl,json=scoreTtl,proto3" json:"score_ttl,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
 
 func (x *GetMemberRequest) Reset() {
 	*x = GetMemberRequest{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[10]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -606,7 +641,7 @@ func (x *GetMemberRequest) String() string {
 func (*GetMemberRequest) ProtoMessage() {}
 
 func (x *GetMemberRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[10]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -619,7 +654,7 @@ func (x *GetMemberRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMemberRequest.ProtoReflect.Descriptor instead.
 func (*GetMemberRequest) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{10}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GetMemberRequest) GetLeaderboardId() string {
@@ -643,9 +678,9 @@ func (x *GetMemberRequest) GetOrder() string {
 	return ""
 }
 
-func (x *GetMemberRequest) GetScoreTTL() bool {
+func (x *GetMemberRequest) GetScoreTtl() bool {
 	if x != nil {
-		return x.ScoreTTL
+		return x.ScoreTtl
 	}
 	return false
 }
@@ -653,12 +688,12 @@ func (x *GetMemberRequest) GetScoreTTL() bool {
 type UpsertScoreResponse struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	Success  bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	PublicID string                 `protobuf:"bytes,2,opt,name=publicID,proto3" json:"publicID,omitempty"`
+	PublicId string                 `protobuf:"bytes,2,opt,name=public_id,json=publicId,proto3" json:"public_id,omitempty"`
 	Score    float64                `protobuf:"fixed64,3,opt,name=score,proto3" json:"score,omitempty"`
 	Rank     int32                  `protobuf:"varint,4,opt,name=rank,proto3" json:"rank,omitempty"`
 	// The previous rank of the player in the leaderboard, if requested.
 	PreviousRank int32 `protobuf:"varint,5,opt,name=previous_rank,json=previousRank,proto3" json:"previous_rank,omitempty"`
-	// Unix timestamp of when the member's score will be erased (only if scoreTTL was requested)
+	// Unix timestamp of when the member's score will be erased (only if score_ttl was requested)
 	ExpireAt      int32 `protobuf:"varint,6,opt,name=expire_at,json=expireAt,proto3" json:"expire_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -666,7 +701,7 @@ type UpsertScoreResponse struct {
 
 func (x *UpsertScoreResponse) Reset() {
 	*x = UpsertScoreResponse{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[11]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -678,7 +713,7 @@ func (x *UpsertScoreResponse) String() string {
 func (*UpsertScoreResponse) ProtoMessage() {}
 
 func (x *UpsertScoreResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[11]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -691,7 +726,7 @@ func (x *UpsertScoreResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpsertScoreResponse.ProtoReflect.Descriptor instead.
 func (*UpsertScoreResponse) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{11}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *UpsertScoreResponse) GetSuccess() bool {
@@ -701,9 +736,9 @@ func (x *UpsertScoreResponse) GetSuccess() bool {
 	return false
 }
 
-func (x *UpsertScoreResponse) GetPublicID() string {
+func (x *UpsertScoreResponse) GetPublicId() string {
 	if x != nil {
-		return x.PublicID
+		return x.PublicId
 	}
 	return ""
 }
@@ -739,12 +774,12 @@ func (x *UpsertScoreResponse) GetExpireAt() int32 {
 type IncrementScoreResponse struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	Success  bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	PublicID string                 `protobuf:"bytes,2,opt,name=publicID,proto3" json:"publicID,omitempty"`
+	PublicId string                 `protobuf:"bytes,2,opt,name=public_id,json=publicId,proto3" json:"public_id,omitempty"`
 	Score    float64                `protobuf:"fixed64,3,opt,name=score,proto3" json:"score,omitempty"`
 	Rank     int32                  `protobuf:"varint,4,opt,name=rank,proto3" json:"rank,omitempty"`
 	// The previous rank of the player in the leaderboard, if requested.
 	PreviousRank int32 `protobuf:"varint,5,opt,name=previous_rank,json=previousRank,proto3" json:"previous_rank,omitempty"`
-	// Unix timestamp of when the member's score will be erased (only if scoreTTL was requested)
+	// Unix timestamp of when the member's score will be erased (only if score_ttl was requested)
 	ExpireAt      int32 `protobuf:"varint,6,opt,name=expire_at,json=expireAt,proto3" json:"expire_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -752,7 +787,7 @@ type IncrementScoreResponse struct {
 
 func (x *IncrementScoreResponse) Reset() {
 	*x = IncrementScoreResponse{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[12]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -764,7 +799,7 @@ func (x *IncrementScoreResponse) String() string {
 func (*IncrementScoreResponse) ProtoMessage() {}
 
 func (x *IncrementScoreResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[12]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -777,7 +812,7 @@ func (x *IncrementScoreResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IncrementScoreResponse.ProtoReflect.Descriptor instead.
 func (*IncrementScoreResponse) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{12}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *IncrementScoreResponse) GetSuccess() bool {
@@ -787,9 +822,9 @@ func (x *IncrementScoreResponse) GetSuccess() bool {
 	return false
 }
 
-func (x *IncrementScoreResponse) GetPublicID() string {
+func (x *IncrementScoreResponse) GetPublicId() string {
 	if x != nil {
-		return x.PublicID
+		return x.PublicId
 	}
 	return ""
 }
@@ -825,12 +860,12 @@ func (x *IncrementScoreResponse) GetExpireAt() int32 {
 type GetMemberResponse struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	Success  bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	PublicID string                 `protobuf:"bytes,2,opt,name=publicID,proto3" json:"publicID,omitempty"`
+	PublicId string                 `protobuf:"bytes,2,opt,name=public_id,json=publicId,proto3" json:"public_id,omitempty"`
 	Score    float64                `protobuf:"fixed64,3,opt,name=score,proto3" json:"score,omitempty"`
 	Rank     int32                  `protobuf:"varint,5,opt,name=rank,proto3" json:"rank,omitempty"`
 	// The previous rank of the player in the leaderboard, if requested.
 	PreviousRank int32 `protobuf:"varint,6,opt,name=previous_rank,json=previousRank,proto3" json:"previous_rank,omitempty"`
-	// Unix timestamp of when the member's score will be erased (only if scoreTTL was requested)
+	// Unix timestamp of when the member's score will be erased (only if score_ttl was requested)
 	ExpireAt      int32 `protobuf:"varint,7,opt,name=expire_at,json=expireAt,proto3" json:"expire_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -838,7 +873,7 @@ type GetMemberResponse struct {
 
 func (x *GetMemberResponse) Reset() {
 	*x = GetMemberResponse{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[13]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -850,7 +885,7 @@ func (x *GetMemberResponse) String() string {
 func (*GetMemberResponse) ProtoMessage() {}
 
 func (x *GetMemberResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[13]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -863,7 +898,7 @@ func (x *GetMemberResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMemberResponse.ProtoReflect.Descriptor instead.
 func (*GetMemberResponse) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{13}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *GetMemberResponse) GetSuccess() bool {
@@ -873,9 +908,9 @@ func (x *GetMemberResponse) GetSuccess() bool {
 	return false
 }
 
-func (x *GetMemberResponse) GetPublicID() string {
+func (x *GetMemberResponse) GetPublicId() string {
 	if x != nil {
-		return x.PublicID
+		return x.PublicId
 	}
 	return ""
 }
@@ -912,7 +947,7 @@ type GetMembersRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	LeaderboardId string                 `protobuf:"bytes,1,opt,name=leaderboard_id,json=leaderboardId,proto3" json:"leaderboard_id,omitempty"`
 	Order         string                 `protobuf:"bytes,2,opt,name=order,proto3" json:"order,omitempty"`
-	ScoreTTL      bool                   `protobuf:"varint,3,opt,name=scoreTTL,proto3" json:"scoreTTL,omitempty"`
+	ScoreTtl      bool                   `protobuf:"varint,3,opt,name=score_ttl,json=scoreTtl,proto3" json:"score_ttl,omitempty"`
 	Ids           string                 `protobuf:"bytes,4,opt,name=ids,proto3" json:"ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -920,7 +955,7 @@ type GetMembersRequest struct {
 
 func (x *GetMembersRequest) Reset() {
 	*x = GetMembersRequest{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[14]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -932,7 +967,7 @@ func (x *GetMembersRequest) String() string {
 func (*GetMembersRequest) ProtoMessage() {}
 
 func (x *GetMembersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[14]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -945,7 +980,7 @@ func (x *GetMembersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMembersRequest.ProtoReflect.Descriptor instead.
 func (*GetMembersRequest) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{14}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *GetMembersRequest) GetLeaderboardId() string {
@@ -962,9 +997,9 @@ func (x *GetMembersRequest) GetOrder() string {
 	return ""
 }
 
-func (x *GetMembersRequest) GetScoreTTL() bool {
+func (x *GetMembersRequest) GetScoreTtl() bool {
 	if x != nil {
-		return x.ScoreTTL
+		return x.ScoreTtl
 	}
 	return false
 }
@@ -987,7 +1022,7 @@ type GetMembersResponse struct {
 
 func (x *GetMembersResponse) Reset() {
 	*x = GetMembersResponse{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[15]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -999,7 +1034,7 @@ func (x *GetMembersResponse) String() string {
 func (*GetMembersResponse) ProtoMessage() {}
 
 func (x *GetMembersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[15]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1012,7 +1047,7 @@ func (x *GetMembersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMembersResponse.ProtoReflect.Descriptor instead.
 func (*GetMembersResponse) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{15}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetMembersResponse) GetSuccess() bool {
@@ -1046,7 +1081,7 @@ type RemoveMemberRequest struct {
 
 func (x *RemoveMemberRequest) Reset() {
 	*x = RemoveMemberRequest{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[16]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1058,7 +1093,7 @@ func (x *RemoveMemberRequest) String() string {
 func (*RemoveMemberRequest) ProtoMessage() {}
 
 func (x *RemoveMemberRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[16]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1071,7 +1106,7 @@ func (x *RemoveMemberRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveMemberRequest.ProtoReflect.Descriptor instead.
 func (*RemoveMemberRequest) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{16}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *RemoveMemberRequest) GetLeaderboardId() string {
@@ -1100,7 +1135,7 @@ type RemoveMembersRequest struct {
 
 func (x *RemoveMembersRequest) Reset() {
 	*x = RemoveMembersRequest{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[17]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1112,7 +1147,7 @@ func (x *RemoveMembersRequest) String() string {
 func (*RemoveMembersRequest) ProtoMessage() {}
 
 func (x *RemoveMembersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[17]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1125,7 +1160,7 @@ func (x *RemoveMembersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveMembersRequest.ProtoReflect.Descriptor instead.
 func (*RemoveMembersRequest) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{17}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *RemoveMembersRequest) GetLeaderboardId() string {
@@ -1154,7 +1189,7 @@ type RemoveLeaderboardResponse struct {
 
 func (x *RemoveLeaderboardResponse) Reset() {
 	*x = RemoveLeaderboardResponse{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[18]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1166,7 +1201,7 @@ func (x *RemoveLeaderboardResponse) String() string {
 func (*RemoveLeaderboardResponse) ProtoMessage() {}
 
 func (x *RemoveLeaderboardResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[18]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1179,7 +1214,7 @@ func (x *RemoveLeaderboardResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveLeaderboardResponse.ProtoReflect.Descriptor instead.
 func (*RemoveLeaderboardResponse) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{18}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *RemoveLeaderboardResponse) GetSuccess() bool {
@@ -1208,7 +1243,7 @@ type RemoveMemberResponse struct {
 
 func (x *RemoveMemberResponse) Reset() {
 	*x = RemoveMemberResponse{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[19]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1220,7 +1255,7 @@ func (x *RemoveMemberResponse) String() string {
 func (*RemoveMemberResponse) ProtoMessage() {}
 
 func (x *RemoveMemberResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[19]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1233,7 +1268,7 @@ func (x *RemoveMemberResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveMemberResponse.ProtoReflect.Descriptor instead.
 func (*RemoveMemberResponse) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{19}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *RemoveMemberResponse) GetSuccess() bool {
@@ -1262,7 +1297,7 @@ type RemoveMembersResponse struct {
 
 func (x *RemoveMembersResponse) Reset() {
 	*x = RemoveMembersResponse{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[20]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1274,7 +1309,7 @@ func (x *RemoveMembersResponse) String() string {
 func (*RemoveMembersResponse) ProtoMessage() {}
 
 func (x *RemoveMembersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[20]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1287,7 +1322,7 @@ func (x *RemoveMembersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveMembersResponse.ProtoReflect.Descriptor instead.
 func (*RemoveMembersResponse) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{20}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *RemoveMembersResponse) GetSuccess() bool {
@@ -1319,7 +1354,7 @@ type GetRankRequest struct {
 
 func (x *GetRankRequest) Reset() {
 	*x = GetRankRequest{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[21]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1331,7 +1366,7 @@ func (x *GetRankRequest) String() string {
 func (*GetRankRequest) ProtoMessage() {}
 
 func (x *GetRankRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[21]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1344,7 +1379,7 @@ func (x *GetRankRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRankRequest.ProtoReflect.Descriptor instead.
 func (*GetRankRequest) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{21}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GetRankRequest) GetLeaderboardId() string {
@@ -1371,7 +1406,7 @@ func (x *GetRankRequest) GetOrder() string {
 type GetRankResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	PublicID      string                 `protobuf:"bytes,2,opt,name=publicID,proto3" json:"publicID,omitempty"`
+	PublicId      string                 `protobuf:"bytes,2,opt,name=public_id,json=publicId,proto3" json:"public_id,omitempty"`
 	Rank          int32                  `protobuf:"varint,3,opt,name=rank,proto3" json:"rank,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1379,7 +1414,7 @@ type GetRankResponse struct {
 
 func (x *GetRankResponse) Reset() {
 	*x = GetRankResponse{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[22]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1391,7 +1426,7 @@ func (x *GetRankResponse) String() string {
 func (*GetRankResponse) ProtoMessage() {}
 
 func (x *GetRankResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[22]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1404,7 +1439,7 @@ func (x *GetRankResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRankResponse.ProtoReflect.Descriptor instead.
 func (*GetRankResponse) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{22}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *GetRankResponse) GetSuccess() bool {
@@ -1414,9 +1449,9 @@ func (x *GetRankResponse) GetSuccess() bool {
 	return false
 }
 
-func (x *GetRankResponse) GetPublicID() string {
+func (x *GetRankResponse) GetPublicId() string {
 	if x != nil {
-		return x.PublicID
+		return x.PublicId
 	}
 	return ""
 }
@@ -1441,7 +1476,7 @@ type GetAroundMemberRequest struct {
 
 func (x *GetAroundMemberRequest) Reset() {
 	*x = GetAroundMemberRequest{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[23]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1453,7 +1488,7 @@ func (x *GetAroundMemberRequest) String() string {
 func (*GetAroundMemberRequest) ProtoMessage() {}
 
 func (x *GetAroundMemberRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[23]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1466,7 +1501,7 @@ func (x *GetAroundMemberRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAroundMemberRequest.ProtoReflect.Descriptor instead.
 func (*GetAroundMemberRequest) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{23}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *GetAroundMemberRequest) GetLeaderboardId() string {
@@ -1516,7 +1551,7 @@ type GetTopMembersRequest struct {
 
 func (x *GetTopMembersRequest) Reset() {
 	*x = GetTopMembersRequest{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[24]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1528,7 +1563,7 @@ func (x *GetTopMembersRequest) String() string {
 func (*GetTopMembersRequest) ProtoMessage() {}
 
 func (x *GetTopMembersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[24]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1541,7 +1576,7 @@ func (x *GetTopMembersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTopMembersRequest.ProtoReflect.Descriptor instead.
 func (*GetTopMembersRequest) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{24}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *GetTopMembersRequest) GetLeaderboardId() string {
@@ -1583,7 +1618,7 @@ type GetTopPercentageRequest struct {
 
 func (x *GetTopPercentageRequest) Reset() {
 	*x = GetTopPercentageRequest{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[25]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1595,7 +1630,7 @@ func (x *GetTopPercentageRequest) String() string {
 func (*GetTopPercentageRequest) ProtoMessage() {}
 
 func (x *GetTopPercentageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[25]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1608,7 +1643,7 @@ func (x *GetTopPercentageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTopPercentageRequest.ProtoReflect.Descriptor instead.
 func (*GetTopPercentageRequest) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{25}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *GetTopPercentageRequest) GetLeaderboardId() string {
@@ -1635,7 +1670,7 @@ func (x *GetTopPercentageRequest) GetOrder() string {
 type UpsertScoreMultiLeaderboardsRequest struct {
 	state            protoimpl.MessageState                                `protogen:"open.v1"`
 	MemberPublicId   string                                                `protobuf:"bytes,1,opt,name=member_public_id,json=memberPublicId,proto3" json:"member_public_id,omitempty"`
-	ScoreTTL         int32                                                 `protobuf:"varint,2,opt,name=scoreTTL,proto3" json:"scoreTTL,omitempty"`
+	ScoreTtl         int32                                                 `protobuf:"varint,2,opt,name=score_ttl,json=scoreTtl,proto3" json:"score_ttl,omitempty"`
 	PrevRank         bool                                                  `protobuf:"varint,3,opt,name=prev_rank,json=prevRank,proto3" json:"prev_rank,omitempty"`
 	ScoreMultiChange *UpsertScoreMultiLeaderboardsRequest_ScoreMultiChange `protobuf:"bytes,4,opt,name=score_multi_change,json=scoreMultiChange,proto3" json:"score_multi_change,omitempty"`
 	unknownFields    protoimpl.UnknownFields
@@ -1644,7 +1679,7 @@ type UpsertScoreMultiLeaderboardsRequest struct {
 
 func (x *UpsertScoreMultiLeaderboardsRequest) Reset() {
 	*x = UpsertScoreMultiLeaderboardsRequest{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[26]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1656,7 +1691,7 @@ func (x *UpsertScoreMultiLeaderboardsRequest) String() string {
 func (*UpsertScoreMultiLeaderboardsRequest) ProtoMessage() {}
 
 func (x *UpsertScoreMultiLeaderboardsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[26]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1669,7 +1704,7 @@ func (x *UpsertScoreMultiLeaderboardsRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use UpsertScoreMultiLeaderboardsRequest.ProtoReflect.Descriptor instead.
 func (*UpsertScoreMultiLeaderboardsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{26}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *UpsertScoreMultiLeaderboardsRequest) GetMemberPublicId() string {
@@ -1679,9 +1714,9 @@ func (x *UpsertScoreMultiLeaderboardsRequest) GetMemberPublicId() string {
 	return ""
 }
 
-func (x *UpsertScoreMultiLeaderboardsRequest) GetScoreTTL() int32 {
+func (x *UpsertScoreMultiLeaderboardsRequest) GetScoreTtl() int32 {
 	if x != nil {
-		return x.ScoreTTL
+		return x.ScoreTtl
 	}
 	return 0
 }
@@ -1710,7 +1745,7 @@ type UpsertScoreMultiLeaderboardsResponse struct {
 
 func (x *UpsertScoreMultiLeaderboardsResponse) Reset() {
 	*x = UpsertScoreMultiLeaderboardsResponse{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[27]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1722,7 +1757,7 @@ func (x *UpsertScoreMultiLeaderboardsResponse) String() string {
 func (*UpsertScoreMultiLeaderboardsResponse) ProtoMessage() {}
 
 func (x *UpsertScoreMultiLeaderboardsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[27]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1735,7 +1770,7 @@ func (x *UpsertScoreMultiLeaderboardsResponse) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use UpsertScoreMultiLeaderboardsResponse.ProtoReflect.Descriptor instead.
 func (*UpsertScoreMultiLeaderboardsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{27}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *UpsertScoreMultiLeaderboardsResponse) GetSuccess() bool {
@@ -1757,14 +1792,14 @@ type GetRankMultiLeaderboardsRequest struct {
 	MemberPublicId string                 `protobuf:"bytes,1,opt,name=member_public_id,json=memberPublicId,proto3" json:"member_public_id,omitempty"`
 	LeaderboardIds string                 `protobuf:"bytes,2,opt,name=leaderboard_ids,json=leaderboardIds,proto3" json:"leaderboard_ids,omitempty"`
 	Order          string                 `protobuf:"bytes,3,opt,name=order,proto3" json:"order,omitempty"`
-	ScoreTTL       bool                   `protobuf:"varint,4,opt,name=scoreTTL,proto3" json:"scoreTTL,omitempty"`
+	ScoreTtl       bool                   `protobuf:"varint,4,opt,name=score_ttl,json=scoreTtl,proto3" json:"score_ttl,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
 
 func (x *GetRankMultiLeaderboardsRequest) Reset() {
 	*x = GetRankMultiLeaderboardsRequest{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[28]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1776,7 +1811,7 @@ func (x *GetRankMultiLeaderboardsRequest) String() string {
 func (*GetRankMultiLeaderboardsRequest) ProtoMessage() {}
 
 func (x *GetRankMultiLeaderboardsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[28]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1789,7 +1824,7 @@ func (x *GetRankMultiLeaderboardsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRankMultiLeaderboardsRequest.ProtoReflect.Descriptor instead.
 func (*GetRankMultiLeaderboardsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{28}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *GetRankMultiLeaderboardsRequest) GetMemberPublicId() string {
@@ -1813,9 +1848,9 @@ func (x *GetRankMultiLeaderboardsRequest) GetOrder() string {
 	return ""
 }
 
-func (x *GetRankMultiLeaderboardsRequest) GetScoreTTL() bool {
+func (x *GetRankMultiLeaderboardsRequest) GetScoreTtl() bool {
 	if x != nil {
-		return x.ScoreTTL
+		return x.ScoreTtl
 	}
 	return false
 }
@@ -1830,7 +1865,7 @@ type GetRankMultiLeaderboardsResponse struct {
 
 func (x *GetRankMultiLeaderboardsResponse) Reset() {
 	*x = GetRankMultiLeaderboardsResponse{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[29]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1842,7 +1877,7 @@ func (x *GetRankMultiLeaderboardsResponse) String() string {
 func (*GetRankMultiLeaderboardsResponse) ProtoMessage() {}
 
 func (x *GetRankMultiLeaderboardsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[29]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1855,7 +1890,7 @@ func (x *GetRankMultiLeaderboardsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRankMultiLeaderboardsResponse.ProtoReflect.Descriptor instead.
 func (*GetRankMultiLeaderboardsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{29}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *GetRankMultiLeaderboardsResponse) GetSuccess() bool {
@@ -1884,7 +1919,7 @@ type GetAroundScoreRequest struct {
 
 func (x *GetAroundScoreRequest) Reset() {
 	*x = GetAroundScoreRequest{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[30]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1896,7 +1931,7 @@ func (x *GetAroundScoreRequest) String() string {
 func (*GetAroundScoreRequest) ProtoMessage() {}
 
 func (x *GetAroundScoreRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[30]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1909,7 +1944,7 @@ func (x *GetAroundScoreRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAroundScoreRequest.ProtoReflect.Descriptor instead.
 func (*GetAroundScoreRequest) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{30}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *GetAroundScoreRequest) GetLeaderboardId() string {
@@ -1950,7 +1985,7 @@ type BulkUpsertScoresResponse struct {
 
 func (x *BulkUpsertScoresResponse) Reset() {
 	*x = BulkUpsertScoresResponse{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[31]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1962,7 +1997,7 @@ func (x *BulkUpsertScoresResponse) String() string {
 func (*BulkUpsertScoresResponse) ProtoMessage() {}
 
 func (x *BulkUpsertScoresResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[31]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1975,7 +2010,7 @@ func (x *BulkUpsertScoresResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BulkUpsertScoresResponse.ProtoReflect.Descriptor instead.
 func (*BulkUpsertScoresResponse) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{31}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *BulkUpsertScoresResponse) GetSuccess() bool {
@@ -2002,7 +2037,7 @@ type GetAroundMemberResponse struct {
 
 func (x *GetAroundMemberResponse) Reset() {
 	*x = GetAroundMemberResponse{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[32]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2014,7 +2049,7 @@ func (x *GetAroundMemberResponse) String() string {
 func (*GetAroundMemberResponse) ProtoMessage() {}
 
 func (x *GetAroundMemberResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[32]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2027,7 +2062,7 @@ func (x *GetAroundMemberResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAroundMemberResponse.ProtoReflect.Descriptor instead.
 func (*GetAroundMemberResponse) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{32}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *GetAroundMemberResponse) GetSuccess() bool {
@@ -2054,7 +2089,7 @@ type GetAroundScoreResponse struct {
 
 func (x *GetAroundScoreResponse) Reset() {
 	*x = GetAroundScoreResponse{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[33]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2066,7 +2101,7 @@ func (x *GetAroundScoreResponse) String() string {
 func (*GetAroundScoreResponse) ProtoMessage() {}
 
 func (x *GetAroundScoreResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[33]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2079,7 +2114,7 @@ func (x *GetAroundScoreResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAroundScoreResponse.ProtoReflect.Descriptor instead.
 func (*GetAroundScoreResponse) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{33}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *GetAroundScoreResponse) GetSuccess() bool {
@@ -2106,7 +2141,7 @@ type GetTopMembersResponse struct {
 
 func (x *GetTopMembersResponse) Reset() {
 	*x = GetTopMembersResponse{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[34]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2118,7 +2153,7 @@ func (x *GetTopMembersResponse) String() string {
 func (*GetTopMembersResponse) ProtoMessage() {}
 
 func (x *GetTopMembersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[34]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2131,7 +2166,7 @@ func (x *GetTopMembersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTopMembersResponse.ProtoReflect.Descriptor instead.
 func (*GetTopMembersResponse) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{34}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *GetTopMembersResponse) GetSuccess() bool {
@@ -2158,7 +2193,7 @@ type GetTopPercentageResponse struct {
 
 func (x *GetTopPercentageResponse) Reset() {
 	*x = GetTopPercentageResponse{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[35]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2170,7 +2205,7 @@ func (x *GetTopPercentageResponse) String() string {
 func (*GetTopPercentageResponse) ProtoMessage() {}
 
 func (x *GetTopPercentageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[35]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2183,7 +2218,7 @@ func (x *GetTopPercentageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTopPercentageResponse.ProtoReflect.Descriptor instead.
 func (*GetTopPercentageResponse) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{35}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *GetTopPercentageResponse) GetSuccess() bool {
@@ -2202,9 +2237,8 @@ func (x *GetTopPercentageResponse) GetMembers() []*Member {
 
 // MemberScore allow to provide score information about a single member.
 type BulkUpsertScoresRequest_MemberScore struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// TODO: use json_name on variables like this to respect .proto naming format.
-	PublicID string `protobuf:"bytes,1,opt,name=publicID,proto3" json:"publicID,omitempty"`
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	PublicId string                 `protobuf:"bytes,1,opt,name=public_id,json=publicId,proto3" json:"public_id,omitempty"`
 	// Score can store integer values from -9007199254740992 and 9007199254740992.
 	// Although the score type is double, internally the service converts this number to a int64 format.
 	Score         float64 `protobuf:"fixed64,2,opt,name=score,proto3" json:"score,omitempty"`
@@ -2214,7 +2248,7 @@ type BulkUpsertScoresRequest_MemberScore struct {
 
 func (x *BulkUpsertScoresRequest_MemberScore) Reset() {
 	*x = BulkUpsertScoresRequest_MemberScore{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[36]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2226,7 +2260,7 @@ func (x *BulkUpsertScoresRequest_MemberScore) String() string {
 func (*BulkUpsertScoresRequest_MemberScore) ProtoMessage() {}
 
 func (x *BulkUpsertScoresRequest_MemberScore) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[36]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2239,12 +2273,12 @@ func (x *BulkUpsertScoresRequest_MemberScore) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use BulkUpsertScoresRequest_MemberScore.ProtoReflect.Descriptor instead.
 func (*BulkUpsertScoresRequest_MemberScore) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{4, 0}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{5, 0}
 }
 
-func (x *BulkUpsertScoresRequest_MemberScore) GetPublicID() string {
+func (x *BulkUpsertScoresRequest_MemberScore) GetPublicId() string {
 	if x != nil {
-		return x.PublicID
+		return x.PublicId
 	}
 	return ""
 }
@@ -2266,7 +2300,7 @@ type BulkUpsertScoresRequest_MemberScores struct {
 
 func (x *BulkUpsertScoresRequest_MemberScores) Reset() {
 	*x = BulkUpsertScoresRequest_MemberScores{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[37]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2278,7 +2312,7 @@ func (x *BulkUpsertScoresRequest_MemberScores) String() string {
 func (*BulkUpsertScoresRequest_MemberScores) ProtoMessage() {}
 
 func (x *BulkUpsertScoresRequest_MemberScores) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[37]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2291,7 +2325,7 @@ func (x *BulkUpsertScoresRequest_MemberScores) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use BulkUpsertScoresRequest_MemberScores.ProtoReflect.Descriptor instead.
 func (*BulkUpsertScoresRequest_MemberScores) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{4, 1}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{5, 1}
 }
 
 func (x *BulkUpsertScoresRequest_MemberScores) GetMembers() []*BulkUpsertScoresRequest_MemberScore {
@@ -2311,7 +2345,7 @@ type UpsertScoreRequest_ScoreChange struct {
 
 func (x *UpsertScoreRequest_ScoreChange) Reset() {
 	*x = UpsertScoreRequest_ScoreChange{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[39]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2323,7 +2357,7 @@ func (x *UpsertScoreRequest_ScoreChange) String() string {
 func (*UpsertScoreRequest_ScoreChange) ProtoMessage() {}
 
 func (x *UpsertScoreRequest_ScoreChange) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[39]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2336,7 +2370,7 @@ func (x *UpsertScoreRequest_ScoreChange) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpsertScoreRequest_ScoreChange.ProtoReflect.Descriptor instead.
 func (*UpsertScoreRequest_ScoreChange) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{6, 0}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{7, 0}
 }
 
 func (x *UpsertScoreRequest_ScoreChange) GetScore() float64 {
@@ -2356,7 +2390,7 @@ type IncrementScoreRequest_Body struct {
 
 func (x *IncrementScoreRequest_Body) Reset() {
 	*x = IncrementScoreRequest_Body{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[40]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2368,7 +2402,7 @@ func (x *IncrementScoreRequest_Body) String() string {
 func (*IncrementScoreRequest_Body) ProtoMessage() {}
 
 func (x *IncrementScoreRequest_Body) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[40]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2381,7 +2415,7 @@ func (x *IncrementScoreRequest_Body) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IncrementScoreRequest_Body.ProtoReflect.Descriptor instead.
 func (*IncrementScoreRequest_Body) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{9, 0}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{10, 0}
 }
 
 func (x *IncrementScoreRequest_Body) GetIncrement() float64 {
@@ -2394,10 +2428,10 @@ func (x *IncrementScoreRequest_Body) GetIncrement() float64 {
 // Member information returned for GetMembers request.
 type GetMembersResponse_Member struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
-	PublicID string                 `protobuf:"bytes,1,opt,name=publicID,proto3" json:"publicID,omitempty"`
+	PublicId string                 `protobuf:"bytes,1,opt,name=public_id,json=publicId,proto3" json:"public_id,omitempty"`
 	Score    float64                `protobuf:"fixed64,2,opt,name=score,proto3" json:"score,omitempty"`
 	Rank     int32                  `protobuf:"varint,3,opt,name=rank,proto3" json:"rank,omitempty"`
-	// Unix timestamp of when the member's score will be erased (only if scoreTTL was requested).
+	// Unix timestamp of when the member's score will be erased (only if score_ttl was requested).
 	ExpireAt int32 `protobuf:"varint,5,opt,name=expire_at,json=expireAt,proto3" json:"expire_at,omitempty"`
 	// Member rank for all members returned in this request.
 	Position      int32             `protobuf:"varint,6,opt,name=position,proto3" json:"position,omitempty"`
@@ -2408,7 +2442,7 @@ type GetMembersResponse_Member struct {
 
 func (x *GetMembersResponse_Member) Reset() {
 	*x = GetMembersResponse_Member{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[41]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2420,7 +2454,7 @@ func (x *GetMembersResponse_Member) String() string {
 func (*GetMembersResponse_Member) ProtoMessage() {}
 
 func (x *GetMembersResponse_Member) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[41]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2433,12 +2467,12 @@ func (x *GetMembersResponse_Member) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMembersResponse_Member.ProtoReflect.Descriptor instead.
 func (*GetMembersResponse_Member) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{15, 0}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{16, 0}
 }
 
-func (x *GetMembersResponse_Member) GetPublicID() string {
+func (x *GetMembersResponse_Member) GetPublicId() string {
 	if x != nil {
-		return x.PublicID
+		return x.PublicId
 	}
 	return ""
 }
@@ -2489,7 +2523,7 @@ type UpsertScoreMultiLeaderboardsRequest_ScoreMultiChange struct {
 
 func (x *UpsertScoreMultiLeaderboardsRequest_ScoreMultiChange) Reset() {
 	*x = UpsertScoreMultiLeaderboardsRequest_ScoreMultiChange{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[43]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2501,7 +2535,7 @@ func (x *UpsertScoreMultiLeaderboardsRequest_ScoreMultiChange) String() string {
 func (*UpsertScoreMultiLeaderboardsRequest_ScoreMultiChange) ProtoMessage() {}
 
 func (x *UpsertScoreMultiLeaderboardsRequest_ScoreMultiChange) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[43]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2514,7 +2548,7 @@ func (x *UpsertScoreMultiLeaderboardsRequest_ScoreMultiChange) ProtoReflect() pr
 
 // Deprecated: Use UpsertScoreMultiLeaderboardsRequest_ScoreMultiChange.ProtoReflect.Descriptor instead.
 func (*UpsertScoreMultiLeaderboardsRequest_ScoreMultiChange) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{26, 0}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{27, 0}
 }
 
 func (x *UpsertScoreMultiLeaderboardsRequest_ScoreMultiChange) GetScore() float64 {
@@ -2534,21 +2568,21 @@ func (x *UpsertScoreMultiLeaderboardsRequest_ScoreMultiChange) GetLeaderboards()
 // Member represents the information regarding a single member in response to a multi upsert score.
 type UpsertScoreMultiLeaderboardsResponse_Member struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
-	PublicID string                 `protobuf:"bytes,1,opt,name=publicID,proto3" json:"publicID,omitempty"`
+	PublicId string                 `protobuf:"bytes,1,opt,name=public_id,json=publicId,proto3" json:"public_id,omitempty"`
 	Score    float64                `protobuf:"fixed64,2,opt,name=score,proto3" json:"score,omitempty"`
 	Rank     int32                  `protobuf:"varint,4,opt,name=rank,proto3" json:"rank,omitempty"`
 	// The previous rank of the player in the leaderboard, if requested.
 	PreviousRank int32 `protobuf:"varint,5,opt,name=previous_rank,json=previousRank,proto3" json:"previous_rank,omitempty"`
-	// Unix timestamp of when the member's score will be erased (only if scoreTTL was requested).
+	// Unix timestamp of when the member's score will be erased (only if score_ttl was requested).
 	ExpireAt      int32  `protobuf:"varint,6,opt,name=expire_at,json=expireAt,proto3" json:"expire_at,omitempty"`
-	LeaderboardID string `protobuf:"bytes,8,opt,name=leaderboardID,proto3" json:"leaderboardID,omitempty"`
+	LeaderboardId string `protobuf:"bytes,8,opt,name=leaderboard_id,json=leaderboardId,proto3" json:"leaderboard_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpsertScoreMultiLeaderboardsResponse_Member) Reset() {
 	*x = UpsertScoreMultiLeaderboardsResponse_Member{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[44]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2560,7 +2594,7 @@ func (x *UpsertScoreMultiLeaderboardsResponse_Member) String() string {
 func (*UpsertScoreMultiLeaderboardsResponse_Member) ProtoMessage() {}
 
 func (x *UpsertScoreMultiLeaderboardsResponse_Member) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[44]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2573,12 +2607,12 @@ func (x *UpsertScoreMultiLeaderboardsResponse_Member) ProtoReflect() protoreflec
 
 // Deprecated: Use UpsertScoreMultiLeaderboardsResponse_Member.ProtoReflect.Descriptor instead.
 func (*UpsertScoreMultiLeaderboardsResponse_Member) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{27, 0}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{28, 0}
 }
 
-func (x *UpsertScoreMultiLeaderboardsResponse_Member) GetPublicID() string {
+func (x *UpsertScoreMultiLeaderboardsResponse_Member) GetPublicId() string {
 	if x != nil {
-		return x.PublicID
+		return x.PublicId
 	}
 	return ""
 }
@@ -2611,9 +2645,9 @@ func (x *UpsertScoreMultiLeaderboardsResponse_Member) GetExpireAt() int32 {
 	return 0
 }
 
-func (x *UpsertScoreMultiLeaderboardsResponse_Member) GetLeaderboardID() string {
+func (x *UpsertScoreMultiLeaderboardsResponse_Member) GetLeaderboardId() string {
 	if x != nil {
-		return x.LeaderboardID
+		return x.LeaderboardId
 	}
 	return ""
 }
@@ -2621,7 +2655,7 @@ func (x *UpsertScoreMultiLeaderboardsResponse_Member) GetLeaderboardID() string 
 // Member represents member information retrieved from one the leaderboards during MultiGetRankResponse operation.
 type GetRankMultiLeaderboardsResponse_Member struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	LeaderboardID string                 `protobuf:"bytes,1,opt,name=leaderboardID,proto3" json:"leaderboardID,omitempty"`
+	LeaderboardId string                 `protobuf:"bytes,1,opt,name=leaderboard_id,json=leaderboardId,proto3" json:"leaderboard_id,omitempty"`
 	Rank          int32                  `protobuf:"varint,2,opt,name=rank,proto3" json:"rank,omitempty"`
 	Score         float64                `protobuf:"fixed64,3,opt,name=score,proto3" json:"score,omitempty"`
 	ExpireAt      int32                  `protobuf:"varint,5,opt,name=expire_at,json=expireAt,proto3" json:"expire_at,omitempty"`
@@ -2631,7 +2665,7 @@ type GetRankMultiLeaderboardsResponse_Member struct {
 
 func (x *GetRankMultiLeaderboardsResponse_Member) Reset() {
 	*x = GetRankMultiLeaderboardsResponse_Member{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[45]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2643,7 +2677,7 @@ func (x *GetRankMultiLeaderboardsResponse_Member) String() string {
 func (*GetRankMultiLeaderboardsResponse_Member) ProtoMessage() {}
 
 func (x *GetRankMultiLeaderboardsResponse_Member) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[45]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2656,12 +2690,12 @@ func (x *GetRankMultiLeaderboardsResponse_Member) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use GetRankMultiLeaderboardsResponse_Member.ProtoReflect.Descriptor instead.
 func (*GetRankMultiLeaderboardsResponse_Member) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{29, 0}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{30, 0}
 }
 
-func (x *GetRankMultiLeaderboardsResponse_Member) GetLeaderboardID() string {
+func (x *GetRankMultiLeaderboardsResponse_Member) GetLeaderboardId() string {
 	if x != nil {
-		return x.LeaderboardID
+		return x.LeaderboardId
 	}
 	return ""
 }
@@ -2690,12 +2724,12 @@ func (x *GetRankMultiLeaderboardsResponse_Member) GetExpireAt() int32 {
 // Member information returned for BulkUpsertScores request.
 type BulkUpsertScoresResponse_Member struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
-	PublicID string                 `protobuf:"bytes,1,opt,name=publicID,proto3" json:"publicID,omitempty"`
+	PublicId string                 `protobuf:"bytes,1,opt,name=public_id,json=publicId,proto3" json:"public_id,omitempty"`
 	Score    float64                `protobuf:"fixed64,2,opt,name=score,proto3" json:"score,omitempty"`
 	Rank     int32                  `protobuf:"varint,3,opt,name=rank,proto3" json:"rank,omitempty"`
 	// The previous rank of the player in the leaderboard, if requested.
 	PreviousRank int32 `protobuf:"varint,4,opt,name=previous_rank,json=previousRank,proto3" json:"previous_rank,omitempty"`
-	// Unix timestamp of when the member's score will be erased (only if scoreTTL was requested).
+	// Unix timestamp of when the member's score will be erased (only if score_ttl was requested).
 	ExpireAt      int32 `protobuf:"varint,5,opt,name=expire_at,json=expireAt,proto3" json:"expire_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -2703,7 +2737,7 @@ type BulkUpsertScoresResponse_Member struct {
 
 func (x *BulkUpsertScoresResponse_Member) Reset() {
 	*x = BulkUpsertScoresResponse_Member{}
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[46]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2715,7 +2749,7 @@ func (x *BulkUpsertScoresResponse_Member) String() string {
 func (*BulkUpsertScoresResponse_Member) ProtoMessage() {}
 
 func (x *BulkUpsertScoresResponse_Member) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_podium_api_v1_podium_proto_msgTypes[46]
+	mi := &file_podium_api_v1_podium_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2728,12 +2762,12 @@ func (x *BulkUpsertScoresResponse_Member) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BulkUpsertScoresResponse_Member.ProtoReflect.Descriptor instead.
 func (*BulkUpsertScoresResponse_Member) Descriptor() ([]byte, []int) {
-	return file_proto_podium_api_v1_podium_proto_rawDescGZIP(), []int{31, 0}
+	return file_podium_api_v1_podium_proto_rawDescGZIP(), []int{32, 0}
 }
 
-func (x *BulkUpsertScoresResponse_Member) GetPublicID() string {
+func (x *BulkUpsertScoresResponse_Member) GetPublicId() string {
 	if x != nil {
-		return x.PublicID
+		return x.PublicId
 	}
 	return ""
 }
@@ -2766,42 +2800,43 @@ func (x *BulkUpsertScoresResponse_Member) GetExpireAt() int32 {
 	return 0
 }
 
-var File_proto_podium_api_v1_podium_proto protoreflect.FileDescriptor
+var File_podium_api_v1_podium_proto protoreflect.FileDescriptor
 
-const file_proto_podium_api_v1_podium_proto_rawDesc = "" +
+const file_podium_api_v1_podium_proto_rawDesc = "" +
 	"\n" +
-	" proto/podium/api/v1/podium.proto\x12\rpodium.api.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\"\x14\n" +
+	"\x1apodium/api/v1/podium.proto\x12\rpodium.api.v1\x1a\x1cgoogle/api/annotations.proto\"\x14\n" +
 	"\x12HealthCheckRequest\"<\n" +
 	"\x13HealthCheckResponse\x12%\n" +
-	"\x0eworking_string\x18\x01 \x01(\tR\rworkingString\"/\n" +
+	"\x0eworking_string\x18\x01 \x01(\tR\rworkingString\"\x0f\n" +
+	"\rStatusRequest\"/\n" +
 	"\x0eStatusResponse\x12\x1d\n" +
 	"\n" +
 	"error_rate\x18\x01 \x01(\x01R\terrorRate\"A\n" +
 	"\x18RemoveLeaderboardRequest\x12%\n" +
-	"\x0eleaderboard_id\x18\x01 \x01(\tR\rleaderboardId\"\xf2\x02\n" +
+	"\x0eleaderboard_id\x18\x01 \x01(\tR\rleaderboardId\"\xf4\x02\n" +
 	"\x17BulkUpsertScoresRequest\x12%\n" +
 	"\x0eleaderboard_id\x18\x01 \x01(\tR\rleaderboardId\x12\x1b\n" +
-	"\tprev_rank\x18\x02 \x01(\bR\bprevRank\x12\x1a\n" +
-	"\bscoreTTL\x18\x03 \x01(\x05R\bscoreTTL\x12X\n" +
-	"\rmember_scores\x18\x04 \x01(\v23.podium.api.v1.BulkUpsertScoresRequest.MemberScoresR\fmemberScores\x1a?\n" +
-	"\vMemberScore\x12\x1a\n" +
-	"\bpublicID\x18\x01 \x01(\tR\bpublicID\x12\x14\n" +
+	"\tprev_rank\x18\x02 \x01(\bR\bprevRank\x12\x1b\n" +
+	"\tscore_ttl\x18\x03 \x01(\x05R\bscoreTtl\x12X\n" +
+	"\rmember_scores\x18\x04 \x01(\v23.podium.api.v1.BulkUpsertScoresRequest.MemberScoresR\fmemberScores\x1a@\n" +
+	"\vMemberScore\x12\x1b\n" +
+	"\tpublic_id\x18\x01 \x01(\tR\bpublicId\x12\x14\n" +
 	"\x05score\x18\x02 \x01(\x01R\x05score\x1a\\\n" +
 	"\fMemberScores\x12L\n" +
-	"\amembers\x18\x01 \x03(\v22.podium.api.v1.BulkUpsertScoresRequest.MemberScoreR\amembers\"\xcc\x01\n" +
-	"\x06Member\x12\x1a\n" +
-	"\bpublicID\x18\x01 \x01(\tR\bpublicID\x12\x14\n" +
+	"\amembers\x18\x01 \x03(\v22.podium.api.v1.BulkUpsertScoresRequest.MemberScoreR\amembers\"\xcd\x01\n" +
+	"\x06Member\x12\x1b\n" +
+	"\tpublic_id\x18\x01 \x01(\tR\bpublicId\x12\x14\n" +
 	"\x05score\x18\x02 \x01(\x01R\x05score\x12\x12\n" +
 	"\x04rank\x18\x03 \x01(\x05R\x04rank\x12?\n" +
 	"\bmetadata\x18\x04 \x03(\v2#.podium.api.v1.Member.MetadataEntryR\bmetadata\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x95\x02\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x96\x02\n" +
 	"\x12UpsertScoreRequest\x12%\n" +
 	"\x0eleaderboard_id\x18\x01 \x01(\tR\rleaderboardId\x12(\n" +
 	"\x10member_public_id\x18\x02 \x01(\tR\x0ememberPublicId\x12\x1b\n" +
-	"\tprev_rank\x18\x03 \x01(\bR\bprevRank\x12\x1a\n" +
-	"\bscoreTTL\x18\x04 \x01(\x05R\bscoreTTL\x12P\n" +
+	"\tprev_rank\x18\x03 \x01(\bR\bprevRank\x12\x1b\n" +
+	"\tscore_ttl\x18\x04 \x01(\x05R\bscoreTtl\x12P\n" +
 	"\fscore_change\x18\x05 \x01(\v2-.podium.api.v1.UpsertScoreRequest.ScoreChangeR\vscoreChange\x1a#\n" +
 	"\vScoreChange\x12\x14\n" +
 	"\x05score\x18\x01 \x01(\x01R\x05score\"<\n" +
@@ -2809,51 +2844,51 @@ const file_proto_podium_api_v1_podium_proto_rawDesc = "" +
 	"\x0eleaderboard_id\x18\x01 \x01(\tR\rleaderboardId\"F\n" +
 	"\x14TotalMembersResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x14\n" +
-	"\x05count\x18\x02 \x01(\x05R\x05count\"\xe9\x01\n" +
+	"\x05count\x18\x02 \x01(\x05R\x05count\"\xea\x01\n" +
 	"\x15IncrementScoreRequest\x12%\n" +
 	"\x0eleaderboard_id\x18\x01 \x01(\tR\rleaderboardId\x12(\n" +
-	"\x10member_public_id\x18\x02 \x01(\tR\x0ememberPublicId\x12\x1a\n" +
-	"\bscoreTTL\x18\x03 \x01(\x05R\bscoreTTL\x12=\n" +
+	"\x10member_public_id\x18\x02 \x01(\tR\x0ememberPublicId\x12\x1b\n" +
+	"\tscore_ttl\x18\x03 \x01(\x05R\bscoreTtl\x12=\n" +
 	"\x04body\x18\x04 \x01(\v2).podium.api.v1.IncrementScoreRequest.BodyR\x04body\x1a$\n" +
 	"\x04Body\x12\x1c\n" +
-	"\tincrement\x18\x01 \x01(\x01R\tincrement\"\x95\x01\n" +
+	"\tincrement\x18\x01 \x01(\x01R\tincrement\"\x96\x01\n" +
 	"\x10GetMemberRequest\x12%\n" +
 	"\x0eleaderboard_id\x18\x01 \x01(\tR\rleaderboardId\x12(\n" +
 	"\x10member_public_id\x18\x02 \x01(\tR\x0ememberPublicId\x12\x14\n" +
-	"\x05order\x18\x03 \x01(\tR\x05order\x12\x1a\n" +
-	"\bscoreTTL\x18\x04 \x01(\bR\bscoreTTL\"\xb7\x01\n" +
+	"\x05order\x18\x03 \x01(\tR\x05order\x12\x1b\n" +
+	"\tscore_ttl\x18\x04 \x01(\bR\bscoreTtl\"\xb8\x01\n" +
 	"\x13UpsertScoreResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x1a\n" +
-	"\bpublicID\x18\x02 \x01(\tR\bpublicID\x12\x14\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x1b\n" +
+	"\tpublic_id\x18\x02 \x01(\tR\bpublicId\x12\x14\n" +
 	"\x05score\x18\x03 \x01(\x01R\x05score\x12\x12\n" +
 	"\x04rank\x18\x04 \x01(\x05R\x04rank\x12#\n" +
 	"\rprevious_rank\x18\x05 \x01(\x05R\fpreviousRank\x12\x1b\n" +
-	"\texpire_at\x18\x06 \x01(\x05R\bexpireAt\"\xba\x01\n" +
+	"\texpire_at\x18\x06 \x01(\x05R\bexpireAt\"\xbb\x01\n" +
 	"\x16IncrementScoreResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x1a\n" +
-	"\bpublicID\x18\x02 \x01(\tR\bpublicID\x12\x14\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x1b\n" +
+	"\tpublic_id\x18\x02 \x01(\tR\bpublicId\x12\x14\n" +
 	"\x05score\x18\x03 \x01(\x01R\x05score\x12\x12\n" +
 	"\x04rank\x18\x04 \x01(\x05R\x04rank\x12#\n" +
 	"\rprevious_rank\x18\x05 \x01(\x05R\fpreviousRank\x12\x1b\n" +
-	"\texpire_at\x18\x06 \x01(\x05R\bexpireAt\"\xb5\x01\n" +
+	"\texpire_at\x18\x06 \x01(\x05R\bexpireAt\"\xb6\x01\n" +
 	"\x11GetMemberResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x1a\n" +
-	"\bpublicID\x18\x02 \x01(\tR\bpublicID\x12\x14\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x1b\n" +
+	"\tpublic_id\x18\x02 \x01(\tR\bpublicId\x12\x14\n" +
 	"\x05score\x18\x03 \x01(\x01R\x05score\x12\x12\n" +
 	"\x04rank\x18\x05 \x01(\x05R\x04rank\x12#\n" +
 	"\rprevious_rank\x18\x06 \x01(\x05R\fpreviousRank\x12\x1b\n" +
-	"\texpire_at\x18\a \x01(\x05R\bexpireAt\"~\n" +
+	"\texpire_at\x18\a \x01(\x05R\bexpireAt\"\x7f\n" +
 	"\x11GetMembersRequest\x12%\n" +
 	"\x0eleaderboard_id\x18\x01 \x01(\tR\rleaderboardId\x12\x14\n" +
-	"\x05order\x18\x02 \x01(\tR\x05order\x12\x1a\n" +
-	"\bscoreTTL\x18\x03 \x01(\bR\bscoreTTL\x12\x10\n" +
-	"\x03ids\x18\x04 \x01(\tR\x03ids\"\xaa\x03\n" +
+	"\x05order\x18\x02 \x01(\tR\x05order\x12\x1b\n" +
+	"\tscore_ttl\x18\x03 \x01(\bR\bscoreTtl\x12\x10\n" +
+	"\x03ids\x18\x04 \x01(\tR\x03ids\"\xab\x03\n" +
 	"\x12GetMembersResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12B\n" +
 	"\amembers\x18\x02 \x03(\v2(.podium.api.v1.GetMembersResponse.MemberR\amembers\x12\x1b\n" +
-	"\tnot_found\x18\x03 \x03(\tR\bnotFound\x1a\x98\x02\n" +
-	"\x06Member\x12\x1a\n" +
-	"\bpublicID\x18\x01 \x01(\tR\bpublicID\x12\x14\n" +
+	"\tnot_found\x18\x03 \x03(\tR\bnotFound\x1a\x99\x02\n" +
+	"\x06Member\x12\x1b\n" +
+	"\tpublic_id\x18\x01 \x01(\tR\bpublicId\x12\x14\n" +
 	"\x05score\x18\x02 \x01(\x01R\x05score\x12\x12\n" +
 	"\x04rank\x18\x03 \x01(\x05R\x04rank\x12\x1b\n" +
 	"\texpire_at\x18\x05 \x01(\x05R\bexpireAt\x12\x1a\n" +
@@ -2880,10 +2915,10 @@ const file_proto_podium_api_v1_podium_proto_rawDesc = "" +
 	"\x0eGetRankRequest\x12%\n" +
 	"\x0eleaderboard_id\x18\x01 \x01(\tR\rleaderboardId\x12(\n" +
 	"\x10member_public_id\x18\x02 \x01(\tR\x0ememberPublicId\x12\x14\n" +
-	"\x05order\x18\x03 \x01(\tR\x05order\"[\n" +
+	"\x05order\x18\x03 \x01(\tR\x05order\"\\\n" +
 	"\x0fGetRankResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x1a\n" +
-	"\bpublicID\x18\x02 \x01(\tR\bpublicID\x12\x12\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x1b\n" +
+	"\tpublic_id\x18\x02 \x01(\tR\bpublicId\x12\x12\n" +
 	"\x04rank\x18\x03 \x01(\x05R\x04rank\"\xce\x01\n" +
 	"\x16GetAroundMemberRequest\x12%\n" +
 	"\x0eleaderboard_id\x18\x01 \x01(\tR\rleaderboardId\x12(\n" +
@@ -2902,35 +2937,35 @@ const file_proto_podium_api_v1_podium_proto_rawDesc = "" +
 	"\n" +
 	"percentage\x18\x02 \x01(\x05R\n" +
 	"percentage\x12\x14\n" +
-	"\x05order\x18\x03 \x01(\tR\x05order\"\xc9\x02\n" +
+	"\x05order\x18\x03 \x01(\tR\x05order\"\xca\x02\n" +
 	"#UpsertScoreMultiLeaderboardsRequest\x12(\n" +
-	"\x10member_public_id\x18\x01 \x01(\tR\x0ememberPublicId\x12\x1a\n" +
-	"\bscoreTTL\x18\x02 \x01(\x05R\bscoreTTL\x12\x1b\n" +
+	"\x10member_public_id\x18\x01 \x01(\tR\x0ememberPublicId\x12\x1b\n" +
+	"\tscore_ttl\x18\x02 \x01(\x05R\bscoreTtl\x12\x1b\n" +
 	"\tprev_rank\x18\x03 \x01(\bR\bprevRank\x12q\n" +
 	"\x12score_multi_change\x18\x04 \x01(\v2C.podium.api.v1.UpsertScoreMultiLeaderboardsRequest.ScoreMultiChangeR\x10scoreMultiChange\x1aL\n" +
 	"\x10ScoreMultiChange\x12\x14\n" +
 	"\x05score\x18\x01 \x01(\x01R\x05score\x12\"\n" +
-	"\fleaderboards\x18\x02 \x03(\tR\fleaderboards\"\xcd\x02\n" +
+	"\fleaderboards\x18\x02 \x03(\tR\fleaderboards\"\xcf\x02\n" +
 	"$UpsertScoreMultiLeaderboardsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12R\n" +
-	"\x06scores\x18\x02 \x03(\v2:.podium.api.v1.UpsertScoreMultiLeaderboardsResponse.MemberR\x06scores\x1a\xb6\x01\n" +
-	"\x06Member\x12\x1a\n" +
-	"\bpublicID\x18\x01 \x01(\tR\bpublicID\x12\x14\n" +
+	"\x06scores\x18\x02 \x03(\v2:.podium.api.v1.UpsertScoreMultiLeaderboardsResponse.MemberR\x06scores\x1a\xb8\x01\n" +
+	"\x06Member\x12\x1b\n" +
+	"\tpublic_id\x18\x01 \x01(\tR\bpublicId\x12\x14\n" +
 	"\x05score\x18\x02 \x01(\x01R\x05score\x12\x12\n" +
 	"\x04rank\x18\x04 \x01(\x05R\x04rank\x12#\n" +
 	"\rprevious_rank\x18\x05 \x01(\x05R\fpreviousRank\x12\x1b\n" +
-	"\texpire_at\x18\x06 \x01(\x05R\bexpireAt\x12$\n" +
-	"\rleaderboardID\x18\b \x01(\tR\rleaderboardID\"\xa6\x01\n" +
+	"\texpire_at\x18\x06 \x01(\x05R\bexpireAt\x12%\n" +
+	"\x0eleaderboard_id\x18\b \x01(\tR\rleaderboardId\"\xa7\x01\n" +
 	"\x1fGetRankMultiLeaderboardsRequest\x12(\n" +
 	"\x10member_public_id\x18\x01 \x01(\tR\x0ememberPublicId\x12'\n" +
 	"\x0fleaderboard_ids\x18\x02 \x01(\tR\x0eleaderboardIds\x12\x14\n" +
-	"\x05order\x18\x03 \x01(\tR\x05order\x12\x1a\n" +
-	"\bscoreTTL\x18\x04 \x01(\bR\bscoreTTL\"\x83\x02\n" +
+	"\x05order\x18\x03 \x01(\tR\x05order\x12\x1b\n" +
+	"\tscore_ttl\x18\x04 \x01(\bR\bscoreTtl\"\x84\x02\n" +
 	" GetRankMultiLeaderboardsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12N\n" +
-	"\x06scores\x18\x02 \x03(\v26.podium.api.v1.GetRankMultiLeaderboardsResponse.MemberR\x06scores\x1au\n" +
-	"\x06Member\x12$\n" +
-	"\rleaderboardID\x18\x01 \x01(\tR\rleaderboardID\x12\x12\n" +
+	"\x06scores\x18\x02 \x03(\v26.podium.api.v1.GetRankMultiLeaderboardsResponse.MemberR\x06scores\x1av\n" +
+	"\x06Member\x12%\n" +
+	"\x0eleaderboard_id\x18\x01 \x01(\tR\rleaderboardId\x12\x12\n" +
 	"\x04rank\x18\x02 \x01(\x05R\x04rank\x12\x14\n" +
 	"\x05score\x18\x03 \x01(\x01R\x05score\x12\x1b\n" +
 	"\texpire_at\x18\x05 \x01(\x05R\bexpireAt\"\x87\x01\n" +
@@ -2938,12 +2973,12 @@ const file_proto_podium_api_v1_podium_proto_rawDesc = "" +
 	"\x0eleaderboard_id\x18\x01 \x01(\tR\rleaderboardId\x12\x14\n" +
 	"\x05score\x18\x02 \x01(\x01R\x05score\x12\x14\n" +
 	"\x05order\x18\x03 \x01(\tR\x05order\x12\x1b\n" +
-	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\x91\x02\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\x92\x02\n" +
 	"\x18BulkUpsertScoresResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12H\n" +
-	"\amembers\x18\x02 \x03(\v2..podium.api.v1.BulkUpsertScoresResponse.MemberR\amembers\x1a\x90\x01\n" +
-	"\x06Member\x12\x1a\n" +
-	"\bpublicID\x18\x01 \x01(\tR\bpublicID\x12\x14\n" +
+	"\amembers\x18\x02 \x03(\v2..podium.api.v1.BulkUpsertScoresResponse.MemberR\amembers\x1a\x91\x01\n" +
+	"\x06Member\x12\x1b\n" +
+	"\tpublic_id\x18\x01 \x01(\tR\bpublicId\x12\x14\n" +
 	"\x05score\x18\x02 \x01(\x01R\x05score\x12\x12\n" +
 	"\x04rank\x18\x03 \x01(\x05R\x04rank\x12#\n" +
 	"\rprevious_rank\x18\x04 \x01(\x05R\fpreviousRank\x12\x1b\n" +
@@ -2959,10 +2994,10 @@ const file_proto_podium_api_v1_podium_proto_rawDesc = "" +
 	"\amembers\x18\x02 \x03(\v2\x15.podium.api.v1.MemberR\amembers\"e\n" +
 	"\x18GetTopPercentageResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12/\n" +
-	"\amembers\x18\x02 \x03(\v2\x15.podium.api.v1.MemberR\amembers2\xeb\x13\n" +
-	"\x06Podium\x12T\n" +
-	"\vHealthCheck\x12!.podium.api.v1.HealthCheckRequest\x1a\".podium.api.v1.HealthCheckResponse\x12?\n" +
-	"\x06Status\x12\x16.google.protobuf.Empty\x1a\x1d.podium.api.v1.StatusResponse\x12\x83\x01\n" +
+	"\amembers\x18\x02 \x03(\v2\x15.podium.api.v1.MemberR\amembers2\xf8\x13\n" +
+	"\rPodiumService\x12T\n" +
+	"\vHealthCheck\x12!.podium.api.v1.HealthCheckRequest\x1a\".podium.api.v1.HealthCheckResponse\x12E\n" +
+	"\x06Status\x12\x1c.podium.api.v1.StatusRequest\x1a\x1d.podium.api.v1.StatusResponse\x12\x83\x01\n" +
 	"\x11RemoveLeaderboard\x12'.podium.api.v1.RemoveLeaderboardRequest\x1a(.podium.api.v1.RemoveLeaderboardResponse\"\x1b\x82\xd3\xe4\x93\x02\x15*\x13/l/{leaderboard_id}\x12\x96\x01\n" +
 	"\x10BulkUpsertScores\x12&.podium.api.v1.BulkUpsertScoresRequest\x1a'.podium.api.v1.BulkUpsertScoresResponse\"1\x82\xd3\xe4\x93\x02+:\rmember_scores\x1a\x1a/l/{leaderboard_id}/scores\x12\xa0\x01\n" +
 	"\vUpsertScore\x12!.podium.api.v1.UpsertScoreRequest\x1a\".podium.api.v1.UpsertScoreResponse\"J\x82\xd3\xe4\x93\x02D:\fscore_change\x1a4/l/{leaderboard_id}/members/{member_public_id}/score\x12\x82\x01\n" +
@@ -2983,120 +3018,120 @@ const file_proto_podium_api_v1_podium_proto_rawDesc = "" +
 	"\x1ecom.teneficgames.podium.api.v1B\vPodiumProtoP\x01Z6github.com/TeneficGames/podium/proto/podium/api/v1;api\xa2\x02\x03PAX\xaa\x02\rPodium.Api.V1b\x06proto3"
 
 var (
-	file_proto_podium_api_v1_podium_proto_rawDescOnce sync.Once
-	file_proto_podium_api_v1_podium_proto_rawDescData []byte
+	file_podium_api_v1_podium_proto_rawDescOnce sync.Once
+	file_podium_api_v1_podium_proto_rawDescData []byte
 )
 
-func file_proto_podium_api_v1_podium_proto_rawDescGZIP() []byte {
-	file_proto_podium_api_v1_podium_proto_rawDescOnce.Do(func() {
-		file_proto_podium_api_v1_podium_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_podium_api_v1_podium_proto_rawDesc), len(file_proto_podium_api_v1_podium_proto_rawDesc)))
+func file_podium_api_v1_podium_proto_rawDescGZIP() []byte {
+	file_podium_api_v1_podium_proto_rawDescOnce.Do(func() {
+		file_podium_api_v1_podium_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_podium_api_v1_podium_proto_rawDesc), len(file_podium_api_v1_podium_proto_rawDesc)))
 	})
-	return file_proto_podium_api_v1_podium_proto_rawDescData
+	return file_podium_api_v1_podium_proto_rawDescData
 }
 
-var file_proto_podium_api_v1_podium_proto_msgTypes = make([]protoimpl.MessageInfo, 47)
-var file_proto_podium_api_v1_podium_proto_goTypes = []any{
+var file_podium_api_v1_podium_proto_msgTypes = make([]protoimpl.MessageInfo, 48)
+var file_podium_api_v1_podium_proto_goTypes = []any{
 	(*HealthCheckRequest)(nil),                   // 0: podium.api.v1.HealthCheckRequest
 	(*HealthCheckResponse)(nil),                  // 1: podium.api.v1.HealthCheckResponse
-	(*StatusResponse)(nil),                       // 2: podium.api.v1.StatusResponse
-	(*RemoveLeaderboardRequest)(nil),             // 3: podium.api.v1.RemoveLeaderboardRequest
-	(*BulkUpsertScoresRequest)(nil),              // 4: podium.api.v1.BulkUpsertScoresRequest
-	(*Member)(nil),                               // 5: podium.api.v1.Member
-	(*UpsertScoreRequest)(nil),                   // 6: podium.api.v1.UpsertScoreRequest
-	(*TotalMembersRequest)(nil),                  // 7: podium.api.v1.TotalMembersRequest
-	(*TotalMembersResponse)(nil),                 // 8: podium.api.v1.TotalMembersResponse
-	(*IncrementScoreRequest)(nil),                // 9: podium.api.v1.IncrementScoreRequest
-	(*GetMemberRequest)(nil),                     // 10: podium.api.v1.GetMemberRequest
-	(*UpsertScoreResponse)(nil),                  // 11: podium.api.v1.UpsertScoreResponse
-	(*IncrementScoreResponse)(nil),               // 12: podium.api.v1.IncrementScoreResponse
-	(*GetMemberResponse)(nil),                    // 13: podium.api.v1.GetMemberResponse
-	(*GetMembersRequest)(nil),                    // 14: podium.api.v1.GetMembersRequest
-	(*GetMembersResponse)(nil),                   // 15: podium.api.v1.GetMembersResponse
-	(*RemoveMemberRequest)(nil),                  // 16: podium.api.v1.RemoveMemberRequest
-	(*RemoveMembersRequest)(nil),                 // 17: podium.api.v1.RemoveMembersRequest
-	(*RemoveLeaderboardResponse)(nil),            // 18: podium.api.v1.RemoveLeaderboardResponse
-	(*RemoveMemberResponse)(nil),                 // 19: podium.api.v1.RemoveMemberResponse
-	(*RemoveMembersResponse)(nil),                // 20: podium.api.v1.RemoveMembersResponse
-	(*GetRankRequest)(nil),                       // 21: podium.api.v1.GetRankRequest
-	(*GetRankResponse)(nil),                      // 22: podium.api.v1.GetRankResponse
-	(*GetAroundMemberRequest)(nil),               // 23: podium.api.v1.GetAroundMemberRequest
-	(*GetTopMembersRequest)(nil),                 // 24: podium.api.v1.GetTopMembersRequest
-	(*GetTopPercentageRequest)(nil),              // 25: podium.api.v1.GetTopPercentageRequest
-	(*UpsertScoreMultiLeaderboardsRequest)(nil),  // 26: podium.api.v1.UpsertScoreMultiLeaderboardsRequest
-	(*UpsertScoreMultiLeaderboardsResponse)(nil), // 27: podium.api.v1.UpsertScoreMultiLeaderboardsResponse
-	(*GetRankMultiLeaderboardsRequest)(nil),      // 28: podium.api.v1.GetRankMultiLeaderboardsRequest
-	(*GetRankMultiLeaderboardsResponse)(nil),     // 29: podium.api.v1.GetRankMultiLeaderboardsResponse
-	(*GetAroundScoreRequest)(nil),                // 30: podium.api.v1.GetAroundScoreRequest
-	(*BulkUpsertScoresResponse)(nil),             // 31: podium.api.v1.BulkUpsertScoresResponse
-	(*GetAroundMemberResponse)(nil),              // 32: podium.api.v1.GetAroundMemberResponse
-	(*GetAroundScoreResponse)(nil),               // 33: podium.api.v1.GetAroundScoreResponse
-	(*GetTopMembersResponse)(nil),                // 34: podium.api.v1.GetTopMembersResponse
-	(*GetTopPercentageResponse)(nil),             // 35: podium.api.v1.GetTopPercentageResponse
-	(*BulkUpsertScoresRequest_MemberScore)(nil),  // 36: podium.api.v1.BulkUpsertScoresRequest.MemberScore
-	(*BulkUpsertScoresRequest_MemberScores)(nil), // 37: podium.api.v1.BulkUpsertScoresRequest.MemberScores
-	nil,                                    // 38: podium.api.v1.Member.MetadataEntry
-	(*UpsertScoreRequest_ScoreChange)(nil), // 39: podium.api.v1.UpsertScoreRequest.ScoreChange
-	(*IncrementScoreRequest_Body)(nil),     // 40: podium.api.v1.IncrementScoreRequest.Body
-	(*GetMembersResponse_Member)(nil),      // 41: podium.api.v1.GetMembersResponse.Member
-	nil,                                    // 42: podium.api.v1.GetMembersResponse.Member.MetadataEntry
-	(*UpsertScoreMultiLeaderboardsRequest_ScoreMultiChange)(nil), // 43: podium.api.v1.UpsertScoreMultiLeaderboardsRequest.ScoreMultiChange
-	(*UpsertScoreMultiLeaderboardsResponse_Member)(nil),          // 44: podium.api.v1.UpsertScoreMultiLeaderboardsResponse.Member
-	(*GetRankMultiLeaderboardsResponse_Member)(nil),              // 45: podium.api.v1.GetRankMultiLeaderboardsResponse.Member
-	(*BulkUpsertScoresResponse_Member)(nil),                      // 46: podium.api.v1.BulkUpsertScoresResponse.Member
-	(*emptypb.Empty)(nil),                                        // 47: google.protobuf.Empty
+	(*StatusRequest)(nil),                        // 2: podium.api.v1.StatusRequest
+	(*StatusResponse)(nil),                       // 3: podium.api.v1.StatusResponse
+	(*RemoveLeaderboardRequest)(nil),             // 4: podium.api.v1.RemoveLeaderboardRequest
+	(*BulkUpsertScoresRequest)(nil),              // 5: podium.api.v1.BulkUpsertScoresRequest
+	(*Member)(nil),                               // 6: podium.api.v1.Member
+	(*UpsertScoreRequest)(nil),                   // 7: podium.api.v1.UpsertScoreRequest
+	(*TotalMembersRequest)(nil),                  // 8: podium.api.v1.TotalMembersRequest
+	(*TotalMembersResponse)(nil),                 // 9: podium.api.v1.TotalMembersResponse
+	(*IncrementScoreRequest)(nil),                // 10: podium.api.v1.IncrementScoreRequest
+	(*GetMemberRequest)(nil),                     // 11: podium.api.v1.GetMemberRequest
+	(*UpsertScoreResponse)(nil),                  // 12: podium.api.v1.UpsertScoreResponse
+	(*IncrementScoreResponse)(nil),               // 13: podium.api.v1.IncrementScoreResponse
+	(*GetMemberResponse)(nil),                    // 14: podium.api.v1.GetMemberResponse
+	(*GetMembersRequest)(nil),                    // 15: podium.api.v1.GetMembersRequest
+	(*GetMembersResponse)(nil),                   // 16: podium.api.v1.GetMembersResponse
+	(*RemoveMemberRequest)(nil),                  // 17: podium.api.v1.RemoveMemberRequest
+	(*RemoveMembersRequest)(nil),                 // 18: podium.api.v1.RemoveMembersRequest
+	(*RemoveLeaderboardResponse)(nil),            // 19: podium.api.v1.RemoveLeaderboardResponse
+	(*RemoveMemberResponse)(nil),                 // 20: podium.api.v1.RemoveMemberResponse
+	(*RemoveMembersResponse)(nil),                // 21: podium.api.v1.RemoveMembersResponse
+	(*GetRankRequest)(nil),                       // 22: podium.api.v1.GetRankRequest
+	(*GetRankResponse)(nil),                      // 23: podium.api.v1.GetRankResponse
+	(*GetAroundMemberRequest)(nil),               // 24: podium.api.v1.GetAroundMemberRequest
+	(*GetTopMembersRequest)(nil),                 // 25: podium.api.v1.GetTopMembersRequest
+	(*GetTopPercentageRequest)(nil),              // 26: podium.api.v1.GetTopPercentageRequest
+	(*UpsertScoreMultiLeaderboardsRequest)(nil),  // 27: podium.api.v1.UpsertScoreMultiLeaderboardsRequest
+	(*UpsertScoreMultiLeaderboardsResponse)(nil), // 28: podium.api.v1.UpsertScoreMultiLeaderboardsResponse
+	(*GetRankMultiLeaderboardsRequest)(nil),      // 29: podium.api.v1.GetRankMultiLeaderboardsRequest
+	(*GetRankMultiLeaderboardsResponse)(nil),     // 30: podium.api.v1.GetRankMultiLeaderboardsResponse
+	(*GetAroundScoreRequest)(nil),                // 31: podium.api.v1.GetAroundScoreRequest
+	(*BulkUpsertScoresResponse)(nil),             // 32: podium.api.v1.BulkUpsertScoresResponse
+	(*GetAroundMemberResponse)(nil),              // 33: podium.api.v1.GetAroundMemberResponse
+	(*GetAroundScoreResponse)(nil),               // 34: podium.api.v1.GetAroundScoreResponse
+	(*GetTopMembersResponse)(nil),                // 35: podium.api.v1.GetTopMembersResponse
+	(*GetTopPercentageResponse)(nil),             // 36: podium.api.v1.GetTopPercentageResponse
+	(*BulkUpsertScoresRequest_MemberScore)(nil),  // 37: podium.api.v1.BulkUpsertScoresRequest.MemberScore
+	(*BulkUpsertScoresRequest_MemberScores)(nil), // 38: podium.api.v1.BulkUpsertScoresRequest.MemberScores
+	nil,                                    // 39: podium.api.v1.Member.MetadataEntry
+	(*UpsertScoreRequest_ScoreChange)(nil), // 40: podium.api.v1.UpsertScoreRequest.ScoreChange
+	(*IncrementScoreRequest_Body)(nil),     // 41: podium.api.v1.IncrementScoreRequest.Body
+	(*GetMembersResponse_Member)(nil),      // 42: podium.api.v1.GetMembersResponse.Member
+	nil,                                    // 43: podium.api.v1.GetMembersResponse.Member.MetadataEntry
+	(*UpsertScoreMultiLeaderboardsRequest_ScoreMultiChange)(nil), // 44: podium.api.v1.UpsertScoreMultiLeaderboardsRequest.ScoreMultiChange
+	(*UpsertScoreMultiLeaderboardsResponse_Member)(nil),          // 45: podium.api.v1.UpsertScoreMultiLeaderboardsResponse.Member
+	(*GetRankMultiLeaderboardsResponse_Member)(nil),              // 46: podium.api.v1.GetRankMultiLeaderboardsResponse.Member
+	(*BulkUpsertScoresResponse_Member)(nil),                      // 47: podium.api.v1.BulkUpsertScoresResponse.Member
 }
-var file_proto_podium_api_v1_podium_proto_depIdxs = []int32{
-	37, // 0: podium.api.v1.BulkUpsertScoresRequest.member_scores:type_name -> podium.api.v1.BulkUpsertScoresRequest.MemberScores
-	38, // 1: podium.api.v1.Member.metadata:type_name -> podium.api.v1.Member.MetadataEntry
-	39, // 2: podium.api.v1.UpsertScoreRequest.score_change:type_name -> podium.api.v1.UpsertScoreRequest.ScoreChange
-	40, // 3: podium.api.v1.IncrementScoreRequest.body:type_name -> podium.api.v1.IncrementScoreRequest.Body
-	41, // 4: podium.api.v1.GetMembersResponse.members:type_name -> podium.api.v1.GetMembersResponse.Member
-	43, // 5: podium.api.v1.UpsertScoreMultiLeaderboardsRequest.score_multi_change:type_name -> podium.api.v1.UpsertScoreMultiLeaderboardsRequest.ScoreMultiChange
-	44, // 6: podium.api.v1.UpsertScoreMultiLeaderboardsResponse.scores:type_name -> podium.api.v1.UpsertScoreMultiLeaderboardsResponse.Member
-	45, // 7: podium.api.v1.GetRankMultiLeaderboardsResponse.scores:type_name -> podium.api.v1.GetRankMultiLeaderboardsResponse.Member
-	46, // 8: podium.api.v1.BulkUpsertScoresResponse.members:type_name -> podium.api.v1.BulkUpsertScoresResponse.Member
-	5,  // 9: podium.api.v1.GetAroundMemberResponse.members:type_name -> podium.api.v1.Member
-	5,  // 10: podium.api.v1.GetAroundScoreResponse.members:type_name -> podium.api.v1.Member
-	5,  // 11: podium.api.v1.GetTopMembersResponse.members:type_name -> podium.api.v1.Member
-	5,  // 12: podium.api.v1.GetTopPercentageResponse.members:type_name -> podium.api.v1.Member
-	36, // 13: podium.api.v1.BulkUpsertScoresRequest.MemberScores.members:type_name -> podium.api.v1.BulkUpsertScoresRequest.MemberScore
-	42, // 14: podium.api.v1.GetMembersResponse.Member.metadata:type_name -> podium.api.v1.GetMembersResponse.Member.MetadataEntry
-	0,  // 15: podium.api.v1.Podium.HealthCheck:input_type -> podium.api.v1.HealthCheckRequest
-	47, // 16: podium.api.v1.Podium.Status:input_type -> google.protobuf.Empty
-	3,  // 17: podium.api.v1.Podium.RemoveLeaderboard:input_type -> podium.api.v1.RemoveLeaderboardRequest
-	4,  // 18: podium.api.v1.Podium.BulkUpsertScores:input_type -> podium.api.v1.BulkUpsertScoresRequest
-	6,  // 19: podium.api.v1.Podium.UpsertScore:input_type -> podium.api.v1.UpsertScoreRequest
-	7,  // 20: podium.api.v1.Podium.TotalMembers:input_type -> podium.api.v1.TotalMembersRequest
-	9,  // 21: podium.api.v1.Podium.IncrementScore:input_type -> podium.api.v1.IncrementScoreRequest
-	10, // 22: podium.api.v1.Podium.GetMember:input_type -> podium.api.v1.GetMemberRequest
-	14, // 23: podium.api.v1.Podium.GetMembers:input_type -> podium.api.v1.GetMembersRequest
-	16, // 24: podium.api.v1.Podium.RemoveMember:input_type -> podium.api.v1.RemoveMemberRequest
-	17, // 25: podium.api.v1.Podium.RemoveMembers:input_type -> podium.api.v1.RemoveMembersRequest
-	21, // 26: podium.api.v1.Podium.GetRank:input_type -> podium.api.v1.GetRankRequest
-	23, // 27: podium.api.v1.Podium.GetAroundMember:input_type -> podium.api.v1.GetAroundMemberRequest
-	30, // 28: podium.api.v1.Podium.GetAroundScore:input_type -> podium.api.v1.GetAroundScoreRequest
-	24, // 29: podium.api.v1.Podium.GetTopMembers:input_type -> podium.api.v1.GetTopMembersRequest
-	25, // 30: podium.api.v1.Podium.GetTopPercentage:input_type -> podium.api.v1.GetTopPercentageRequest
-	26, // 31: podium.api.v1.Podium.UpsertScoreMultiLeaderboards:input_type -> podium.api.v1.UpsertScoreMultiLeaderboardsRequest
-	28, // 32: podium.api.v1.Podium.GetRankMultiLeaderboards:input_type -> podium.api.v1.GetRankMultiLeaderboardsRequest
-	1,  // 33: podium.api.v1.Podium.HealthCheck:output_type -> podium.api.v1.HealthCheckResponse
-	2,  // 34: podium.api.v1.Podium.Status:output_type -> podium.api.v1.StatusResponse
-	18, // 35: podium.api.v1.Podium.RemoveLeaderboard:output_type -> podium.api.v1.RemoveLeaderboardResponse
-	31, // 36: podium.api.v1.Podium.BulkUpsertScores:output_type -> podium.api.v1.BulkUpsertScoresResponse
-	11, // 37: podium.api.v1.Podium.UpsertScore:output_type -> podium.api.v1.UpsertScoreResponse
-	8,  // 38: podium.api.v1.Podium.TotalMembers:output_type -> podium.api.v1.TotalMembersResponse
-	12, // 39: podium.api.v1.Podium.IncrementScore:output_type -> podium.api.v1.IncrementScoreResponse
-	13, // 40: podium.api.v1.Podium.GetMember:output_type -> podium.api.v1.GetMemberResponse
-	15, // 41: podium.api.v1.Podium.GetMembers:output_type -> podium.api.v1.GetMembersResponse
-	19, // 42: podium.api.v1.Podium.RemoveMember:output_type -> podium.api.v1.RemoveMemberResponse
-	20, // 43: podium.api.v1.Podium.RemoveMembers:output_type -> podium.api.v1.RemoveMembersResponse
-	22, // 44: podium.api.v1.Podium.GetRank:output_type -> podium.api.v1.GetRankResponse
-	32, // 45: podium.api.v1.Podium.GetAroundMember:output_type -> podium.api.v1.GetAroundMemberResponse
-	33, // 46: podium.api.v1.Podium.GetAroundScore:output_type -> podium.api.v1.GetAroundScoreResponse
-	34, // 47: podium.api.v1.Podium.GetTopMembers:output_type -> podium.api.v1.GetTopMembersResponse
-	35, // 48: podium.api.v1.Podium.GetTopPercentage:output_type -> podium.api.v1.GetTopPercentageResponse
-	27, // 49: podium.api.v1.Podium.UpsertScoreMultiLeaderboards:output_type -> podium.api.v1.UpsertScoreMultiLeaderboardsResponse
-	29, // 50: podium.api.v1.Podium.GetRankMultiLeaderboards:output_type -> podium.api.v1.GetRankMultiLeaderboardsResponse
+var file_podium_api_v1_podium_proto_depIdxs = []int32{
+	38, // 0: podium.api.v1.BulkUpsertScoresRequest.member_scores:type_name -> podium.api.v1.BulkUpsertScoresRequest.MemberScores
+	39, // 1: podium.api.v1.Member.metadata:type_name -> podium.api.v1.Member.MetadataEntry
+	40, // 2: podium.api.v1.UpsertScoreRequest.score_change:type_name -> podium.api.v1.UpsertScoreRequest.ScoreChange
+	41, // 3: podium.api.v1.IncrementScoreRequest.body:type_name -> podium.api.v1.IncrementScoreRequest.Body
+	42, // 4: podium.api.v1.GetMembersResponse.members:type_name -> podium.api.v1.GetMembersResponse.Member
+	44, // 5: podium.api.v1.UpsertScoreMultiLeaderboardsRequest.score_multi_change:type_name -> podium.api.v1.UpsertScoreMultiLeaderboardsRequest.ScoreMultiChange
+	45, // 6: podium.api.v1.UpsertScoreMultiLeaderboardsResponse.scores:type_name -> podium.api.v1.UpsertScoreMultiLeaderboardsResponse.Member
+	46, // 7: podium.api.v1.GetRankMultiLeaderboardsResponse.scores:type_name -> podium.api.v1.GetRankMultiLeaderboardsResponse.Member
+	47, // 8: podium.api.v1.BulkUpsertScoresResponse.members:type_name -> podium.api.v1.BulkUpsertScoresResponse.Member
+	6,  // 9: podium.api.v1.GetAroundMemberResponse.members:type_name -> podium.api.v1.Member
+	6,  // 10: podium.api.v1.GetAroundScoreResponse.members:type_name -> podium.api.v1.Member
+	6,  // 11: podium.api.v1.GetTopMembersResponse.members:type_name -> podium.api.v1.Member
+	6,  // 12: podium.api.v1.GetTopPercentageResponse.members:type_name -> podium.api.v1.Member
+	37, // 13: podium.api.v1.BulkUpsertScoresRequest.MemberScores.members:type_name -> podium.api.v1.BulkUpsertScoresRequest.MemberScore
+	43, // 14: podium.api.v1.GetMembersResponse.Member.metadata:type_name -> podium.api.v1.GetMembersResponse.Member.MetadataEntry
+	0,  // 15: podium.api.v1.PodiumService.HealthCheck:input_type -> podium.api.v1.HealthCheckRequest
+	2,  // 16: podium.api.v1.PodiumService.Status:input_type -> podium.api.v1.StatusRequest
+	4,  // 17: podium.api.v1.PodiumService.RemoveLeaderboard:input_type -> podium.api.v1.RemoveLeaderboardRequest
+	5,  // 18: podium.api.v1.PodiumService.BulkUpsertScores:input_type -> podium.api.v1.BulkUpsertScoresRequest
+	7,  // 19: podium.api.v1.PodiumService.UpsertScore:input_type -> podium.api.v1.UpsertScoreRequest
+	8,  // 20: podium.api.v1.PodiumService.TotalMembers:input_type -> podium.api.v1.TotalMembersRequest
+	10, // 21: podium.api.v1.PodiumService.IncrementScore:input_type -> podium.api.v1.IncrementScoreRequest
+	11, // 22: podium.api.v1.PodiumService.GetMember:input_type -> podium.api.v1.GetMemberRequest
+	15, // 23: podium.api.v1.PodiumService.GetMembers:input_type -> podium.api.v1.GetMembersRequest
+	17, // 24: podium.api.v1.PodiumService.RemoveMember:input_type -> podium.api.v1.RemoveMemberRequest
+	18, // 25: podium.api.v1.PodiumService.RemoveMembers:input_type -> podium.api.v1.RemoveMembersRequest
+	22, // 26: podium.api.v1.PodiumService.GetRank:input_type -> podium.api.v1.GetRankRequest
+	24, // 27: podium.api.v1.PodiumService.GetAroundMember:input_type -> podium.api.v1.GetAroundMemberRequest
+	31, // 28: podium.api.v1.PodiumService.GetAroundScore:input_type -> podium.api.v1.GetAroundScoreRequest
+	25, // 29: podium.api.v1.PodiumService.GetTopMembers:input_type -> podium.api.v1.GetTopMembersRequest
+	26, // 30: podium.api.v1.PodiumService.GetTopPercentage:input_type -> podium.api.v1.GetTopPercentageRequest
+	27, // 31: podium.api.v1.PodiumService.UpsertScoreMultiLeaderboards:input_type -> podium.api.v1.UpsertScoreMultiLeaderboardsRequest
+	29, // 32: podium.api.v1.PodiumService.GetRankMultiLeaderboards:input_type -> podium.api.v1.GetRankMultiLeaderboardsRequest
+	1,  // 33: podium.api.v1.PodiumService.HealthCheck:output_type -> podium.api.v1.HealthCheckResponse
+	3,  // 34: podium.api.v1.PodiumService.Status:output_type -> podium.api.v1.StatusResponse
+	19, // 35: podium.api.v1.PodiumService.RemoveLeaderboard:output_type -> podium.api.v1.RemoveLeaderboardResponse
+	32, // 36: podium.api.v1.PodiumService.BulkUpsertScores:output_type -> podium.api.v1.BulkUpsertScoresResponse
+	12, // 37: podium.api.v1.PodiumService.UpsertScore:output_type -> podium.api.v1.UpsertScoreResponse
+	9,  // 38: podium.api.v1.PodiumService.TotalMembers:output_type -> podium.api.v1.TotalMembersResponse
+	13, // 39: podium.api.v1.PodiumService.IncrementScore:output_type -> podium.api.v1.IncrementScoreResponse
+	14, // 40: podium.api.v1.PodiumService.GetMember:output_type -> podium.api.v1.GetMemberResponse
+	16, // 41: podium.api.v1.PodiumService.GetMembers:output_type -> podium.api.v1.GetMembersResponse
+	20, // 42: podium.api.v1.PodiumService.RemoveMember:output_type -> podium.api.v1.RemoveMemberResponse
+	21, // 43: podium.api.v1.PodiumService.RemoveMembers:output_type -> podium.api.v1.RemoveMembersResponse
+	23, // 44: podium.api.v1.PodiumService.GetRank:output_type -> podium.api.v1.GetRankResponse
+	33, // 45: podium.api.v1.PodiumService.GetAroundMember:output_type -> podium.api.v1.GetAroundMemberResponse
+	34, // 46: podium.api.v1.PodiumService.GetAroundScore:output_type -> podium.api.v1.GetAroundScoreResponse
+	35, // 47: podium.api.v1.PodiumService.GetTopMembers:output_type -> podium.api.v1.GetTopMembersResponse
+	36, // 48: podium.api.v1.PodiumService.GetTopPercentage:output_type -> podium.api.v1.GetTopPercentageResponse
+	28, // 49: podium.api.v1.PodiumService.UpsertScoreMultiLeaderboards:output_type -> podium.api.v1.UpsertScoreMultiLeaderboardsResponse
+	30, // 50: podium.api.v1.PodiumService.GetRankMultiLeaderboards:output_type -> podium.api.v1.GetRankMultiLeaderboardsResponse
 	33, // [33:51] is the sub-list for method output_type
 	15, // [15:33] is the sub-list for method input_type
 	15, // [15:15] is the sub-list for extension type_name
@@ -3104,26 +3139,26 @@ var file_proto_podium_api_v1_podium_proto_depIdxs = []int32{
 	0,  // [0:15] is the sub-list for field type_name
 }
 
-func init() { file_proto_podium_api_v1_podium_proto_init() }
-func file_proto_podium_api_v1_podium_proto_init() {
-	if File_proto_podium_api_v1_podium_proto != nil {
+func init() { file_podium_api_v1_podium_proto_init() }
+func file_podium_api_v1_podium_proto_init() {
+	if File_podium_api_v1_podium_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_podium_api_v1_podium_proto_rawDesc), len(file_proto_podium_api_v1_podium_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_podium_api_v1_podium_proto_rawDesc), len(file_podium_api_v1_podium_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   47,
+			NumMessages:   48,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_proto_podium_api_v1_podium_proto_goTypes,
-		DependencyIndexes: file_proto_podium_api_v1_podium_proto_depIdxs,
-		MessageInfos:      file_proto_podium_api_v1_podium_proto_msgTypes,
+		GoTypes:           file_podium_api_v1_podium_proto_goTypes,
+		DependencyIndexes: file_podium_api_v1_podium_proto_depIdxs,
+		MessageInfos:      file_podium_api_v1_podium_proto_msgTypes,
 	}.Build()
-	File_proto_podium_api_v1_podium_proto = out.File
-	file_proto_podium_api_v1_podium_proto_goTypes = nil
-	file_proto_podium_api_v1_podium_proto_depIdxs = nil
+	File_podium_api_v1_podium_proto = out.File
+	file_podium_api_v1_podium_proto_goTypes = nil
+	file_podium_api_v1_podium_proto_depIdxs = nil
 }

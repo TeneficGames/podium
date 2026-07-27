@@ -12,7 +12,7 @@ MYIP = $(shell ifconfig | egrep inet | egrep -v inet6 | egrep -v 127.0.0.1 | awk
 OS = "$(shell uname | awk '{ print tolower($$0) }')"
 PROTOTOOL := go run github.com/uber/prototool/cmd/prototool
 LOCAL_GO_MODCACHE = $(shell go env | grep GOMODCACHE | cut -d "=" -f 2 | sed 's/"//g')
-BUF := go run github.com/bufbuild/buf/cmd/buf@v1.55.1
+BUF := go run github.com/bufbuild/buf/cmd/buf@v1.72.0
 MOCKGENERATE := go run go.uber.org/mock/mockgen@v0.6.0
 GOTESTSUM := go run gotest.tools/gotestsum@v1.13.0
 
@@ -21,7 +21,7 @@ help: Makefile ## Show list of commands
 	@echo ""
 	@awk 'BEGIN {FS = ":.*?## "} /[a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf "\033[36m%-40s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
 
-.PHONY: build coverage-check lint proto proto-setup proto-tools test test-client test-leaderboard test-podium test-unit
+.PHONY: build coverage-check lint proto proto-check proto-setup proto-tools test test-client test-leaderboard test-podium test-unit
 
 setup-hooks: ## Create pre-commit git hooks
 	@cd .git/hooks && ln -sf ../../hooks/pre-commit.sh pre-commit
@@ -139,6 +139,12 @@ proto-tools:
 	@go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.29.0
 	@go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.29.0
 
-proto: ## Generate protobuf files
+proto-check: proto-tools ## Lint and build protobuf schemas
+	@mkdir -p _build
+	@$(BUF) format -d --exit-code
+	@$(BUF) lint
+	@$(BUF) build -o _build/proto.binpb
+
+proto: proto-tools ## Generate protobuf files
 	@rm proto/podium/api/v1/*.go > /dev/null 2>&1 || true
 	@$(BUF) generate

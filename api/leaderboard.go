@@ -39,8 +39,8 @@ func validateBulkUpsertScoresRequest(req *api.BulkUpsertScoresRequest) error {
 	}
 
 	for _, m := range req.MemberScores.Members {
-		if m.PublicID == "" {
-			return status.Error(codes.InvalidArgument, "publicID is required")
+		if m.PublicId == "" {
+			return status.Error(codes.InvalidArgument, "publicId is required")
 		}
 	}
 	return nil
@@ -62,10 +62,10 @@ func (app *App) BulkUpsertScores(ctx context.Context, req *api.BulkUpsertScoresR
 	err := withSegment("Model", ctx, func() error {
 		lg.Debug("Setting member scores.")
 		for i, ms := range req.MemberScores.Members {
-			members[i] = &lmodel.Member{Score: int64(ms.Score), PublicID: ms.PublicID}
+			members[i] = &lmodel.Member{Score: int64(ms.Score), PublicID: ms.PublicId}
 		}
 
-		if err := app.Leaderboards.SetMembersScore(ctx, req.LeaderboardId, members, req.PrevRank, getScoreTTL(req.ScoreTTL)); err != nil {
+		if err := app.Leaderboards.SetMembersScore(ctx, req.LeaderboardId, members, req.PrevRank, getScoreTTL(req.ScoreTtl)); err != nil {
 			lg.Error("Setting member scores failed.", zap.Error(err))
 			app.AddError()
 			// TODO: Turn all these LeaderboardExpiredError verifications into a middleware
@@ -86,7 +86,7 @@ func (app *App) BulkUpsertScores(ctx context.Context, req *api.BulkUpsertScoresR
 
 	for i, m := range members {
 		responses[i] = &api.BulkUpsertScoresResponse_Member{
-			PublicID:     m.PublicID,
+			PublicId:     m.PublicID,
 			Score:        float64(m.Score),
 			Rank:         int32(m.Rank),
 			PreviousRank: int32(m.PreviousRank),
@@ -119,7 +119,7 @@ func (app *App) UpsertScore(ctx context.Context, req *api.UpsertScoreRequest) (*
 
 		var err error
 		member, err = app.Leaderboards.SetMemberScore(
-			ctx, req.LeaderboardId, req.MemberPublicId, int64(req.ScoreChange.Score), req.PrevRank, getScoreTTL(req.ScoreTTL))
+			ctx, req.LeaderboardId, req.MemberPublicId, int64(req.ScoreChange.Score), req.PrevRank, getScoreTTL(req.ScoreTtl))
 
 		if err != nil {
 			lg.Error("Setting member score failed.", zap.Error(err))
@@ -141,7 +141,7 @@ func (app *App) UpsertScore(ctx context.Context, req *api.UpsertScoreRequest) (*
 
 	return &api.UpsertScoreResponse{
 		Success:      true,
-		PublicID:     member.PublicID,
+		PublicId:     member.PublicID,
 		Score:        float64(member.Score),
 		Rank:         int32(member.Rank),
 		PreviousRank: int32(member.PreviousRank),
@@ -166,7 +166,7 @@ func (app *App) IncrementScore(ctx context.Context, req *api.IncrementScoreReque
 		var err error
 		lg.Debug("Incrementing member score.", zap.Int64("increment", int64(req.Body.Increment)))
 		member, err = app.Leaderboards.IncrementMemberScore(ctx, req.LeaderboardId, req.MemberPublicId,
-			int(req.Body.Increment), getScoreTTL(req.ScoreTTL))
+			int(req.Body.Increment), getScoreTTL(req.ScoreTtl))
 
 		if err != nil {
 			lg.Error("Member score increment failed.", zap.Error(err))
@@ -187,7 +187,7 @@ func (app *App) IncrementScore(ctx context.Context, req *api.IncrementScoreReque
 
 	return &api.IncrementScoreResponse{
 		Success:      true,
-		PublicID:     member.PublicID,
+		PublicId:     member.PublicID,
 		Score:        float64(member.Score),
 		Rank:         int32(member.Rank),
 		PreviousRank: int32(member.PreviousRank),
@@ -278,7 +278,7 @@ func (app *App) GetMember(ctx context.Context, req *api.GetMemberRequest) (*api.
 		var err error
 		lg.Debug("Getting member.")
 		// TODO: Add a NotFound error on the library
-		member, err = app.Leaderboards.GetMember(ctx, req.LeaderboardId, req.MemberPublicId, order, req.ScoreTTL)
+		member, err = app.Leaderboards.GetMember(ctx, req.LeaderboardId, req.MemberPublicId, order, req.ScoreTtl)
 		switch {
 		case err != nil && strings.HasPrefix(err.Error(), notFoundError):
 			lg.Debug("Member not found.", zap.Error(err))
@@ -298,7 +298,7 @@ func (app *App) GetMember(ctx context.Context, req *api.GetMemberRequest) (*api.
 
 	return &api.GetMemberResponse{
 		Success:      true,
-		PublicID:     member.PublicID,
+		PublicId:     member.PublicID,
 		Score:        float64(member.Score),
 		Rank:         int32(member.Rank),
 		PreviousRank: int32(member.PreviousRank),
@@ -340,7 +340,7 @@ func (app *App) GetRank(ctx context.Context, req *api.GetRankRequest) (*api.GetR
 
 	return &api.GetRankResponse{
 		Success:  true,
-		PublicID: req.MemberPublicId,
+		PublicId: req.MemberPublicId,
 		Rank:     int32(rank),
 	}, nil
 }
@@ -365,7 +365,7 @@ func (app *App) GetRankMultiLeaderboards(ctx context.Context, req *api.GetRankMu
 	err := withSegment("Model", ctx, func() error {
 		for i, leaderboardID := range leaderboardIDs {
 			lg.Debug("Getting member rank on leaderboard.", zap.String("leaderboard", leaderboardID))
-			member, err := app.Leaderboards.GetMember(ctx, leaderboardID, req.MemberPublicId, order, req.ScoreTTL)
+			member, err := app.Leaderboards.GetMember(ctx, leaderboardID, req.MemberPublicId, order, req.ScoreTtl)
 			if err != nil && strings.HasPrefix(err.Error(), notFoundError) {
 				lg.Debug("Member not found.", zap.Error(err))
 				app.AddError()
@@ -377,7 +377,7 @@ func (app *App) GetRankMultiLeaderboards(ctx context.Context, req *api.GetRankMu
 			}
 			lg.Debug("Getting member rank on leaderboard succeeded.")
 			serializedScores[i] = &api.GetRankMultiLeaderboardsResponse_Member{
-				LeaderboardID: leaderboardID,
+				LeaderboardId: leaderboardID,
 				Rank:          int32(member.Rank),
 				Score:         float64(member.Score),
 				ExpireAt:      int32(member.ExpireAt),
@@ -653,7 +653,7 @@ func newGetMembersResponseList(members []*lmodel.Member) []*api.GetMembersRespon
 	list := make([]*api.GetMembersResponse_Member, len(members))
 	for i, m := range members {
 		list[i] = &api.GetMembersResponse_Member{
-			PublicID: m.PublicID,
+			PublicId: m.PublicID,
 			Score:    float64(m.Score),
 			Rank:     int32(m.Rank),
 			ExpireAt: int32(m.ExpireAt),
@@ -684,7 +684,7 @@ func (app *App) GetMembers(ctx context.Context, req *api.GetMembersRequest) (*ap
 	err := withSegment("Model", ctx, func() error {
 		var err error
 		lg.Debug("Getting members.", zap.String("ids", req.Ids))
-		members, err = app.Leaderboards.GetMembers(ctx, req.LeaderboardId, memberIDs, order, req.ScoreTTL)
+		members, err = app.Leaderboards.GetMembers(ctx, req.LeaderboardId, memberIDs, order, req.ScoreTtl)
 
 		if err != nil {
 			lg.Error("Getting members failed.", zap.Error(err))
@@ -734,7 +734,7 @@ func newMemberRankResponseList(members []*lmodel.Member) []*api.Member {
 	list := make([]*api.Member, len(members))
 	for i, m := range members {
 		list[i] = &api.Member{
-			PublicID: m.PublicID,
+			PublicId: m.PublicID,
 			Score:    float64(m.Score),
 			Rank:     int32(m.Rank),
 			Metadata: m.Metadata,
@@ -763,7 +763,7 @@ func (app *App) UpsertScoreMultiLeaderboards(ctx context.Context, req *api.Upser
 				zap.Int64("score", int64(req.ScoreMultiChange.Score)))
 
 			member, err := app.Leaderboards.SetMemberScore(ctx, leaderboardID, req.MemberPublicId,
-				int64(req.ScoreMultiChange.Score), req.PrevRank, getScoreTTL(req.ScoreTTL))
+				int64(req.ScoreMultiChange.Score), req.PrevRank, getScoreTTL(req.ScoreTtl))
 
 			if err != nil {
 				lg.Error("Update score failed.", zap.Error(err))
@@ -771,12 +771,12 @@ func (app *App) UpsertScoreMultiLeaderboards(ctx context.Context, req *api.Upser
 				return err
 			}
 			serializedScore := &api.UpsertScoreMultiLeaderboardsResponse_Member{
-				PublicID:      member.PublicID,
+				PublicId:      member.PublicID,
 				Score:         float64(member.Score),
 				Rank:          int32(member.Rank),
 				PreviousRank:  int32(member.PreviousRank),
 				ExpireAt:      int32(member.ExpireAt),
-				LeaderboardID: leaderboardID,
+				LeaderboardId: leaderboardID,
 			}
 			serializedScores[i] = serializedScore
 		}

@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        (unknown)
-// source: leaderboard/enriching/proto/webhook/v1/podium_webhook.proto
+// source: webhook/v1/podium_webhook.proto
 
 package podium_leaderboard_webhooks_v1
 
@@ -32,7 +32,7 @@ type EnrichLeaderboardsRequest struct {
 
 func (x *EnrichLeaderboardsRequest) Reset() {
 	*x = EnrichLeaderboardsRequest{}
-	mi := &file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_msgTypes[0]
+	mi := &file_webhook_v1_podium_webhook_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -44,7 +44,7 @@ func (x *EnrichLeaderboardsRequest) String() string {
 func (*EnrichLeaderboardsRequest) ProtoMessage() {}
 
 func (x *EnrichLeaderboardsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_msgTypes[0]
+	mi := &file_webhook_v1_podium_webhook_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -57,7 +57,7 @@ func (x *EnrichLeaderboardsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnrichLeaderboardsRequest.ProtoReflect.Descriptor instead.
 func (*EnrichLeaderboardsRequest) Descriptor() ([]byte, []int) {
-	return file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_rawDescGZIP(), []int{0}
+	return file_webhook_v1_podium_webhook_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *EnrichLeaderboardsRequest) GetMembers() []*Member {
@@ -77,7 +77,7 @@ type EnrichLeaderboardsResponse struct {
 
 func (x *EnrichLeaderboardsResponse) Reset() {
 	*x = EnrichLeaderboardsResponse{}
-	mi := &file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_msgTypes[1]
+	mi := &file_webhook_v1_podium_webhook_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -89,7 +89,7 @@ func (x *EnrichLeaderboardsResponse) String() string {
 func (*EnrichLeaderboardsResponse) ProtoMessage() {}
 
 func (x *EnrichLeaderboardsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_msgTypes[1]
+	mi := &file_webhook_v1_podium_webhook_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -102,7 +102,7 @@ func (x *EnrichLeaderboardsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnrichLeaderboardsResponse.ProtoReflect.Descriptor instead.
 func (*EnrichLeaderboardsResponse) Descriptor() ([]byte, []int) {
-	return file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_rawDescGZIP(), []int{1}
+	return file_webhook_v1_podium_webhook_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *EnrichLeaderboardsResponse) GetMembers() []*Member {
@@ -115,7 +115,7 @@ func (x *EnrichLeaderboardsResponse) GetMembers() []*Member {
 type Member struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The leaderboard's ID.
-	LeaderboardId string `protobuf:"bytes,1,opt,name=leaderboardId,proto3" json:"leaderboardId,omitempty"`
+	LeaderboardId string `protobuf:"bytes,1,opt,name=leaderboard_id,json=leaderboardId,proto3" json:"leaderboard_id,omitempty"`
 	// The member's ID.
 	Id string `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
 	// The member's scores.
@@ -130,7 +130,7 @@ type Member struct {
 
 func (x *Member) Reset() {
 	*x = Member{}
-	mi := &file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_msgTypes[2]
+	mi := &file_webhook_v1_podium_webhook_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -142,7 +142,7 @@ func (x *Member) String() string {
 func (*Member) ProtoMessage() {}
 
 func (x *Member) ProtoReflect() protoreflect.Message {
-	mi := &file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_msgTypes[2]
+	mi := &file_webhook_v1_podium_webhook_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -155,7 +155,7 @@ func (x *Member) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Member.ProtoReflect.Descriptor instead.
 func (*Member) Descriptor() ([]byte, []int) {
-	return file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_rawDescGZIP(), []int{2}
+	return file_webhook_v1_podium_webhook_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Member) GetLeaderboardId() string {
@@ -203,7 +203,7 @@ type Score struct {
 
 func (x *Score) Reset() {
 	*x = Score{}
-	mi := &file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_msgTypes[3]
+	mi := &file_webhook_v1_podium_webhook_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -215,7 +215,7 @@ func (x *Score) String() string {
 func (*Score) ProtoMessage() {}
 
 func (x *Score) ProtoReflect() protoreflect.Message {
-	mi := &file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_msgTypes[3]
+	mi := &file_webhook_v1_podium_webhook_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -228,7 +228,7 @@ func (x *Score) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Score.ProtoReflect.Descriptor instead.
 func (*Score) Descriptor() ([]byte, []int) {
-	return file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_rawDescGZIP(), []int{3}
+	return file_webhook_v1_podium_webhook_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Score) GetValue() int64 {
@@ -238,56 +238,57 @@ func (x *Score) GetValue() int64 {
 	return 0
 }
 
-var File_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto protoreflect.FileDescriptor
+var File_webhook_v1_podium_webhook_proto protoreflect.FileDescriptor
 
-const file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_rawDesc = "" +
+const file_webhook_v1_podium_webhook_proto_rawDesc = "" +
 	"\n" +
-	";leaderboard/enriching/proto/webhook/v1/podium_webhook.proto\x1a\x1cgoogle/api/annotations.proto\">\n" +
-	"\x19EnrichLeaderboardsRequest\x12!\n" +
-	"\amembers\x18\x01 \x03(\v2\a.MemberR\amembers\"?\n" +
-	"\x1aEnrichLeaderboardsResponse\x12!\n" +
-	"\amembers\x18\x01 \x03(\v2\a.MemberR\amembers\"\xe2\x01\n" +
-	"\x06Member\x12$\n" +
-	"\rleaderboardId\x18\x01 \x01(\tR\rleaderboardId\x12\x0e\n" +
-	"\x02id\x18\x02 \x01(\tR\x02id\x12\x1e\n" +
-	"\x06scores\x18\x03 \x03(\v2\x06.ScoreR\x06scores\x12\x12\n" +
-	"\x04rank\x18\x04 \x01(\x05R\x04rank\x121\n" +
-	"\bmetadata\x18\x05 \x03(\v2\x15.Member.MetadataEntryR\bmetadata\x1a;\n" +
+	"\x1fwebhook/v1/podium_webhook.proto\x12\n" +
+	"webhook.v1\x1a\x1cgoogle/api/annotations.proto\"I\n" +
+	"\x19EnrichLeaderboardsRequest\x12,\n" +
+	"\amembers\x18\x01 \x03(\v2\x12.webhook.v1.MemberR\amembers\"J\n" +
+	"\x1aEnrichLeaderboardsResponse\x12,\n" +
+	"\amembers\x18\x01 \x03(\v2\x12.webhook.v1.MemberR\amembers\"\xf9\x01\n" +
+	"\x06Member\x12%\n" +
+	"\x0eleaderboard_id\x18\x01 \x01(\tR\rleaderboardId\x12\x0e\n" +
+	"\x02id\x18\x02 \x01(\tR\x02id\x12)\n" +
+	"\x06scores\x18\x03 \x03(\v2\x11.webhook.v1.ScoreR\x06scores\x12\x12\n" +
+	"\x04rank\x18\x04 \x01(\x05R\x04rank\x12<\n" +
+	"\bmetadata\x18\x05 \x03(\v2 .webhook.v1.Member.MetadataEntryR\bmetadata\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x1d\n" +
 	"\x05Score\x12\x14\n" +
-	"\x05value\x18\x01 \x01(\x03R\x05value2\x98\x01\n" +
-	"\x1dLeaderboardsEnrichmentService\x12w\n" +
-	"\x12EnrichLeaderboards\x12\x1a.EnrichLeaderboardsRequest\x1a\x1b.EnrichLeaderboardsResponse\"(\x82\xd3\xe4\x93\x02\":\amembers\"\x17/v1/leaderboards/enrichBfZdgithub.com/TeneficGames/podium/leaderboard/enriching/proto/webhook/v1;podium_leaderboard_webhooks_v1b\x06proto3"
+	"\x05value\x18\x01 \x01(\x03R\x05value2\xaf\x01\n" +
+	"\x1dLeaderboardsEnrichmentService\x12\x8d\x01\n" +
+	"\x12EnrichLeaderboards\x12%.webhook.v1.EnrichLeaderboardsRequest\x1a&.webhook.v1.EnrichLeaderboardsResponse\"(\x82\xd3\xe4\x93\x02\":\amembers\"\x17/v1/leaderboards/enrichBfZdgithub.com/TeneficGames/podium/leaderboard/enriching/proto/webhook/v1;podium_leaderboard_webhooks_v1b\x06proto3"
 
 var (
-	file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_rawDescOnce sync.Once
-	file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_rawDescData []byte
+	file_webhook_v1_podium_webhook_proto_rawDescOnce sync.Once
+	file_webhook_v1_podium_webhook_proto_rawDescData []byte
 )
 
-func file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_rawDescGZIP() []byte {
-	file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_rawDescOnce.Do(func() {
-		file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_rawDesc), len(file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_rawDesc)))
+func file_webhook_v1_podium_webhook_proto_rawDescGZIP() []byte {
+	file_webhook_v1_podium_webhook_proto_rawDescOnce.Do(func() {
+		file_webhook_v1_podium_webhook_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_webhook_v1_podium_webhook_proto_rawDesc), len(file_webhook_v1_podium_webhook_proto_rawDesc)))
 	})
-	return file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_rawDescData
+	return file_webhook_v1_podium_webhook_proto_rawDescData
 }
 
-var file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
-var file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_goTypes = []any{
-	(*EnrichLeaderboardsRequest)(nil),  // 0: EnrichLeaderboardsRequest
-	(*EnrichLeaderboardsResponse)(nil), // 1: EnrichLeaderboardsResponse
-	(*Member)(nil),                     // 2: Member
-	(*Score)(nil),                      // 3: Score
-	nil,                                // 4: Member.MetadataEntry
+var file_webhook_v1_podium_webhook_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_webhook_v1_podium_webhook_proto_goTypes = []any{
+	(*EnrichLeaderboardsRequest)(nil),  // 0: webhook.v1.EnrichLeaderboardsRequest
+	(*EnrichLeaderboardsResponse)(nil), // 1: webhook.v1.EnrichLeaderboardsResponse
+	(*Member)(nil),                     // 2: webhook.v1.Member
+	(*Score)(nil),                      // 3: webhook.v1.Score
+	nil,                                // 4: webhook.v1.Member.MetadataEntry
 }
-var file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_depIdxs = []int32{
-	2, // 0: EnrichLeaderboardsRequest.members:type_name -> Member
-	2, // 1: EnrichLeaderboardsResponse.members:type_name -> Member
-	3, // 2: Member.scores:type_name -> Score
-	4, // 3: Member.metadata:type_name -> Member.MetadataEntry
-	0, // 4: LeaderboardsEnrichmentService.EnrichLeaderboards:input_type -> EnrichLeaderboardsRequest
-	1, // 5: LeaderboardsEnrichmentService.EnrichLeaderboards:output_type -> EnrichLeaderboardsResponse
+var file_webhook_v1_podium_webhook_proto_depIdxs = []int32{
+	2, // 0: webhook.v1.EnrichLeaderboardsRequest.members:type_name -> webhook.v1.Member
+	2, // 1: webhook.v1.EnrichLeaderboardsResponse.members:type_name -> webhook.v1.Member
+	3, // 2: webhook.v1.Member.scores:type_name -> webhook.v1.Score
+	4, // 3: webhook.v1.Member.metadata:type_name -> webhook.v1.Member.MetadataEntry
+	0, // 4: webhook.v1.LeaderboardsEnrichmentService.EnrichLeaderboards:input_type -> webhook.v1.EnrichLeaderboardsRequest
+	1, // 5: webhook.v1.LeaderboardsEnrichmentService.EnrichLeaderboards:output_type -> webhook.v1.EnrichLeaderboardsResponse
 	5, // [5:6] is the sub-list for method output_type
 	4, // [4:5] is the sub-list for method input_type
 	4, // [4:4] is the sub-list for extension type_name
@@ -295,26 +296,26 @@ var file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_depIdxs = [
 	0, // [0:4] is the sub-list for field type_name
 }
 
-func init() { file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_init() }
-func file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_init() {
-	if File_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto != nil {
+func init() { file_webhook_v1_podium_webhook_proto_init() }
+func file_webhook_v1_podium_webhook_proto_init() {
+	if File_webhook_v1_podium_webhook_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_rawDesc), len(file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_webhook_v1_podium_webhook_proto_rawDesc), len(file_webhook_v1_podium_webhook_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_goTypes,
-		DependencyIndexes: file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_depIdxs,
-		MessageInfos:      file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_msgTypes,
+		GoTypes:           file_webhook_v1_podium_webhook_proto_goTypes,
+		DependencyIndexes: file_webhook_v1_podium_webhook_proto_depIdxs,
+		MessageInfos:      file_webhook_v1_podium_webhook_proto_msgTypes,
 	}.Build()
-	File_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto = out.File
-	file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_goTypes = nil
-	file_leaderboard_enriching_proto_webhook_v1_podium_webhook_proto_depIdxs = nil
+	File_webhook_v1_podium_webhook_proto = out.File
+	file_webhook_v1_podium_webhook_proto_goTypes = nil
+	file_webhook_v1_podium_webhook_proto_depIdxs = nil
 }
