@@ -133,6 +133,7 @@ The expected local/CI verification is:
 ```sh
 make setup
 make lint
+make test-unit
 make test
 make coverage
 ```
@@ -145,6 +146,8 @@ The review also checks:
 - `go mod verify` in all three modules.
 - `go test ./...` in all three modules.
 - `golangci-lint run ./...` in all three modules.
+- `govulncheck ./...` in all three modules.
+- Reproducible generated protobuf code.
 - `git diff --check`.
 - No remaining Raven, New Relic v1, OpenTracing, Jaeger client,
   `topfreegames/extensions`, or DogStatsD references.

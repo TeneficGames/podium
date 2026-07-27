@@ -20,7 +20,7 @@ help: Makefile ## Show list of commands
 	@echo ""
 	@awk 'BEGIN {FS = ":.*?## "} /[a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf "\033[36m%-40s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
 
-.PHONY: build proto
+.PHONY: build lint proto proto-setup proto-tools test test-client test-leaderboard test-podium test-unit
 
 setup-hooks: ## Create pre-commit git hooks
 	@cd .git/hooks && ln -sf ../../hooks/pre-commit.sh pre-commit
@@ -43,6 +43,11 @@ run: ## Execute the project
 	@go run main.go start
 
 test: test-podium test-leaderboard test-client ## Execute all tests
+
+test-unit: ## Execute Redis-independent unit tests
+	@go test ./cmd ./observability
+	@cd leaderboard && go test ./database ./enriching ./expiration ./service
+	@cd client && go test ./...
 
 test-podium: ## Execute all API tests
 	@go test -coverprofile=podium.coverprofile ./...
@@ -118,12 +123,14 @@ mock-generate:
 	$(MOCKGENERATE) -source=leaderboard/enriching/interfaces.go -destination=leaderboard/mocks/enriching.go
 	$(MOCKGENERATE) -source=leaderboard/database/expiration.go -destination=leaderboard/database/expiration_mock.go -package=database
 
-proto-setup:
+proto-setup: proto-tools
+	@$(BUF) dep update
+
+proto-tools:
 	@go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11
 	@go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.6.2
 	@go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.29.0
 	@go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.29.0
-	@$(BUF) dep update
 
 proto: ## Generate protobuf files
 	@rm proto/podium/api/v1/*.go > /dev/null 2>&1 || true

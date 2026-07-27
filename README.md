@@ -1,7 +1,7 @@
 # Podium
 
 [![Podium](https://github.com/TeneficGames/podium/actions/workflows/go.yml/badge.svg)](https://github.com/TeneficGames/podium/actions/workflows/go.yml)
-[![Coverage Status](https://coveralls.io/repos/github/TeneficGames/podium/badge.svg?branch=main)](https://coveralls.io/github/TeneficGames/podium?branch=main)
+[![codecov](https://codecov.io/gh/TeneficGames/podium/branch/main/graph/badge.svg)](https://codecov.io/gh/TeneficGames/podium)
 [![Go Report Card](https://goreportcard.com/badge/github.com/TeneficGames/podium)](https://goreportcard.com/report/github.com/TeneficGames/podium)
 [![Go Reference](https://pkg.go.dev/badge/github.com/TeneficGames/podium/leaderboard/v2.svg)](https://pkg.go.dev/github.com/TeneficGames/podium/leaderboard/v2)
 
