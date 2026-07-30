@@ -1,0 +1,17 @@
+apiVersion: v2
+name: podium
+description: High-performance, Redis-backed leaderboards for games and competitive applications.
+type: application
+version: 0.1.0
+appVersion: "1.0.5"
+home: https://github.com/TeneficGames/podium
+sources:
+  - https://github.com/TeneficGames/podium
+maintainers:
+  - name: trungdlp
+keywords:
+  - leaderboard
+  - redis
+  - grpc
+annotations:
+  artifacthub.io/license: MIT

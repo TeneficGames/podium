@@ -20,6 +20,7 @@ of independent leaderboards without provisioning each leaderboard in advance.
 
 [Quickstart](#quickstart) · [Performance](#performance) ·
 [API](docs/API.md) · [Documentation](docs/overview.md) ·
+[Helm chart](charts/podium/README.md) ·
 [Docker Hub](https://hub.docker.com/r/trungdlp/podium)
 
 ## Quickstart

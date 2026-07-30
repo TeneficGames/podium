@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "podium.fullname" . }}
+  labels:
+    {{- include "podium.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.service.httpPort }}
+      targetPort: http
+      protocol: TCP
+    - name: grpc
+      port: {{ .Values.service.grpcPort }}
+      targetPort: grpc
+      protocol: TCP
+  selector:
+    {{- include "podium.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+

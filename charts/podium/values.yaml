@@ -1,0 +1,170 @@
+replicaCount: 2
+
+image:
+  repository: trungdlp/podium
+  pullPolicy: IfNotPresent
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: false
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+reloader:
+  enabled: true
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+
+service:
+  type: ClusterIP
+  annotations: {}
+  httpPort: 80
+  grpcPort: 8881
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: podium.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+redis:
+  cluster:
+    enabled: false
+    addrs: []
+  host: redis
+  port: 6379
+  db: 0
+  password: ""
+  existingSecret:
+    name: ""
+    passwordKey: redis-password
+
+basicAuth:
+  enabled: false
+  username: ""
+  password: ""
+  existingSecret:
+    name: ""
+    usernameKey: username
+    passwordKey: password
+
+config:
+  maxReturnedMembers: 2000
+  maxReadBufferSize: 80240
+  gracePeriodMilliseconds: 5000
+  enrichment:
+    providers: ""
+    requestTimeout: 500ms
+    cache:
+      addr: ""
+      password: ""
+      ttl: 24h
+      existingSecret:
+        name: ""
+        passwordKey: enrichment-cache-password
+
+observability:
+  env: {}
+
+extraEnv: []
+extraEnvFrom: []
+extraObjects: []
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi
+
+startupProbe:
+  enabled: true
+  failureThreshold: 30
+  periodSeconds: 2
+  timeoutSeconds: 1
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 0
+  periodSeconds: 5
+  timeoutSeconds: 2
+  failureThreshold: 3
+  successThreshold: 1
+
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: ""
+  behavior: {}
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+  maxUnavailable: ""
+
+networkPolicy:
+  enabled: false
+  ingress: []
+  egress: []
+
+worker:
+  enabled: false
+  replicaCount: 1
+  expirationCheckInterval: 60s
+  expirationLimitPerRun: 1000
+  podAnnotations: {}
+  podLabels: {}
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+revisionHistoryLimit: 5
+terminationGracePeriodSeconds: 30
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway

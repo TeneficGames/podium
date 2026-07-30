@@ -1,0 +1,44 @@
+suite: API autoscaling
+templates:
+  - templates/hpa.yaml
+tests:
+  - it: does not render by default
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: targets the API deployment with CPU and memory metrics
+    set:
+      autoscaling.enabled: true
+      autoscaling.targetCPUUtilizationPercentage: 60
+      autoscaling.targetMemoryUtilizationPercentage: 75
+    asserts:
+      - isKind:
+          of: HorizontalPodAutoscaler
+      - equal:
+          path: spec.minReplicas
+          value: 2
+      - equal:
+          path: spec.maxReplicas
+          value: 10
+      - lengthEqual:
+          path: spec.metrics
+          count: 2
+
+  - it: rejects autoscaling without a target
+    set:
+      autoscaling.enabled: true
+      autoscaling.targetCPUUtilizationPercentage: ""
+      autoscaling.targetMemoryUtilizationPercentage: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: at least one autoscaling target must be configured when autoscaling.enabled=true
+
+  - it: rejects an inverted replica range
+    set:
+      autoscaling.enabled: true
+      autoscaling.minReplicas: 5
+      autoscaling.maxReplicas: 3
+    asserts:
+      - failedTemplate:
+          errorMessage: autoscaling.minReplicas must not exceed autoscaling.maxReplicas

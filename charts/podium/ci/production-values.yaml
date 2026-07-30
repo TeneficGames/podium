@@ -1,0 +1,41 @@
+image:
+  tag: "1.0.5"
+
+replicaCount: 3
+
+redis:
+  host: podium-redis-master.redis.svc.cluster.local
+  existingSecret:
+    name: podium-redis
+    passwordKey: redis-password
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 75
+
+worker:
+  enabled: true
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: podium.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: podium-tls
+      hosts:
+        - podium.example.com
+
+observability:
+  env:
+    OTEL_EXPORTER_OTLP_ENDPOINT: otel-collector.monitoring.svc.cluster.local:4317
+    OTEL_EXPORTER_OTLP_INSECURE: "true"
+    OTEL_TRACES_EXPORTER: otlp
+    OTEL_METRICS_EXPORTER: otlp
+

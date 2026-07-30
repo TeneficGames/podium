@@ -1,0 +1,19 @@
+Podium is available inside the cluster at:
+
+  HTTP: http://{{ include "podium.fullname" . }}:{{ .Values.service.httpPort }}
+  gRPC: {{ include "podium.fullname" . }}:{{ .Values.service.grpcPort }}
+
+Check the rollout:
+
+  kubectl rollout status deployment/{{ include "podium.fullname" . }} -n {{ .Release.Namespace }}
+
+Run the chart smoke test:
+
+  helm test {{ .Release.Name }} -n {{ .Release.Namespace }}
+
+{{- if not .Values.redis.cluster.enabled }}
+Podium is configured for standalone Redis at {{ .Values.redis.host }}:{{ .Values.redis.port }}.
+{{- else }}
+Podium is configured for Redis Cluster using: {{ join ", " .Values.redis.cluster.addrs }}.
+{{- end }}
+

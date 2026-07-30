@@ -1,0 +1,11 @@
+suite: Configuration validation
+templates:
+  - templates/validate.yaml
+tests:
+  - it: rejects cluster mode without a seed
+    set:
+      redis.cluster.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: redis.cluster.addrs must contain at least one seed when redis.cluster.enabled=true
+
