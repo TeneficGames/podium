@@ -10,10 +10,12 @@
 package cmd
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/TeneficGames/podium/api"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -76,7 +78,22 @@ func TestInitConfigUsesExplicitFile(t *testing.T) {
 }
 
 func TestVersionCommand(t *testing.T) {
-	versionCmd.Run(versionCmd, nil)
+	previousVersion := api.VERSION
+	api.VERSION = "1.2.3-test"
+	t.Cleanup(func() {
+		api.VERSION = previousVersion
+		versionCmd.SetOut(nil)
+	})
+
+	output := &bytes.Buffer{}
+	versionCmd.SetOut(output)
+	if err := versionCmd.RunE(versionCmd, nil); err != nil {
+		t.Fatalf("run version command: %v", err)
+	}
+
+	if got, want := output.String(), "Podium v1.2.3-test\n"; got != want {
+		t.Fatalf("version output = %q, want %q", got, want)
+	}
 }
 
 func TestStartCommandReturnsConfigurationError(t *testing.T) {

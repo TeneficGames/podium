@@ -342,6 +342,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ env.IMAGE_NAME }}:edge
+          build-args: |
+            VERSION=edge
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -389,5 +391,14 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+          build-args: |
+            VERSION=${{ steps.meta.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Verify release version
+        env:
+          RELEASE_VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          output="$(docker run --rm --entrypoint /podium "$IMAGE_NAME:$RELEASE_VERSION" version)"
+          test "$output" = "Podium v$RELEASE_VERSION"

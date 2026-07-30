@@ -9,5 +9,6 @@
 
 package api
 
-// VERSION identifies podium's current version
-var VERSION = "10.2.2"
+// VERSION identifies podium's current version. Release builds override it with
+// the version derived from the Git tag.
+var VERSION = "dev"
