@@ -13,6 +13,7 @@ import (
 
 var _ = Describe("Instrumented enrich cache Get tests", func() {
 	tenantID := "tenant-id"
+	leaderboardID := "leaderboard-id"
 	members := []*model.Member{
 		{
 			PublicID: "member1",
@@ -29,11 +30,11 @@ var _ = Describe("Instrumented enrich cache Get tests", func() {
 		ctrl := gomock.NewController(GinkgoT())
 		impl := mock_enriching.NewMockEnricherCache(ctrl)
 
-		impl.EXPECT().Get(gomock.Any(), tenantID, members).Return(result, true, nil)
+		impl.EXPECT().Get(gomock.Any(), tenantID, leaderboardID, members).Return(result, true, nil)
 
 		instrumentedCache, err := NewInstrumentedCache(impl)
 		Expect(err).NotTo(HaveOccurred())
-		res, hit, err := instrumentedCache.Get(context.Background(), tenantID, members)
+		res, hit, err := instrumentedCache.Get(context.Background(), tenantID, leaderboardID, members)
 
 		Expect(res).To(Equal(result))
 		Expect(hit).To(BeTrue())
@@ -44,11 +45,11 @@ var _ = Describe("Instrumented enrich cache Get tests", func() {
 		ctrl := gomock.NewController(GinkgoT())
 		impl := mock_enriching.NewMockEnricherCache(ctrl)
 
-		impl.EXPECT().Get(gomock.Any(), tenantID, members).Return(nil, false, nil)
+		impl.EXPECT().Get(gomock.Any(), tenantID, leaderboardID, members).Return(nil, false, nil)
 
 		instrumentedCache, err := NewInstrumentedCache(impl)
 		Expect(err).NotTo(HaveOccurred())
-		res, hit, err := instrumentedCache.Get(context.Background(), tenantID, members)
+		res, hit, err := instrumentedCache.Get(context.Background(), tenantID, leaderboardID, members)
 		Expect(res).To(BeNil())
 		Expect(hit).To(BeFalse())
 		Expect(err).To(BeNil())
@@ -58,11 +59,11 @@ var _ = Describe("Instrumented enrich cache Get tests", func() {
 		ctrl := gomock.NewController(GinkgoT())
 		impl := mock_enriching.NewMockEnricherCache(ctrl)
 
-		impl.EXPECT().Get(gomock.Any(), tenantID, members).Return(nil, false, errors.New("error"))
+		impl.EXPECT().Get(gomock.Any(), tenantID, leaderboardID, members).Return(nil, false, errors.New("error"))
 
 		instrumentedCache, err := NewInstrumentedCache(impl)
 		Expect(err).NotTo(HaveOccurred())
-		res, hit, err := instrumentedCache.Get(context.Background(), tenantID, members)
+		res, hit, err := instrumentedCache.Get(context.Background(), tenantID, leaderboardID, members)
 
 		Expect(res).To(BeNil())
 		Expect(hit).To(BeFalse())
@@ -72,6 +73,7 @@ var _ = Describe("Instrumented enrich cache Get tests", func() {
 
 var _ = Describe("Instrumented enrich cache Set tests", func() {
 	tenantID := "tenant-id"
+	leaderboardID := "leaderboard-id"
 	members := []*model.Member{
 		{
 			PublicID: "member1",
@@ -85,11 +87,11 @@ var _ = Describe("Instrumented enrich cache Set tests", func() {
 		ctrl := gomock.NewController(GinkgoT())
 		impl := mock_enriching.NewMockEnricherCache(ctrl)
 
-		impl.EXPECT().Set(gomock.Any(), tenantID, members, gomock.Any()).Return(nil)
+		impl.EXPECT().Set(gomock.Any(), tenantID, leaderboardID, members, gomock.Any()).Return(nil)
 
 		instrumentedCache, err := NewInstrumentedCache(impl)
 		Expect(err).NotTo(HaveOccurred())
-		err = instrumentedCache.Set(context.Background(), tenantID, members, 0)
+		err = instrumentedCache.Set(context.Background(), tenantID, leaderboardID, members, 0)
 
 		Expect(err).To(BeNil())
 	})
@@ -98,11 +100,11 @@ var _ = Describe("Instrumented enrich cache Set tests", func() {
 		ctrl := gomock.NewController(GinkgoT())
 		impl := mock_enriching.NewMockEnricherCache(ctrl)
 
-		impl.EXPECT().Set(gomock.Any(), tenantID, members, gomock.Any()).Return(errors.New("error"))
+		impl.EXPECT().Set(gomock.Any(), tenantID, leaderboardID, members, gomock.Any()).Return(errors.New("error"))
 
 		instrumentedCache, err := NewInstrumentedCache(impl)
 		Expect(err).NotTo(HaveOccurred())
-		err = instrumentedCache.Set(context.Background(), tenantID, members, 0)
+		err = instrumentedCache.Set(context.Background(), tenantID, leaderboardID, members, 0)
 
 		Expect(err).To(HaveOccurred())
 	})

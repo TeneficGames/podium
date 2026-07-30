@@ -2,8 +2,8 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
-	"strconv"
 	"strings"
 	"time"
 
@@ -33,17 +33,26 @@ type (
 	}
 
 	EnrichmentConfig struct {
-		// CloudSaveURL is the URL to call the Cloud Save service.
-		CloudSave CloudSaveConfig `mapstructure:"cloud_save"`
+		// Providers contains the HTTP enrichment provider configuration for each tenant.
+		Providers map[string]EnrichmentProviderConfig `mapstructure:"providers"`
 
-		// WebhookUrls contains the necessary parameters to call a webhook for a given game.
-		// The key should be the game tenantID.
-		WebhookUrls map[string]string `mapstructure:"webhook_urls"`
-
-		// WebhookTimeout is the timeout for the webhook call.
-		WebhookTimeout time.Duration `mapstructure:"webhook_timeout"`
+		// RequestTimeout is the timeout for enrichment provider calls.
+		RequestTimeout time.Duration `mapstructure:"request_timeout"`
 
 		Cache Cache `mapstructure:"cache"`
+	}
+
+	EnrichmentProviderConfig struct {
+		Endpoint string            `mapstructure:"endpoint" json:"endpoint"`
+		Headers  map[string]string `mapstructure:"headers" json:"headers"`
+		Mode     string            `mapstructure:"mode" json:"mode"`
+		Retry    RetryConfig       `mapstructure:"retry" json:"retry"`
+	}
+
+	RetryConfig struct {
+		MaxAttempts    int           `mapstructure:"max_attempts" json:"max_attempts"`
+		InitialBackoff time.Duration `mapstructure:"initial_backoff" json:"initial_backoff"`
+		MaxBackoff     time.Duration `mapstructure:"max_backoff" json:"max_backoff"`
 	}
 
 	Cache struct {
@@ -56,29 +65,20 @@ type (
 		// TTL is the time to live for the cached data.
 		TTL time.Duration `mapstructure:"ttl"`
 	}
-
-	CloudSaveConfig struct {
-		// Enabled indicates whether the Cloud Save service should be used for enrichment for each tenant.
-		Enabled map[string]bool `mapstructure:"enabled"`
-
-		// URL is the URL to call the Cloud Save service.
-		Url string `mapstructure:"url"`
-	}
 )
 
 func DecodeHook() viper.DecoderConfigOption {
 	decodeHook := mapstructure.ComposeDecodeHookFunc(
 		mapstructure.StringToTimeDurationHookFunc(),
 		mapstructure.StringToSliceHookFunc(","),
-		StringToMapStringHookFunc(),
-		StringToMapBoolHookFunc(),
+		StringToEnrichmentProvidersHookFunc(),
 	)
 
 	return viper.DecodeHook(decodeHook)
 
 }
 
-func StringToMapStringHookFunc() mapstructure.DecodeHookFunc {
+func StringToEnrichmentProvidersHookFunc() mapstructure.DecodeHookFunc {
 	return func(
 		f reflect.Type,
 		t reflect.Type,
@@ -88,55 +88,62 @@ func StringToMapStringHookFunc() mapstructure.DecodeHookFunc {
 			return data, nil
 		}
 
-		if t.Key().Kind() != reflect.String || t.Elem().Kind() != reflect.String {
+		providersType := reflect.TypeOf(map[string]EnrichmentProviderConfig{})
+		if t != providersType {
 			return data, nil
 		}
 
 		raw := data.(string)
 		if raw == "" {
-			return map[string]string{}, nil
+			return map[string]EnrichmentProviderConfig{}, nil
 		}
 
-		m := map[string]string{}
-		err := json.Unmarshal([]byte(raw), &m)
-		return m, err
+		wireProviders := map[string]struct {
+			Endpoint string            `json:"endpoint"`
+			Headers  map[string]string `json:"headers"`
+			Mode     string            `json:"mode"`
+			Retry    struct {
+				MaxAttempts    int    `json:"max_attempts"`
+				InitialBackoff string `json:"initial_backoff"`
+				MaxBackoff     string `json:"max_backoff"`
+			} `json:"retry"`
+		}{}
+		if err := json.Unmarshal([]byte(raw), &wireProviders); err != nil {
+			return map[string]EnrichmentProviderConfig{}, err
+		}
+
+		providers := make(map[string]EnrichmentProviderConfig, len(wireProviders))
+		for tenantID, provider := range wireProviders {
+			initialBackoff, err := parseOptionalDuration(provider.Retry.InitialBackoff)
+			if err != nil {
+				return map[string]EnrichmentProviderConfig{}, fmt.Errorf(
+					"parse initial backoff for tenant %q: %w", tenantID, err,
+				)
+			}
+			maxBackoff, err := parseOptionalDuration(provider.Retry.MaxBackoff)
+			if err != nil {
+				return map[string]EnrichmentProviderConfig{}, fmt.Errorf(
+					"parse max backoff for tenant %q: %w", tenantID, err,
+				)
+			}
+			providers[tenantID] = EnrichmentProviderConfig{
+				Endpoint: provider.Endpoint,
+				Headers:  provider.Headers,
+				Mode:     provider.Mode,
+				Retry: RetryConfig{
+					MaxAttempts:    provider.Retry.MaxAttempts,
+					InitialBackoff: initialBackoff,
+					MaxBackoff:     maxBackoff,
+				},
+			}
+		}
+		return providers, nil
 	}
 }
 
-func StringToMapBoolHookFunc() mapstructure.DecodeHookFunc {
-	return func(
-		f reflect.Type,
-		t reflect.Type,
-		data interface{},
-	) (interface{}, error) {
-		if f.Kind() != reflect.String || t.Kind() != reflect.Map {
-			return data, nil
-		}
-
-		if t.Key().Kind() != reflect.String || t.Elem().Kind() != reflect.Bool {
-			return data, nil
-		}
-
-		raw := data.(string)
-		if raw == "" {
-			return map[string]bool{}, nil
-		}
-
-		unmarshalled := map[string]string{}
-		err := json.Unmarshal([]byte(raw), &unmarshalled)
-		if err != nil {
-			return map[string]bool{}, err
-		}
-
-		result := map[string]bool{}
-		for k, v := range unmarshalled {
-			boolValue, err := strconv.ParseBool(v)
-			if err != nil {
-				continue
-			}
-			result[k] = boolValue
-		}
-
-		return result, err
+func parseOptionalDuration(value string) (time.Duration, error) {
+	if value == "" {
+		return 0, nil
 	}
+	return time.ParseDuration(value)
 }

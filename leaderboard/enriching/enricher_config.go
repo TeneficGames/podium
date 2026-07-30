@@ -1,6 +1,7 @@
 package enriching
 
 import (
+	"errors"
 	"time"
 
 	"go.uber.org/zap"
@@ -8,63 +9,72 @@ import (
 
 type (
 	enrichmentConfig struct {
-		// CloudSaveURL is the URL to call the Cloud Save service.
-		cloudSave cloudSaveConfig
-
-		// WebhookUrls contains the necessary parameters to call a webhook for a given game.
-		// The key should be the game tenantID.
-		webhookUrls map[string]string
-
-		// WebhookTimeout is the timeout for the webhook call.
-		webhookTimeout time.Duration
+		providers      map[string]Provider
+		requestTimeout time.Duration
 	}
 
-	cloudSaveConfig struct {
-		// Enabled indicates whether the Cloud Save service should be used for enrichment.
-		enabled map[string]bool
+	Provider struct {
+		Endpoint string
+		Headers  map[string]string
+		Mode     FailureMode
+		Retry    RetryConfig
+	}
 
-		// URL is the URL to call the Cloud Save service.
-		url string
+	RetryConfig struct {
+		MaxAttempts    int
+		InitialBackoff time.Duration
+		MaxBackoff     time.Duration
 	}
 )
 
+type FailureMode string
+
+const (
+	FailureModeBestEffort FailureMode = "best_effort"
+	FailureModeStrict     FailureMode = "strict"
+)
+
+func (p Provider) Validate() error {
+	if _, err := validateEndpoint(p.Endpoint); err != nil {
+		return err
+	}
+	if p.Mode != "" && p.Mode != FailureModeBestEffort && p.Mode != FailureModeStrict {
+		return errors.New("mode must be best_effort or strict")
+	}
+	if p.Retry.MaxAttempts < 0 {
+		return errors.New("retry max_attempts must not be negative")
+	}
+	if p.Retry.InitialBackoff < 0 || p.Retry.MaxBackoff < 0 {
+		return errors.New("retry backoff must not be negative")
+	}
+	if p.Retry.MaxBackoff > 0 && p.Retry.InitialBackoff > p.Retry.MaxBackoff {
+		return errors.New("retry initial_backoff must not exceed max_backoff")
+	}
+	return nil
+}
+
 func newDefaultEnrichConfig() enrichmentConfig {
 	return enrichmentConfig{
-		cloudSave: cloudSaveConfig{
-			enabled: map[string]bool{},
-		},
-		webhookUrls:    map[string]string{},
-		webhookTimeout: 500 * time.Millisecond,
+		providers:      map[string]Provider{},
+		requestTimeout: 500 * time.Millisecond,
 	}
 }
 
 type EnricherOptions func(*enricherImpl)
 
-// WithCloudSaveUrl sets the Cloud Save URL.
-func WithCloudSaveUrl(url string) EnricherOptions {
+// WithProviders sets the HTTP enrichment provider for each tenant.
+func WithProviders(providers map[string]Provider) EnricherOptions {
 	return func(impl *enricherImpl) {
-		impl.config.cloudSave.url = url
+		impl.config.providers = providers
 	}
 }
 
-// WithWebhookUrls sets the map of webhook URL for each tenantID.
-func WithWebhookUrls(urlsMap map[string]string) EnricherOptions {
+// WithRequestTimeout sets the timeout for enrichment provider calls.
+func WithRequestTimeout(timeout time.Duration) EnricherOptions {
 	return func(impl *enricherImpl) {
-		impl.config.webhookUrls = urlsMap
-	}
-}
-
-// WithWebhookTimeout sets the webhook timeout.
-func WithWebhookTimeout(timeout time.Duration) EnricherOptions {
-	return func(impl *enricherImpl) {
-		impl.config.webhookTimeout = timeout
-	}
-}
-
-// WithCloudSaveEnabled sets the map of enabled Cloud Save for each tenantID.
-func WithCloudSaveEnabled(enabled map[string]bool) EnricherOptions {
-	return func(impl *enricherImpl) {
-		impl.config.cloudSave.enabled = enabled
+		if timeout > 0 {
+			impl.config.requestTimeout = timeout
+		}
 	}
 }
 

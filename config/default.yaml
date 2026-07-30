@@ -20,12 +20,9 @@ worker:
   expirationLimitPerRun: 1000
 
 enrichment:
-  webhook_urls:
+  providers:
   cache:
     ttl: 24h
     addr: ""
     password: ""
-  webhook_timeout: 500ms
-  cloud_save:
-    url:
-    enabled:
+  request_timeout: 500ms

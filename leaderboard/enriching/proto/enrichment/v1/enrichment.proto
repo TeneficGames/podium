@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package enrichment.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/TeneficGames/podium/leaderboard/enriching/proto/enrichment/v1;podium_enrichment_v1";
+
+service MemberEnrichmentService {
+  // Receives leaderboard members and returns metadata for them.
+  rpc EnrichMembers(EnrichMembersRequest) returns (EnrichMembersResponse) {
+    option (google.api.http) = {
+      post: "/v1/members/enrich"
+      body: "*"
+    };
+  }
+}
+
+message EnrichMembersRequest {
+  // The tenant requesting enrichment.
+  string tenant_id = 1;
+  // The leaderboard containing the members.
+  string leaderboard_id = 2;
+  // The members to enrich.
+  repeated Member members = 3;
+}
+
+message EnrichMembersResponse {
+  // The enriched members.
+  repeated Member members = 1;
+}
+
+message Member {
+  // The member's ID.
+  string id = 1;
+  // The member's score.
+  int64 score = 2;
+  // The member's rank in the leaderboard.
+  int32 rank = 3;
+  // The member's metadata.
+  map<string, string> metadata = 4;
+}

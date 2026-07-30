@@ -81,7 +81,8 @@ func NewInstrumentedCache(impl enriching.EnricherCache) (enriching.EnricherCache
 
 func (c *instrumentedCache) Get(
 	ctx context.Context,
-	tenantID string,
+	tenantID,
+	leaderboardID string,
 	members []*model.Member,
 ) (map[string]map[string]string, bool, error) {
 	start := time.Now()
@@ -89,11 +90,14 @@ func (c *instrumentedCache) Get(
 	ctx, span := otel.Tracer("github.com/TeneficGames/podium/leaderboard/enriching/cache").Start(
 		ctx,
 		"podium.enriching_cache.get",
-		trace.WithAttributes(attribute.String("tenant.id", tenantID)),
+		trace.WithAttributes(
+			attribute.String("tenant.id", tenantID),
+			attribute.String("leaderboard.id", leaderboardID),
+		),
 	)
 	defer span.End()
 
-	metadata, hit, err := c.impl.Get(ctx, tenantID, members)
+	metadata, hit, err := c.impl.Get(ctx, tenantID, leaderboardID, members)
 
 	c.gets.Add(ctx, 1)
 	c.getTime.Record(ctx, time.Since(start).Seconds())
@@ -113,7 +117,8 @@ func (c *instrumentedCache) Get(
 
 func (c *instrumentedCache) Set(
 	ctx context.Context,
-	tenantID string,
+	tenantID,
+	leaderboardID string,
 	members []*model.Member,
 	ttl time.Duration,
 ) error {
@@ -124,12 +129,13 @@ func (c *instrumentedCache) Set(
 		"podium.enriching_cache.set",
 		trace.WithAttributes(
 			attribute.String("tenant.id", tenantID),
+			attribute.String("leaderboard.id", leaderboardID),
 			attribute.Int64("cache.ttl_seconds", int64(ttl.Seconds())),
 		),
 	)
 	defer span.End()
 
-	err := c.impl.Set(ctx, tenantID, members, ttl)
+	err := c.impl.Set(ctx, tenantID, leaderboardID, members, ttl)
 
 	c.sets.Add(ctx, 1)
 	c.setTime.Record(ctx, time.Since(start).Seconds())

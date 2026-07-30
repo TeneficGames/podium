@@ -19,6 +19,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/TeneficGames/podium/leaderboard/enriching"
 	mock_enriching "github.com/TeneficGames/podium/leaderboard/mocks"
 	"github.com/TeneficGames/podium/leaderboard/model"
 	"go.uber.org/mock/gomock"
@@ -1140,7 +1141,7 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 				Expect(err).NotTo(HaveOccurred())
 			}
 
-			status, body := Get(app, "/l/testkey/members/member_50/around", api.TenantIDHeaderKey, tenantID)
+			status, body := Get(app, "/l/testkey/members/member_50/around", "tEnAnT-iD", tenantID)
 
 			Expect(status).To(Equal(http.StatusOK), body)
 
@@ -1214,7 +1215,7 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 			}
 		})
 
-		It("Should return error if enricher fails (http)", func() {
+		It("Should return leaderboard data when best-effort enrichment fails (http)", func() {
 			ctrl := gomock.NewController(GinkgoT())
 			defer ctrl.Finish()
 
@@ -1230,7 +1231,7 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 
 			status, body := Get(app, "/l/testkey/members/member_50/around", api.TenantIDHeaderKey, tenantID)
 
-			Expect(status).To(Equal(http.StatusInternalServerError), body)
+			Expect(status).To(Equal(http.StatusOK), body)
 		})
 
 		It("Should get member score and neighbours from redis if member score exists (grpc)", func() {
@@ -1652,7 +1653,10 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 			enricher := mock_enriching.NewMockEnricher(ctrl)
 			app.Enricher = enricher
 
-			enricher.EXPECT().Enrich(gomock.Any(), tenantID, testLeaderboardID, gomock.Any()).Return(nil, errors.New("failed to enrich"))
+			enricher.EXPECT().Enrich(gomock.Any(), tenantID, testLeaderboardID, gomock.Any()).Return(
+				nil,
+				&enriching.ProviderError{Strict: true, Err: errors.New("failed to enrich")},
+			)
 
 			for i := 1; i <= 100; i++ {
 				_, err := app.Leaderboards.SetMemberScore(NewEmptyCtx(), testLeaderboardID, "member_"+strconv.Itoa(i), int64(101-i), false, "")
@@ -2046,7 +2050,10 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 			enricher.EXPECT().Enrich(gomock.Any(), tenantID, testLeaderboardID, gomock.Any()).
 				DoAndReturn(func(_ context.Context, _, _ string, members []*model.Member) ([]*model.Member, error) {
 					Expect(members).To(HaveLen(20))
-					return nil, errors.New("enrichment error")
+					return nil, &enriching.ProviderError{
+						Strict: true,
+						Err:    errors.New("enrichment error"),
+					}
 				})
 
 			for i := 1; i <= 100; i++ {
@@ -2372,7 +2379,10 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 			enricher := mock_enriching.NewMockEnricher(ctrl)
 			app.Enricher = enricher
 
-			enricher.EXPECT().Enrich(gomock.Any(), tenantID, leaderboardID, gomock.Any()).Return(nil, errors.New("failed to enrich"))
+			enricher.EXPECT().Enrich(gomock.Any(), tenantID, leaderboardID, gomock.Any()).Return(
+				nil,
+				&enriching.ProviderError{Strict: true, Err: errors.New("failed to enrich")},
+			)
 
 			for i := 1; i <= 100; i++ {
 				_, err := app.Leaderboards.SetMemberScore(NewEmptyCtx(), leaderboardID, fmt.Sprintf("member_%d", i), int64(101-i), false, "")
@@ -2824,7 +2834,10 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 
 			enricher := mock_enriching.NewMockEnricher(ctrl)
 			app.Enricher = enricher
-			enricher.EXPECT().Enrich(gomock.Any(), tenantID, leaderboardID, gomock.Any()).Return(nil, errors.New("failed to enrich"))
+			enricher.EXPECT().Enrich(gomock.Any(), tenantID, leaderboardID, gomock.Any()).Return(
+				nil,
+				&enriching.ProviderError{Strict: true, Err: errors.New("failed to enrich")},
+			)
 
 			for i := 1; i <= 100; i++ {
 				_, err := app.Leaderboards.SetMemberScore(NewEmptyCtx(), leaderboardID, fmt.Sprintf("member_%d", i), int64(101-i), false, "")

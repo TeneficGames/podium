@@ -22,13 +22,17 @@ worker:
   expirationLimitPerRun: 1000
 
 enrichment:
-  webhook_urls:
-    dummy_tenant_id: "localhost:8080/"
-  webhook_timeout: 500ms
+  providers:
+    dummy_tenant_id:
+      endpoint: "http://localhost:8080/v1/members/enrich"
+      headers: {}
+      mode: best_effort
+      retry:
+        max_attempts: 3
+        initial_backoff: 50ms
+        max_backoff: 500ms
+  request_timeout: 500ms
   cache:
     ttl: 24h
     addr: "localhost:6379"
     password: ""
-  cloud_save:
-    url: "localhost:8888/"
-    enabled:

@@ -36,13 +36,14 @@ func TestCachedEnricherOptions(t *testing.T) {
 
 func TestRedisCacheRejectsInvalidJSON(t *testing.T) {
 	const tenantID = "tenant"
+	const leaderboardID = "leaderboard"
 	redisClient, redisMock := redismock.NewClientMock()
 	members := []*model.Member{{PublicID: "member"}}
-	redisMock.ExpectMGet(getKeysFromMemberArray(tenantID, members)...).
+	redisMock.ExpectMGet(getKeysFromMemberArray(tenantID, leaderboardID, members)...).
 		SetVal([]interface{}{"invalid"})
 
 	cache := NewEnricherRedisCache(redisClient)
-	metadata, hit, err := cache.Get(context.Background(), tenantID, members)
+	metadata, hit, err := cache.Get(context.Background(), tenantID, leaderboardID, members)
 	if err == nil {
 		t.Fatal("expected invalid cached JSON to fail")
 	}

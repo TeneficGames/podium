@@ -1,78 +1,85 @@
-**Leaderboard Enrichment**
+# Member Enrichment
 
-Leaderboard Enrichment is a feature in the Podium service that allows you to enhance the information retrieved from read operations on leaderboards by registering a webhook. 
-By utilizing this feature, you can dynamically add metadata to each leaderboard member, providing additional details without the need for additional API requests. 
-This documentation will guide you through the process of setting up and using Leaderboard Enrichment.
+Member enrichment lets Podium attach application-defined metadata to members returned by leaderboard read operations. Podium sends the members to a tenant-specific HTTP provider and merges the returned metadata into the leaderboard response.
 
-## Configuration Setup
+Enrichment is optional and best-effort. If a provider is not configured or its request fails, Podium returns the leaderboard members without enriched metadata.
 
-To enable Leaderboard Enrichment, follow these steps:
+## Configuration
 
-1. Open your Podium configuration file or set the necessary environment variables.
+Configure a provider for each tenant that requires enrichment:
 
 ```yaml
-webhook_urls:
-    "{TENANT_ID}": "{BASE_WEBHOOK_URL}"
+enrichment:
+  request_timeout: 500ms
+  providers:
+    my-game:
+      endpoint: "https://profiles.example.com/v1/members/enrich"
+      mode: best_effort
+      headers:
+        Authorization: "Bearer token"
+      retry:
+        max_attempts: 3
+        initial_backoff: 50ms
+        max_backoff: 500ms
+  cache:
+    ttl: 24h
+    addr: ""
+    password: ""
 ```
 
-> Replace `{TENANT_ID}` with the unique identifier of the tenant and `{BASE_WEBHOOK_URL}` with the base URL of the webhook endpoint.
+`endpoint` is the complete provider URL. Podium does not append a path to it. Optional headers can be used to authenticate provider requests.
 
-## Webhook Endpoint
+`mode` controls provider failure behavior:
 
-The webhook endpoint, denoted by `/leaderboards/enrich`, will be called by the Podium service to retrieve additional metadata for leaderboard members. The endpoint should be set up on your server to handle incoming requests.
+- `best_effort` is the default. Podium logs the provider error and returns leaderboard members without enriched metadata.
+- `strict` fails the Podium request if enrichment fails.
 
-### Request
+Retry settings are optional. `max_attempts` includes the initial request and defaults to `1`. Podium retries transport errors, `429` responses, and `5xx` responses with exponential backoff. Other `4xx` responses and invalid response bodies are not retried.
 
-The webhook endpoint will receive a `POST` request with the following JSON body:
+## Provider request
+
+Podium sends a `POST` request with a JSON body:
 
 ```json
 {
+  "tenant_id": "my-game",
+  "leaderboard_id": "weekly-ranking",
   "members": [
     {
-      "leaderboard_id": "leaderboard_id",
-      "id": "member-id"
+      "id": "player-1",
+      "score": 1200,
+      "rank": 3
     }
   ]
 }
 ```
 
-- `leaderboard_id`: The unique identifier of the leaderboard.
-- `id`: The public identifier of the member.  
+## Provider response
 
-### Response
-
-The webhook endpoint is expected to return a `JSON` response with metadata for the specified member. Here's an example response:
+The provider returns metadata associated with each member ID:
 
 ```json
 {
   "members": [
     {
-      "leaderboard_id": "leaderboard_id",
-      "id": "member-id",
-      "scores": [
-        {
-          "value": 1,
-        },
-      ],
-      "rank": 2,
+      "id": "player-1",
       "metadata": {
-        "custom_field1": "value1",
-        "custom_field2": "value2"
+        "display_name": "Alice",
+        "avatar_url": "https://example.com/alice.png"
       }
     }
   ]
 }
 ```
 
-- `"id"`: The public identifier of the member (must match the request).
-- `"metadata"`: Additional metadata fields to enrich the member's information.
+Podium ignores response entries whose IDs do not match requested members. Members omitted from the provider response are returned without additional metadata.
 
-## Enabling Enrichment
+## Requesting enrichment
 
-Once the webhook endpoint is set up, you will need to add the information to your header when making read requests to the Podium API:
+Include the tenant header on a leaderboard read:
 
-```json
-"Wildlife-Platform-Tenant-Id": "my-tenant-id",
+```http
+Tenant-Id: my-game
 ```
 
-Podium will automatically call the endpoint for each read operation that retrieves information about leaderboard members. The enriched metadata will be included in the response, enhancing the details available for each member. If the corresponding configuration for the tenant-id sent is not found, of if none is specified, Podium will  return the response without any metadata.
+HTTP header names are case-insensitive. The tenant selects the configured provider and isolates cached enrichment data.
