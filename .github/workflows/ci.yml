@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache-dependency-path: |
@@ -50,7 +50,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache-dependency-path: |
@@ -67,7 +67,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache-dependency-path: |
@@ -78,7 +78,7 @@ jobs:
         run: make test-podium
       - name: Save test results and coverage
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: integration-podium
           path: |
@@ -91,7 +91,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version-file: leaderboard/go.mod
           cache-dependency-path: leaderboard/go.sum
@@ -99,7 +99,7 @@ jobs:
         run: make test-leaderboard
       - name: Save test results and coverage
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: integration-leaderboard
           path: |
@@ -126,7 +126,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version-file: leaderboard/go.mod
           cache-dependency-path: leaderboard/go.sum
@@ -163,7 +163,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version-file: client/go.mod
           cache-dependency-path: |
@@ -173,7 +173,7 @@ jobs:
         run: make test-client
       - name: Save test results and coverage
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: integration-client
           path: |
@@ -193,22 +193,22 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Download server results
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           name: integration-podium
           path: .
       - name: Download leaderboard results
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           name: integration-leaderboard
           path: .
       - name: Download client results
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           name: integration-client
           path: .
       - name: Upload test results to Codecov
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           disable_search: true
           fail_ci_if_error: true
@@ -218,7 +218,7 @@ jobs:
       - name: Combine and check package coverage
         run: make coverage-check
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           disable_search: true
           fail_ci_if_error: true
@@ -231,7 +231,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache-dependency-path: |
@@ -283,7 +283,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version: 1.25.12
           cache-dependency-path: |
@@ -302,7 +302,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Set up Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v5
         with:
           version: v3.19.0
       - name: Install helm-unittest
