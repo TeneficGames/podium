@@ -18,7 +18,7 @@ Use an immutable Podium image tag in production:
 helm upgrade --install podium ./charts/podium \
   --namespace podium \
   --create-namespace \
-  --set image.tag=1.0.5 \
+  --set image.tag=1.0.6 \
   --set redis.host=redis.example.internal
 ```
 
@@ -28,7 +28,7 @@ also published to GHCR; select that registry with:
 ```yaml
 image:
   repository: ghcr.io/teneficgames/podium
-  tag: "1.0.5"
+  tag: "1.0.6"
 ```
 
 Released chart versions can be installed directly from GHCR:
@@ -36,7 +36,7 @@ Released chart versions can be installed directly from GHCR:
 ```bash
 helm upgrade --install podium \
   oci://ghcr.io/teneficgames/charts/podium \
-  --version 0.1.0 \
+  --version 1.0.0 \
   --namespace podium \
   --create-namespace
 ```

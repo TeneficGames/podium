@@ -15,8 +15,8 @@ release workflow runs only for tags named
 Update both fields in `charts/podium/Chart.yaml` as appropriate:
 
 ```yaml
-version: 0.2.0
-appVersion: "1.0.6"
+version: 1.1.0
+appVersion: "1.0.7"
 ```
 
 - `version` is the Helm chart version. Bump it for every released change to
@@ -45,8 +45,8 @@ published chart version. When `image.tag` is empty, the chart uses
    ```bash
    git switch main
    git pull --ff-only
-   git tag podium-chart-v0.2.0
-   git push origin podium-chart-v0.2.0
+   git tag podium-chart-v1.1.0
+   git push origin podium-chart-v1.1.0
    ```
 
 The `Release Helm chart` workflow verifies that the Git tag equals
@@ -90,7 +90,7 @@ Inspect the published metadata:
 ```bash
 helm show chart \
   oci://ghcr.io/teneficgames/charts/podium \
-  --version 0.2.0
+  --version 1.1.0
 ```
 
 Pull and verify the package locally:
@@ -98,9 +98,9 @@ Pull and verify the package locally:
 ```bash
 helm pull \
   oci://ghcr.io/teneficgames/charts/podium \
-  --version 0.2.0
+  --version 1.1.0
 
-helm lint podium-0.2.0.tgz --strict
+helm lint podium-1.1.0.tgz --strict
 ```
 
 Install or upgrade an environment with an explicitly pinned chart version:
@@ -108,7 +108,7 @@ Install or upgrade an environment with an explicitly pinned chart version:
 ```bash
 helm upgrade --install podium \
   oci://ghcr.io/teneficgames/charts/podium \
-  --version 0.2.0 \
+  --version 1.1.0 \
   --namespace podium \
   --create-namespace \
   --values production-values.yaml
@@ -136,7 +136,7 @@ immutable version:
 ```bash
 helm upgrade podium \
   oci://ghcr.io/teneficgames/charts/podium \
-  --version 0.1.0 \
+  --version 1.0.0 \
   --namespace podium \
   --reuse-values
 ```
