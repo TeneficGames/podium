@@ -127,4 +127,72 @@ var _ = Describe("Redis Expiration Database", func() {
 			Expect(err).To(MatchError(database.NewGeneralError("New redis error")))
 		})
 	})
+
+	Describe("With deterministic tie breaks", func() {
+		const tieBreakTTL = "podium:{bbGVhZGVyYm9hcmRUZXN0}:ttl"
+
+		BeforeEach(func() {
+			redisExpiration = &database.Redis{
+				&failingTieBreakClient{Client: mock},
+			}
+		})
+
+		It("keeps encoded leaderboard IDs from the expiration set", func() {
+			mock.EXPECT().
+				SMembers(gomock.Any(), gomock.Eq(database.ExpirationSet)).
+				Return([]string{leaderboard}, nil)
+
+			leaderboards, err := redisExpiration.GetExpirationLeaderboards(context.Background())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(leaderboards).To(Equal([]string{leaderboard}))
+		})
+
+		It("reads members from the colocated TTL index", func() {
+			maxTTL := time.Now()
+			maxTTLString := strconv.FormatInt(maxTTL.Unix(), 10)
+			mock.EXPECT().Exists(gomock.Any(), gomock.Eq(tieBreakTTL)).Return(nil)
+			mock.EXPECT().
+				ZRangeByScore(
+					gomock.Any(),
+					gomock.Eq(tieBreakTTL),
+					gomock.Eq("-inf"),
+					gomock.Eq(maxTTLString),
+					gomock.Eq(int64(0)),
+					gomock.Eq(int64(amount)),
+				).
+				Return([]string{member}, nil)
+
+			members, err := redisExpiration.GetMembersToExpire(
+				context.Background(),
+				leaderboard,
+				amount,
+				maxTTL,
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(members).To(Equal([]string{member}))
+		})
+
+		It("removes the encoded leaderboard ID from the expiration set", func() {
+			mock.EXPECT().
+				SRem(gomock.Any(), gomock.Eq(database.ExpirationSet), gomock.Eq(leaderboard)).
+				Return(nil)
+
+			err := redisExpiration.RemoveLeaderboardFromExpireList(context.Background(), leaderboard)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("expires all member indexes through the tie-break store", func() {
+			err := redisExpiration.ExpireMembers(context.Background(), leaderboard, []string{member})
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("wraps tie-break store expiration errors", func() {
+			redisExpiration = &database.Redis{
+				&failingTieBreakClient{Client: mock, err: fmt.Errorf("redis error")},
+			}
+
+			err := redisExpiration.ExpireMembers(context.Background(), leaderboard, []string{member})
+			Expect(err).To(MatchError(database.NewGeneralError("redis error")))
+		})
+	})
 })

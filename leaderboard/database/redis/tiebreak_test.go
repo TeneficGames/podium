@@ -289,6 +289,15 @@ func TestTieBreakStoreTTLExpirationAndDeletion(t *testing.T) {
 	}
 }
 
+func TestTieBreakStoreRejectsExpirationForMissingLeaderboard(t *testing.T) {
+	store, _, keys := newTieBreakStore(t)
+
+	err := store.ExpireTieBreakKeysAt(context.Background(), keys, time.Now().Add(time.Hour))
+	if err == nil {
+		t.Fatal("expected a missing leaderboard error")
+	}
+}
+
 func TestTieBreakStoreRejectsExhaustedSequence(t *testing.T) {
 	store, rawClient, keys := newTieBreakStore(t)
 	ctx := context.Background()
