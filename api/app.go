@@ -191,12 +191,28 @@ func (app *App) loadConfiguration() error {
 }
 
 func (app *App) configureEnrichment() error {
+	providers := make(map[string]enriching.Provider, len(app.ParsedConfig.Enrichment.Providers))
+	for tenantID, provider := range app.ParsedConfig.Enrichment.Providers {
+		enrichmentProvider := enriching.Provider{
+			Endpoint: provider.Endpoint,
+			Headers:  provider.Headers,
+			Mode:     enriching.FailureMode(provider.Mode),
+			Retry: enriching.RetryConfig{
+				MaxAttempts:    provider.Retry.MaxAttempts,
+				InitialBackoff: provider.Retry.InitialBackoff,
+				MaxBackoff:     provider.Retry.MaxBackoff,
+			},
+		}
+		if err := enrichmentProvider.Validate(); err != nil {
+			return fmt.Errorf("invalid enrichment provider for tenant %q: %w", tenantID, err)
+		}
+		providers[tenantID] = enrichmentProvider
+	}
+
 	enricher := enriching.NewEnricher(
 		enriching.WithLogger(app.Logger),
-		enriching.WithWebhookUrls(app.ParsedConfig.Enrichment.WebhookUrls),
-		enriching.WithWebhookTimeout(app.ParsedConfig.Enrichment.WebhookTimeout),
-		enriching.WithCloudSaveUrl(app.ParsedConfig.Enrichment.CloudSave.Url),
-		enriching.WithCloudSaveEnabled(app.ParsedConfig.Enrichment.CloudSave.Enabled),
+		enriching.WithProviders(providers),
+		enriching.WithRequestTimeout(app.ParsedConfig.Enrichment.RequestTimeout),
 	)
 	instrumentedEnricher, err := enriching.NewInstrumentedEnricher(enricher)
 	if err != nil {
@@ -516,12 +532,8 @@ func (app *App) shutdownObservability() {
 }
 
 func customHeadersMatcher(key string) (string, bool) {
-	switch strings.ToLower(key) {
-	case "tenant-id":
+	if strings.EqualFold(key, TenantIDHeaderKey) {
 		return key, true
-	case strings.ToLower(TenantIDHeaderKey):
-		return key, true
-	default:
-		return runtime.DefaultHeaderMatcher(key)
 	}
+	return runtime.DefaultHeaderMatcher(key)
 }

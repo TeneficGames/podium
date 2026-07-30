@@ -1,12 +1,3 @@
-// podium
-// https://github.com/TeneficGames/podium
-// Licensed under the MIT license:
-// http://www.opensource.org/licenses/mit-license
-// Copyright © 2026 Tenefic Games
-// Forked from
-// https://github.com/topfreegames/podium
-// Copyright © 2016 Top Free Games
-
 package enriching
 
 import (
@@ -20,15 +11,21 @@ import (
 
 func TestEnricherOptions(t *testing.T) {
 	const timeout = 2 * time.Second
-	impl := &enricherImpl{config: newDefaultEnrichConfig()}
+	providers := map[string]Provider{"tenant": {Endpoint: "https://example.com/enrich"}}
+	enricher := NewEnricher(
+		WithProviders(providers),
+		WithRequestTimeout(timeout),
+		WithLogger(zap.NewNop()),
+	).(*enricherImpl)
 
-	WithWebhookTimeout(timeout)(impl)
-	WithLogger(zap.NewNop())(impl)
-
-	if impl.config.webhookTimeout != timeout {
-		t.Fatalf("expected webhook timeout %s, got %s", timeout, impl.config.webhookTimeout)
+	if enricher.config.requestTimeout != timeout || enricher.client.Timeout != timeout {
+		t.Fatalf("expected request timeout %s, got config=%s client=%s",
+			timeout, enricher.config.requestTimeout, enricher.client.Timeout)
 	}
-	if impl.logger == nil {
+	if enricher.config.providers["tenant"].Endpoint != providers["tenant"].Endpoint {
+		t.Fatal("expected providers to be configured")
+	}
+	if enricher.logger == nil {
 		t.Fatal("expected logger to be configured")
 	}
 }
@@ -46,13 +43,62 @@ func TestEnrichReturnsEmptyMembersWithoutCallingAProvider(t *testing.T) {
 	}
 }
 
-func TestEnrichSkipsEmptyWebhookURL(t *testing.T) {
+func TestZeroRequestTimeoutKeepsDefault(t *testing.T) {
+	enricher := NewEnricher(WithRequestTimeout(0)).(*enricherImpl)
+	if enricher.client.Timeout != 500*time.Millisecond {
+		t.Fatalf("expected default request timeout, got %s", enricher.client.Timeout)
+	}
+}
+
+func TestProviderValidation(t *testing.T) {
+	tests := []struct {
+		name     string
+		provider Provider
+	}{
+		{name: "invalid endpoint", provider: Provider{Endpoint: "localhost:8080"}},
+		{name: "invalid mode", provider: Provider{Endpoint: "https://example.com", Mode: "unknown"}},
+		{
+			name: "negative attempts",
+			provider: Provider{
+				Endpoint: "https://example.com",
+				Retry:    RetryConfig{MaxAttempts: -1},
+			},
+		},
+		{
+			name: "initial backoff exceeds maximum",
+			provider: Provider{
+				Endpoint: "https://example.com",
+				Retry: RetryConfig{
+					InitialBackoff: time.Second,
+					MaxBackoff:     time.Millisecond,
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if err := test.provider.Validate(); err == nil {
+				t.Fatal("expected provider validation error")
+			}
+		})
+	}
+
+	for _, mode := range []FailureMode{"", FailureModeBestEffort, FailureModeStrict} {
+		provider := Provider{Endpoint: "https://example.com", Mode: mode}
+		if err := provider.Validate(); err != nil {
+			t.Fatalf("expected mode %q to be valid: %v", mode, err)
+		}
+	}
+}
+
+func TestEnrichSkipsEmptyProviderEndpoint(t *testing.T) {
 	members := []*model.Member{{PublicID: "member"}}
-	enricher := NewEnricher(WithWebhookUrls(map[string]string{"tenant": ""}))
+	enricher := NewEnricher(WithProviders(map[string]Provider{"tenant": {}}))
 
 	result, err := enricher.Enrich(context.Background(), "tenant", "leaderboard", members)
 	if err != nil {
-		t.Fatalf("enrich with empty webhook URL: %v", err)
+		t.Fatalf("enrich with empty provider endpoint: %v", err)
 	}
 	if len(result) != 1 || result[0] != members[0] {
 		t.Fatalf("expected members to be returned unchanged, got %#v", result)

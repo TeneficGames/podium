@@ -82,9 +82,9 @@ func (m *MockEnricherCache) EXPECT() *MockEnricherCacheMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockEnricherCache) Get(ctx context.Context, tenantID string, members []*model.Member) (map[string]map[string]string, bool, error) {
+func (m *MockEnricherCache) Get(ctx context.Context, tenantID, leaderboardID string, members []*model.Member) (map[string]map[string]string, bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, tenantID, members)
+	ret := m.ctrl.Call(m, "Get", ctx, tenantID, leaderboardID, members)
 	ret0, _ := ret[0].(map[string]map[string]string)
 	ret1, _ := ret[1].(bool)
 	ret2, _ := ret[2].(error)
@@ -92,21 +92,21 @@ func (m *MockEnricherCache) Get(ctx context.Context, tenantID string, members []
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockEnricherCacheMockRecorder) Get(ctx, tenantID, members any) *gomock.Call {
+func (mr *MockEnricherCacheMockRecorder) Get(ctx, tenantID, leaderboardID, members any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockEnricherCache)(nil).Get), ctx, tenantID, members)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockEnricherCache)(nil).Get), ctx, tenantID, leaderboardID, members)
 }
 
 // Set mocks base method.
-func (m *MockEnricherCache) Set(ctx context.Context, tenantID string, members []*model.Member, ttl time.Duration) error {
+func (m *MockEnricherCache) Set(ctx context.Context, tenantID, leaderboardID string, members []*model.Member, ttl time.Duration) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Set", ctx, tenantID, members, ttl)
+	ret := m.ctrl.Call(m, "Set", ctx, tenantID, leaderboardID, members, ttl)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Set indicates an expected call of Set.
-func (mr *MockEnricherCacheMockRecorder) Set(ctx, tenantID, members, ttl any) *gomock.Call {
+func (mr *MockEnricherCacheMockRecorder) Set(ctx, tenantID, leaderboardID, members, ttl any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockEnricherCache)(nil).Set), ctx, tenantID, members, ttl)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockEnricherCache)(nil).Set), ctx, tenantID, leaderboardID, members, ttl)
 }

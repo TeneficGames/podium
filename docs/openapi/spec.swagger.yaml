@@ -1,10 +1,10 @@
 swagger: "2.0"
 info:
-  title: podium/api/v1/podium.proto
+  title: enrichment/v1/enrichment.proto
   version: version not set
 tags:
+  - name: MemberEnrichmentService
   - name: PodiumService
-  - name: LeaderboardsEnrichmentService
 consumes:
   - application/json
 produces:
@@ -22,7 +22,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/rpc.Status'
+            $ref: '#/definitions/Status'
       parameters:
         - name: leaderboardId
           in: path
@@ -42,7 +42,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/rpc.Status'
+            $ref: '#/definitions/Status'
       parameters:
         - name: leaderboardId
           in: path
@@ -73,7 +73,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/rpc.Status'
+            $ref: '#/definitions/Status'
       parameters:
         - name: leaderboardId
           description: The leaderboard identification.
@@ -99,7 +99,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/rpc.Status'
+            $ref: '#/definitions/Status'
       parameters:
         - name: leaderboardId
           in: path
@@ -119,7 +119,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/rpc.Status'
+            $ref: '#/definitions/Status'
       parameters:
         - name: leaderboardId
           in: path
@@ -150,7 +150,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/rpc.Status'
+            $ref: '#/definitions/Status'
       parameters:
         - name: leaderboardId
           in: path
@@ -174,7 +174,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/rpc.Status'
+            $ref: '#/definitions/Status'
       parameters:
         - name: leaderboardId
           in: path
@@ -211,7 +211,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/rpc.Status'
+            $ref: '#/definitions/Status'
       parameters:
         - name: leaderboardId
           description: The leaderboard identification.
@@ -242,7 +242,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/rpc.Status'
+            $ref: '#/definitions/Status'
       parameters:
         - name: leaderboardId
           description: The leaderboard identification.
@@ -283,7 +283,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/rpc.Status'
+            $ref: '#/definitions/Status'
       parameters:
         - name: leaderboardId
           description: The leaderboard identification.
@@ -320,7 +320,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/rpc.Status'
+            $ref: '#/definitions/Status'
       parameters:
         - name: leaderboardId
           description: The leaderboard identification.
@@ -359,7 +359,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/rpc.Status'
+            $ref: '#/definitions/Status'
       parameters:
         - name: leaderboardId
           in: path
@@ -393,7 +393,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/rpc.Status'
+            $ref: '#/definitions/Status'
       parameters:
         - name: leaderboardId
           in: path
@@ -422,7 +422,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/rpc.Status'
+            $ref: '#/definitions/Status'
       parameters:
         - name: leaderboardId
           in: path
@@ -456,7 +456,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/rpc.Status'
+            $ref: '#/definitions/Status'
       parameters:
         - name: memberPublicId
           in: path
@@ -487,7 +487,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/rpc.Status'
+            $ref: '#/definitions/Status'
       parameters:
         - name: memberPublicId
           in: path
@@ -509,33 +509,27 @@ paths:
           type: boolean
       tags:
         - PodiumService
-  /v1/leaderboards/enrich:
+  /v1/members/enrich:
     post:
-      summary: |-
-        Receives an array of members and returns the same array enriched with
-        the member's metadata.
-      operationId: EnrichLeaderboards
+      summary: Receives leaderboard members and returns metadata for them.
+      operationId: EnrichMembers
       responses:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/EnrichLeaderboardsResponse'
+            $ref: '#/definitions/EnrichMembersResponse'
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/rpc.Status'
+            $ref: '#/definitions/Status'
       parameters:
-        - name: members
-          description: The members to enrich.
+        - name: body
           in: body
           required: true
           schema:
-            type: array
-            items:
-              type: object
-              $ref: '#/definitions/webhook.v1.Member'
+            $ref: '#/definitions/EnrichMembersRequest'
       tags:
-        - LeaderboardsEnrichmentService
+        - MemberEnrichmentService
 definitions:
   Any:
     type: object
@@ -580,14 +574,29 @@ definitions:
         format: int32
         description: Unix timestamp of when the member's score will be erased (only if score_ttl was requested).
     description: Member information returned for BulkUpsertScores request.
-  EnrichLeaderboardsResponse:
+  EnrichMembersRequest:
+    type: object
+    properties:
+      tenantId:
+        type: string
+        description: The tenant requesting enrichment.
+      leaderboardId:
+        type: string
+        description: The leaderboard containing the members.
+      members:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/enrichment.v1.Member'
+        description: The members to enrich.
+  EnrichMembersResponse:
     type: object
     properties:
       members:
         type: array
         items:
           type: object
-          $ref: '#/definitions/webhook.v1.Member'
+          $ref: '#/definitions/enrichment.v1.Member'
         description: The enriched members.
   GetAroundMemberResponse:
     type: object
@@ -792,13 +801,6 @@ definitions:
       reason:
         type: string
         description: If the request failed the reason (as a error message) is written here.
-  Score:
-    type: object
-    properties:
-      value:
-        type: string
-        format: int64
-        description: The score value.
   ScoreChange:
     type: object
     properties:
@@ -817,6 +819,19 @@ definitions:
         items:
           type: string
     description: ScoreMultiChange is the payload to update the score of a member on multiple leaderboards.
+  Status:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      details:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/Any'
   TotalMembersResponse:
     type: object
     properties:
@@ -896,34 +911,16 @@ definitions:
     description: |-
       TODO: Create a single Member structure and make all requests use the same structure (document parts of the requests that are not returned)
       Member is a basic payload for a leaderboard member used by some responses.
-  rpc.Status:
+  enrichment.v1.Member:
     type: object
     properties:
-      code:
-        type: integer
-        format: int32
-      message:
-        type: string
-      details:
-        type: array
-        items:
-          type: object
-          $ref: '#/definitions/Any'
-  webhook.v1.Member:
-    type: object
-    properties:
-      leaderboardId:
-        type: string
-        description: The leaderboard's ID.
       id:
         type: string
         description: The member's ID.
-      scores:
-        type: array
-        items:
-          type: object
-          $ref: '#/definitions/Score'
-        description: The member's scores.
+      score:
+        type: string
+        format: int64
+        description: The member's score.
       rank:
         type: integer
         format: int32
