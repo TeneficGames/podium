@@ -2,11 +2,29 @@ package api
 
 import (
 	"context"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/spf13/viper"
 	"google.golang.org/grpc/metadata"
 )
+
+func TestAddVersionHeaders(t *testing.T) {
+	previousVersion := VERSION
+	VERSION = "1.2.3-test"
+	t.Cleanup(func() {
+		VERSION = previousVersion
+	})
+
+	recorder := httptest.NewRecorder()
+	addVersionHeaders(recorder)
+
+	for _, header := range []string{"Server", "Podium-Server"} {
+		if got, want := recorder.Header().Get(header), "Podium/v1.2.3-test"; got != want {
+			t.Errorf("%s header = %q, want %q", header, got, want)
+		}
+	}
+}
 
 func TestBasicAuthMiddleware(t *testing.T) {
 	app := &App{}

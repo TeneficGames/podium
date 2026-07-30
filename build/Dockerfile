@@ -22,10 +22,13 @@ COPY . .
 
 ARG TARGETOS
 ARG TARGETARCH
+ARG VERSION=dev
 
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags="-s -w" -o /podium/bin/podium ./main.go
+    GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath \
+    -ldflags="-s -w -X github.com/TeneficGames/podium/api.VERSION=${VERSION}" \
+    -o /podium/bin/podium ./main.go
 
 FROM gcr.io/distroless/static-debian12:nonroot
 

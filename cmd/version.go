@@ -21,8 +21,9 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "returns Podium version",
 	Long:  `returns Podium version`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("Podium v%s\n", api.VERSION)
+	RunE: func(cmd *cobra.Command, args []string) error {
+		_, err := fmt.Fprintf(cmd.OutOrStdout(), "Podium v%s\n", api.VERSION)
+		return err
 	},
 }
 

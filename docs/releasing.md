@@ -15,7 +15,9 @@ Pushing `vX.Y.Z` runs the release workflow and publishes:
 - `latest`
 
 The release workflow publishes a Linux AMD64/ARM64 image index to Docker Hub.
-The `main` branch publishes `edge`.
+The `main` branch publishes `edge`. Container builds inject their version into
+the Podium binary: release images use the semantic version derived from the Git
+tag, `edge` images report `edge`, and local source builds report `dev`.
 
 Do not publish or advertise `client`, `leaderboard`, or `proto` module tags.
 Consumers integrate with the deployed service through HTTP/JSON or gRPC.
@@ -29,5 +31,8 @@ Consumers integrate with the deployed service through HTTP/JSON or gRPC.
 5. Push the root `vX.Y.Z` tag.
 6. Verify the `X.Y.Z`, `X.Y`, `X`, and `latest` image tags and both target
    architectures.
-7. Start the immutable image in a clean environment and exercise the
+7. Confirm the release job's version check passes. It runs the immutable image
+   and requires `podium version` to match the semantic version derived from the
+   Git tag.
+8. Start the immutable image in a clean environment and exercise the
    healthcheck, HTTP API, and gRPC API.
