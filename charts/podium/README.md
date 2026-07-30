@@ -22,6 +22,19 @@ helm upgrade --install podium ./charts/podium \
   --set redis.host=redis.example.internal
 ```
 
+Released chart versions can be installed directly from GHCR:
+
+```bash
+helm upgrade --install podium \
+  oci://ghcr.io/teneficgames/charts/podium \
+  --version 0.1.0 \
+  --namespace podium \
+  --create-namespace
+```
+
+See the [chart release process](../../docs/helm-releasing.md) for versioning,
+publishing, verification, and first-release setup.
+
 For Redis Cluster:
 
 ```yaml

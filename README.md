@@ -208,6 +208,7 @@ Always deploy the latest patch release in the selected line.
 | [Enrichment](docs/leaderboard-enrichment.md) | Add external member metadata |
 | [Benchmarks](docs/benchmark.md) | Reproduce and interpret measurements |
 | [Releasing](docs/releasing.md) | Publish OCI images and version aliases |
+| [Helm releases](docs/helm-releasing.md) | Version and publish the Helm chart to GHCR |
 
 ## Development
 

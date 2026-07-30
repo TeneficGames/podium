@@ -15,6 +15,7 @@ Contents:
 
    overview
    hosting
+   helm-releasing
    leaderboard-names
    API
    library

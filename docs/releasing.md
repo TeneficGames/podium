@@ -5,6 +5,9 @@ run with Docker, containerd, Kubernetes, and other OCI-compatible platforms.
 The Go modules in the repository are internal build components and are not
 public distribution artifacts.
 
+The Helm chart has an independent version and release workflow. See
+[Releasing the Podium Helm chart](helm-releasing.md).
+
 ## Container image tags
 
 Pushing `vX.Y.Z` runs the release workflow and publishes:
