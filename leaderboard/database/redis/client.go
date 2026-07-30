@@ -50,6 +50,44 @@ type MemberIncrementer interface {
 	ZIncrByAndRank(ctx context.Context, key, member, order string, increment float64) (*Member, error)
 }
 
+// TieBreakKeys contains the colocated Redis keys used by a leaderboard.
+type TieBreakKeys struct {
+	Scores    string
+	ScoresAsc string
+	Members   string
+	Sequence  string
+	TTL       string
+}
+
+// TieBreakStore provides atomic leaderboard operations whose equal scores are
+// ordered by when each member reached its current score.
+type TieBreakStore interface {
+	DeleteLeaderboard(ctx context.Context, keys TieBreakKeys) error
+	ExpireMembersWithTieBreak(ctx context.Context, keys TieBreakKeys, members ...string) error
+	ExpireTieBreakKeysAt(ctx context.Context, keys TieBreakKeys, expireAt time.Time) error
+	GetMembersWithTieBreak(
+		ctx context.Context,
+		keys TieBreakKeys,
+		order string,
+		includeTTL bool,
+		members ...string,
+	) ([]*Member, error)
+	GetRankWithTieBreak(ctx context.Context, keys TieBreakKeys, member, order string) (int64, error)
+	IncrementWithTieBreak(
+		ctx context.Context,
+		keys TieBreakKeys,
+		member, order string,
+		increment float64,
+	) (*Member, error)
+	SetMembersTTLWithTieBreak(ctx context.Context, keys TieBreakKeys, members ...*Member) error
+	UpsertMembersWithTieBreak(
+		ctx context.Context,
+		keys TieBreakKeys,
+		order string,
+		members ...*Member,
+	) ([]int64, error)
+}
+
 // Member is a struct to be used by sorted set range operations
 type Member struct {
 	Member string

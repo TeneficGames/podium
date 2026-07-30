@@ -15,9 +15,14 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+var _ = BeforeSuite(func() {
+	Expect(testing.StartTestRedis()).To(Succeed())
+})
+
 var _ = AfterSuite(func() {
 	testing.ShutdownDefaultTestApp()
 	testing.ShutdownDefaultTestAppWithFaltyRedis()
+	testing.StopTestRedis()
 })
 
 var _ = Describe("App", func() {

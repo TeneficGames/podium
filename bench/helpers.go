@@ -18,6 +18,7 @@ import (
 	"github.com/TeneficGames/podium/config"
 	"github.com/TeneficGames/podium/leaderboard/database"
 	"github.com/TeneficGames/podium/leaderboard/service"
+	"github.com/google/uuid"
 )
 
 func getRoute(url string) string {
@@ -82,16 +83,34 @@ func validateResp(statusCode int, body string, err error) {
 }
 
 func generateNMembers(amount int) string {
-	return generateNMembersForLeaderboard("leaderboard-0", amount)
+	return generateNMembersForLeaderboard("benchmark-"+uuid.NewString(), amount)
 }
 
 func generateNMembersForLeaderboard(lbID string, amount int) string {
+	client := newLeaderboardClient()
+
+	for i := 0; i < amount; i++ {
+		if _, err := client.SetMemberScore(context.Background(), lbID, fmt.Sprintf("bench-member-%d", i), int64(100+i), false, ""); err != nil {
+			panic(err)
+		}
+	}
+
+	return lbID
+}
+
+func removeLeaderboard(lbID string) {
+	if err := newLeaderboardClient().RemoveLeaderboard(context.Background(), lbID); err != nil {
+		panic(err)
+	}
+}
+
+func newLeaderboardClient() service.Leaderboard {
 	config, err := config.GetDefaultConfig("../config/default.yaml")
 	if err != nil {
 		panic(err)
 	}
 
-	client := service.NewService(
+	return service.NewService(
 		database.NewRedisDatabase(database.RedisOptions{
 			ClusterEnabled: config.GetBool("redis.cluster.enabled"),
 			Addrs:          config.GetStringSlice("redis.addrs"),
@@ -101,12 +120,4 @@ func generateNMembersForLeaderboard(lbID string, amount int) string {
 			DB:             config.GetInt("redis.db"),
 		}),
 	)
-
-	for i := 0; i < amount; i++ {
-		if _, err := client.SetMemberScore(context.Background(), lbID, fmt.Sprintf("bench-member-%d", i), int64(100+i), false, ""); err != nil {
-			panic(err)
-		}
-	}
-
-	return lbID
 }

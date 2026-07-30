@@ -1,36 +1,73 @@
-Overview
-========
+# Podium overview
 
-What is Podium? Podium is a blazing-fast HTTP Leaderboard service and library. It could be used to manage any number of leaderboards of people or groups, but our aim is players in a game.
+Podium is a high-performance, Redis-backed leaderboard service for games and
+competitive applications. Deploy its OCI container image with Docker,
+containerd, Kubernetes, or another compatible runtime, then access it through
+HTTP/JSON or gRPC.
 
-Podium allows easy creation of different types of leaderboards with no set-up involved. Create seasonal, localized leaderboards just by varying their names.
+## What it provides
 
-## Features
-
-* **Multi-tenant** - Just vary the name of the leaderboard and you can have any number of tenants using leaderboards;
-* **Seasonal Leaderboards** - Including suffixes like `year2016week01` or `year2016month06` is all you need to create seasonal leaders. I'm serious! That's all there is to it;
-* **No leaderboard configuration** - Just start notifying scores for members of a leaderboard. There's no need to create, configure or maintain leaderboards. Let Podium do that for you;
-* **Top Members** - Get the top members of a leaderboard whether you need by absolute value (top 200 members) or percentage (top 3% members);
-* **Members around me** - Podium easily returns members around a specific member in the leaderboard. It will even compensate if you ask for the top member or last member to make sure you get a consistent amount of members;
-* **Batch score update** - In a single operation, send a member score to many different leaderboards or many members score to the same leaderboard. This allows easy tracking of member rankings in several leaderboards at once (global, regional, clan, etc.);
-* **Easy to deploy** - Podium comes with containers already exported to docker hub for every single of our successful builds. Just pick your choice!
-* **Use as library** - You can use podium as a library as well, adding leaderboard functionality directly to your application;
+- Leaderboards created on the first score submission, without schemas or
+  provisioning.
+- Descending or ascending ranks, top pages, top percentages, individual ranks,
+  and members around a player or score.
+- Single-member updates, bulk member updates, score increments, and one-member
+  updates across many leaderboards.
+- Deterministic equal-score ordering based on who reached the current score
+  first.
+- Whole-leaderboard and per-member expiration.
+- HTTP/JSON and gRPC interfaces.
+- OpenTelemetry traces and metrics, with optional Sentry reporting.
 
 ## Architecture
 
-Podium is based on the premise that you have a backend server for your game. That means we only employ basic authentication (if configured).
+Podium API replicas keep leaderboard state in Redis, so multiple replicas can
+serve the same fleet behind a load balancer. The core request path is:
 
-## The Stack
+```text
+game backend
+    │
+    ├── HTTP/JSON
+    └── gRPC
+         │
+    Podium API replicas
+         │
+    Redis or Redis Cluster
+```
 
-For the devs out there, our code is in Go, but more specifically:
+Podium is intended to be called by a trusted game or application backend.
+Basic authentication is available, but Podium is not an end-user identity or
+authorization service.
 
-* Web Framework - [gRPC](https://pkg.go.dev/google.golang.org/grpc) and [gRPC-gateway](https://github.com/grpc-ecosystem/grpc-gateway).
-* Database - Redis.
+## Scaling model
 
-## Who's Using it
+With Redis Cluster enabled, different leaderboard IDs distribute naturally
+across cluster slots. All keys belonging to one leaderboard use the same Redis
+hash tag, keeping its atomic Lua operations on a single slot.
 
-Well, right now, only us at TFG Co, are using it, but it would be great to get a community around the project. Hope to hear from you guys soon!
+Redis Cluster scales a fleet of independent leaderboards. It does not split one
+sorted set across shards, so one exceptionally hot or large leaderboard remains
+limited by its owning Redis node. Partition that leaderboard at the application
+level if it must exceed one node's capacity.
 
-## How To Contribute?
+Multi-leaderboard requests use at most 32 workers per request. This bounds
+in-process concurrency during large fan-out writes.
 
-Just the usual: Fork, Hack, Pull Request. Rinse and Repeat. Also don't forget to include tests and docs (we are very fond of both).
+## Deterministic ties
+
+Redis normally orders equal-score sorted-set members lexicographically. Podium
+instead assigns a monotonic sequence when a member reaches a new score:
+
+- Earlier arrivals at the current score rank higher.
+- Repeating the same score preserves the existing position.
+- Leaving a score and returning later creates a new arrival.
+- Concurrent submissions receive distinct sequence values through an atomic
+  Redis operation.
+
+## Redis support
+
+Podium tests against the current Redis LTS lines: 6.2, 7.2, 7.4, and 8.2. CI
+also runs the leaderboard integration suite against a real three-primary Redis
+8.2 Cluster.
+
+Always deploy the latest patch release in the selected Redis line.

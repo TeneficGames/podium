@@ -2,11 +2,10 @@ package redis_test
 
 import (
 	"context"
-	"fmt"
 	"time"
 
-	"github.com/TeneficGames/podium/leaderboard/database/redis"
-	"github.com/TeneficGames/podium/leaderboard/testing"
+	podiumredis "github.com/TeneficGames/podium/leaderboard/database/redis"
+	podiumtesting "github.com/TeneficGames/podium/leaderboard/testing"
 	goredis "github.com/redis/go-redis/v9"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -17,30 +16,21 @@ var _ = Describe("Standalone Client", func() {
 	const testKey string = "testKey"
 	const member string = "member"
 
-	var standaloneClient redis.Client
+	var standaloneClient podiumredis.Client
 	var goRedis *goredis.Client
 
 	BeforeEach(func() {
-		config, err := testing.GetDefaultConfig("../../../config/test.yaml")
+		server, err := podiumtesting.StartRedis()
 		Expect(err).NotTo(HaveOccurred())
+		DeferCleanup(server.Close)
 
-		standaloneClient = redis.NewStandaloneClient(redis.StandaloneOptions{
-			Host:     config.GetString("redis.host"),
-			Port:     config.GetInt("redis.port"),
-			Password: config.GetString("redis.password"),
-			DB:       config.GetInt("redis.db"),
+		standaloneClient = podiumredis.NewStandaloneClient(podiumredis.StandaloneOptions{
+			Host: server.Host,
+			Port: server.Port,
 		})
 
-		goRedis = goredis.NewClient(&goredis.Options{
-			Addr:     fmt.Sprintf("%s:%s", config.GetString("redis.host"), config.GetString("redis.port")),
-			Password: config.GetString("redis.password"),
-			DB:       config.GetInt("redis.db"),
-		})
-	})
-
-	AfterEach(func() {
-		err := goRedis.Del(context.Background(), testKey, testKey+":ttl").Err()
-		Expect(err).NotTo(HaveOccurred())
+		goRedis = goredis.NewClient(&goredis.Options{Addr: server.Addr()})
+		DeferCleanup(goRedis.Close)
 	})
 
 	Describe("Del", func() {
@@ -74,7 +64,7 @@ var _ = Describe("Standalone Client", func() {
 
 		It("Should return KeyNotFoundError if key doesn't exists", func() {
 			err := standaloneClient.Exists(context.Background(), testKey)
-			Expect(err).To(MatchError(redis.NewKeyNotFoundError(testKey)))
+			Expect(err).To(MatchError(podiumredis.NewKeyNotFoundError(testKey)))
 		})
 	})
 
@@ -91,8 +81,8 @@ var _ = Describe("Standalone Client", func() {
 			ttl, err := goRedis.TTL(context.Background(), testKey).Result()
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(ttl).NotTo(Equal(redis.TTLKeyNotFound))
-			Expect(ttl).NotTo(Equal(redis.KeyWithoutTTL))
+			Expect(ttl).NotTo(Equal(podiumredis.TTLKeyNotFound))
+			Expect(ttl).NotTo(Equal(podiumredis.KeyWithoutTTL))
 
 			Expect(ttl).Should(BeNumerically("~", 10*time.Minute, time.Minute))
 		})
@@ -101,7 +91,7 @@ var _ = Describe("Standalone Client", func() {
 			expirationTime := time.Now().Add(10 * time.Minute)
 
 			err := standaloneClient.ExpireAt(context.Background(), testKey, expirationTime)
-			Expect(err).To(Equal(redis.NewKeyNotFoundError(testKey)))
+			Expect(err).To(Equal(podiumredis.NewKeyNotFoundError(testKey)))
 		})
 	})
 
@@ -172,15 +162,15 @@ var _ = Describe("Standalone Client", func() {
 			ttl, err := standaloneClient.TTL(context.Background(), testKey)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(ttl).NotTo(Equal(redis.TTLKeyNotFound))
-			Expect(ttl).NotTo(Equal(redis.KeyWithoutTTL))
+			Expect(ttl).NotTo(Equal(podiumredis.TTLKeyNotFound))
+			Expect(ttl).NotTo(Equal(podiumredis.KeyWithoutTTL))
 
 			Expect(ttl).Should(BeNumerically("~", 10*time.Minute, time.Minute))
 		})
 
 		It("Should return KeyNotFound if key doesn't exists", func() {
 			_, err := standaloneClient.TTL(context.Background(), testKey)
-			Expect(err).To(Equal(redis.NewKeyNotFoundError(testKey)))
+			Expect(err).To(Equal(podiumredis.NewKeyNotFoundError(testKey)))
 		})
 
 		It("Should return TTLNotFound if ttl was not set", func() {
@@ -188,14 +178,14 @@ var _ = Describe("Standalone Client", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			_, err = standaloneClient.TTL(context.Background(), testKey)
-			Expect(err).To(Equal(redis.NewTTLNotFoundError(testKey)))
+			Expect(err).To(Equal(podiumredis.NewTTLNotFoundError(testKey)))
 		})
 	})
 
 	Describe("ZAdd", func() {
 		It("Should return nil if members is add to set", func() {
 			score := 1.0
-			members := []*redis.Member{
+			members := []*podiumredis.Member{
 				{
 					Member: member,
 					Score:  score,
@@ -302,7 +292,7 @@ var _ = Describe("Standalone Client", func() {
 
 		It("Should return error MemberNotFounderror if sorted set is empty", func() {
 			_, err := standaloneClient.ZRank(context.Background(), testKey, member)
-			Expect(err).To(Equal(redis.NewMemberNotFoundError(testKey, member)))
+			Expect(err).To(Equal(podiumredis.NewMemberNotFoundError(testKey, member)))
 		})
 
 		It("Should return error MemberNotFounderror if sorted set doesn't have member", func() {
@@ -312,7 +302,7 @@ var _ = Describe("Standalone Client", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			_, err = standaloneClient.ZRank(context.Background(), testKey, "member not found")
-			Expect(err).To(Equal(redis.NewMemberNotFoundError(testKey, "member not found")))
+			Expect(err).To(Equal(podiumredis.NewMemberNotFoundError(testKey, "member not found")))
 		})
 	})
 
@@ -409,7 +399,7 @@ var _ = Describe("Standalone Client", func() {
 
 		It("Should return error MemberNotFounderror if sorted set is empty", func() {
 			_, err := standaloneClient.ZRevRank(context.Background(), testKey, member)
-			Expect(err).To(Equal(redis.NewMemberNotFoundError(testKey, member)))
+			Expect(err).To(Equal(podiumredis.NewMemberNotFoundError(testKey, member)))
 		})
 
 		It("Should return MemberNotFound if key doesn't have member", func() {
@@ -422,7 +412,7 @@ var _ = Describe("Standalone Client", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			_, err = standaloneClient.ZRevRank(context.Background(), testKey, "wrongKey")
-			Expect(err).To(Equal(redis.NewMemberNotFoundError(testKey, "wrongKey")))
+			Expect(err).To(Equal(podiumredis.NewMemberNotFoundError(testKey, "wrongKey")))
 		})
 	})
 
@@ -446,13 +436,13 @@ var _ = Describe("Standalone Client", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			_, err = standaloneClient.ZScore(context.Background(), testKey, "wrongKey")
-			Expect(err).To(Equal(redis.NewMemberNotFoundError(testKey, "wrongKey")))
+			Expect(err).To(Equal(podiumredis.NewMemberNotFoundError(testKey, "wrongKey")))
 		})
 	})
 
 	Describe("ZMembers", func() {
 		It("Should return an empty result when no members are requested", func() {
-			reader := standaloneClient.(redis.MemberReader)
+			reader := standaloneClient.(podiumredis.MemberReader)
 			members, err := reader.ZMembers(context.Background(), testKey, "desc", false)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(members).To(BeEmpty())
@@ -475,10 +465,10 @@ var _ = Describe("Standalone Client", func() {
 			).Err()
 			Expect(err).NotTo(HaveOccurred())
 
-			reader := standaloneClient.(redis.MemberReader)
+			reader := standaloneClient.(podiumredis.MemberReader)
 			members, err := reader.ZMembers(ctx, testKey, "desc", true, "member1", "missing", "member2")
 			Expect(err).NotTo(HaveOccurred())
-			Expect(members).To(Equal([]*redis.Member{
+			Expect(members).To(Equal([]*podiumredis.Member{
 				{Member: "member1", Score: 10, Rank: 1, TTL: time.Unix(10000, 0)},
 				nil,
 				{Member: "member2", Score: 20, Rank: 0},
@@ -495,10 +485,10 @@ var _ = Describe("Standalone Client", func() {
 			).Err()
 			Expect(err).NotTo(HaveOccurred())
 
-			reader := standaloneClient.(redis.MemberReader)
+			reader := standaloneClient.(podiumredis.MemberReader)
 			members, err := reader.ZMembers(ctx, testKey, "asc", false, "member1", "member2")
 			Expect(err).NotTo(HaveOccurred())
-			Expect(members).To(Equal([]*redis.Member{
+			Expect(members).To(Equal([]*podiumredis.Member{
 				{Member: "member1", Score: 10, Rank: 0},
 				{Member: "member2", Score: 20, Rank: 1},
 			}))
@@ -507,51 +497,51 @@ var _ = Describe("Standalone Client", func() {
 
 	Describe("Pipelined writes", func() {
 		It("Should update scores and return their resulting ranks", func() {
-			writer := standaloneClient.(redis.MemberWriter)
+			writer := standaloneClient.(podiumredis.MemberWriter)
 			ranks, err := writer.ZAddAndRanks(
 				context.Background(),
 				testKey,
 				"desc",
-				&redis.Member{Member: "member1", Score: 10},
-				&redis.Member{Member: "member2", Score: 20},
+				&podiumredis.Member{Member: "member1", Score: 10},
+				&podiumredis.Member{Member: "member2", Score: 20},
 			)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(ranks).To(Equal([]int64{1, 0}))
 		})
 
 		It("Should increment a score and return its value and rank", func() {
-			writer := standaloneClient.(redis.MemberWriter)
+			writer := standaloneClient.(podiumredis.MemberWriter)
 			_, err := writer.ZAddAndRanks(
 				context.Background(),
 				testKey,
 				"desc",
-				&redis.Member{Member: "member1", Score: 10},
-				&redis.Member{Member: "member2", Score: 20},
+				&podiumredis.Member{Member: "member1", Score: 10},
+				&podiumredis.Member{Member: "member2", Score: 20},
 			)
 			Expect(err).NotTo(HaveOccurred())
 
-			incrementer := standaloneClient.(redis.MemberIncrementer)
+			incrementer := standaloneClient.(podiumredis.MemberIncrementer)
 			member, err := incrementer.ZIncrByAndRank(context.Background(), testKey, "member1", "desc", 20)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(member).To(Equal(&redis.Member{Member: "member1", Score: 30, Rank: 0}))
+			Expect(member).To(Equal(&podiumredis.Member{Member: "member1", Score: 30, Rank: 0}))
 		})
 
 		It("Should return ascending ranks after writes and increments", func() {
-			writer := standaloneClient.(redis.MemberWriter)
+			writer := standaloneClient.(podiumredis.MemberWriter)
 			ranks, err := writer.ZAddAndRanks(
 				context.Background(),
 				testKey,
 				"asc",
-				&redis.Member{Member: "member1", Score: 10},
-				&redis.Member{Member: "member2", Score: 20},
+				&podiumredis.Member{Member: "member1", Score: 10},
+				&podiumredis.Member{Member: "member2", Score: 20},
 			)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(ranks).To(Equal([]int64{0, 1}))
 
-			incrementer := standaloneClient.(redis.MemberIncrementer)
+			incrementer := standaloneClient.(podiumredis.MemberIncrementer)
 			member, err := incrementer.ZIncrByAndRank(context.Background(), testKey, "member1", "asc", 20)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(member).To(Equal(&redis.Member{Member: "member1", Score: 30, Rank: 1}))
+			Expect(member).To(Equal(&podiumredis.Member{Member: "member1", Score: 30, Rank: 1}))
 		})
 	})
 })

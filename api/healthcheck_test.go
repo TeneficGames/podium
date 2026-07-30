@@ -70,7 +70,7 @@ var _ = Describe("Healthcheck Handler", func() {
 		status, body := testing.Get(a, "/healthcheck")
 
 		Expect(status).To(Equal(500))
-		Expect(body).To(ContainSubstring("connection refused"))
+		Expect(body).To(ContainSubstring("injected Redis failure"))
 	})
 
 	It("Should fail if redis failing (grpc)", func() {
@@ -81,7 +81,7 @@ var _ = Describe("Healthcheck Handler", func() {
 
 			Expect(err).To(HaveOccurred())
 			Expect(status.Code(err)).To(Equal(codes.Internal))
-			Expect(err.Error()).To(ContainSubstring("connection refused"))
+			Expect(err.Error()).To(ContainSubstring("injected Redis failure"))
 			Expect(resp).To(BeNil())
 		})
 	})

@@ -14,7 +14,8 @@ import (
 	"time"
 
 	"github.com/TeneficGames/podium/config"
-	"github.com/TeneficGames/podium/leaderboard/database/redis"
+	"github.com/TeneficGames/podium/leaderboard/database"
+	"github.com/TeneficGames/podium/leaderboard/service"
 	"github.com/gosuri/uiprogress"
 	"github.com/gosuri/uiprogress/util/strutil"
 )
@@ -48,17 +49,19 @@ func main() {
 		return strutil.Resize(text, uint(len(text)))
 	})
 
-	client := redis.NewStandaloneClient(redis.StandaloneOptions{
-		Host:     config.GetString("redis.host"),
-		Port:     config.GetInt("redis.port"),
-		Password: config.GetString("redis.password"),
-		DB:       config.GetInt("redis.db"),
-	})
+	client := service.NewService(database.NewRedisDatabase(database.RedisOptions{
+		ClusterEnabled: config.GetBool("redis.cluster.enabled"),
+		Addrs:          config.GetStringSlice("redis.addrs"),
+		Host:           config.GetString("redis.host"),
+		Port:           config.GetInt("redis.port"),
+		Password:       config.GetString("redis.password"),
+		DB:             config.GetInt("redis.db"),
+	}))
 
 	createTestData(client, *leaderboardCount, *membersPerLeaderboard, bar.Incr)
 }
 
-func createTestData(cli redis.Client, leaderboardCount, membersPerLeaderboard int, progress func() bool) {
+func createTestData(cli service.Leaderboard, leaderboardCount, membersPerLeaderboard int, progress func() bool) {
 	for i := 0; i < leaderboardCount; i++ {
 		for j := 0; j < membersPerLeaderboard; j++ {
 			setScore(cli, fmt.Sprintf("leaderboard-%d", i), fmt.Sprintf("member-%d", j), i*j)
@@ -68,8 +71,8 @@ func createTestData(cli redis.Client, leaderboardCount, membersPerLeaderboard in
 
 }
 
-func setScore(cli redis.Client, leaderboard, member string, score int) {
-	err := cli.ZAdd(context.Background(), leaderboard, &redis.Member{Score: float64(score), Member: member})
+func setScore(cli service.Leaderboard, leaderboard, member string, score int) {
+	_, err := cli.SetMemberScore(context.Background(), leaderboard, member, int64(score), false, "")
 	if err != nil {
 		panic(err)
 	}

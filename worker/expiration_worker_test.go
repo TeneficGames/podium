@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"github.com/TeneficGames/podium/leaderboard/database"
-	"github.com/TeneficGames/podium/leaderboard/database/redis"
 	lservice "github.com/TeneficGames/podium/leaderboard/service"
 	"github.com/TeneficGames/podium/worker"
 
@@ -81,8 +80,7 @@ var _ = Describe("Scores Expirer Worker", func() {
 	})
 
 	AfterEach(func() {
-		redisClient.Del(context.Background(), lbName)
-		redisClient.Del(context.Background(), fmt.Sprintf("%s:ttl", lbName))
+		Expect(leaderboards.RemoveLeaderboard(context.Background(), lbName)).To(Succeed())
 		redisClient.Del(context.Background(), database.ExpirationSet)
 	})
 
@@ -90,102 +88,61 @@ var _ = Describe("Scores Expirer Worker", func() {
 		ttl := "1"
 		_, err := leaderboards.SetMemberScore(context.Background(), lbName, "denix", 481516, false, ttl)
 		Expect(err).NotTo(HaveOccurred())
-		redisLBExpirationKey := fmt.Sprintf("%s:ttl", lbName)
-		err = redisClient.Exists(context.Background(), redisLBExpirationKey)
+		expirationLeaderboards, err := redisClient.GetExpirationLeaderboards(context.Background())
 		Expect(err).NotTo(HaveOccurred())
-		err = redisClient.Exists(context.Background(), database.ExpirationSet)
+		Expect(expirationLeaderboards).To(ContainElement(lbName))
+		member, err := leaderboards.GetMember(context.Background(), lbName, "denix", "desc", true)
 		Expect(err).NotTo(HaveOccurred())
-		result2, err := redisClient.SMembers(context.Background(), database.ExpirationSet)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(result2).To(ContainElement(redisLBExpirationKey))
-		result3, err := redisClient.ZRange(context.Background(), redisLBExpirationKey, 0, 1)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(result3[0].Member).To(Equal("denix"))
 		ttlInt, _ := strconv.ParseInt(ttl, 10, 64)
-		Expect(result3[0].Score).To(BeNumerically("~", time.Now().Unix()+ttlInt, 1))
-		result4, err := redisClient.ZRange(context.Background(), lbName, 0, 1)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(len(result4)).To(Equal(1))
-		Expect(result4[0].Member).To(Equal("denix"))
-		err = redisClient.ZAdd(context.Background(), redisLBExpirationKey, &redis.Member{
+		Expect(member.ExpireAt).To(BeNumerically("~", time.Now().Unix()+ttlInt, 1))
+		err = redisClient.SetMembersTTL(context.Background(), lbName, []*database.Member{{
 			Member: "denix",
-			Score:  float64(time.Now().Add(-time.Second).Unix()),
-		})
+			TTL:    time.Now().Add(-time.Second),
+		}})
 		Expect(err).NotTo(HaveOccurred())
 		runWorker(2)
 
-		res, err := redisClient.ZRange(context.Background(), lbName, 0, 1)
+		total, err := leaderboards.TotalMembers(context.Background(), lbName)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(len(res)).To(Equal(0))
-
-		members, err := redisClient.SMembers(context.Background(), database.ExpirationSet)
+		Expect(total).To(Equal(0))
+		expirationLeaderboards, err = redisClient.GetExpirationLeaderboards(context.Background())
 		Expect(err).NotTo(HaveOccurred())
-		Expect(len(members)).To(Equal(0))
-
-		err = redisClient.Exists(context.Background(), redisLBExpirationKey)
-		Expect(err).To(MatchError(redis.NewKeyNotFoundError(redisLBExpirationKey)))
+		Expect(expirationLeaderboards).To(BeEmpty())
 	})
 
 	It("should not expire scores that are in the future", func() {
 		ttl := "20"
 		_, err := leaderboards.SetMemberScore(context.Background(), lbName, "denix", 481516, false, ttl)
 		Expect(err).NotTo(HaveOccurred())
-		redisLBExpirationKey := fmt.Sprintf("%s:ttl", lbName)
-		err = redisClient.Exists(context.Background(), redisLBExpirationKey)
+		expirationLeaderboards, err := redisClient.GetExpirationLeaderboards(context.Background())
 		Expect(err).NotTo(HaveOccurred())
-		err = redisClient.Exists(context.Background(), database.ExpirationSet)
+		Expect(expirationLeaderboards).To(ContainElement(lbName))
+		member, err := leaderboards.GetMember(context.Background(), lbName, "denix", "desc", true)
 		Expect(err).NotTo(HaveOccurred())
-		result2, err := redisClient.SMembers(context.Background(), database.ExpirationSet)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(result2).To(ContainElement(redisLBExpirationKey))
-		result3, err := redisClient.ZRange(context.Background(), redisLBExpirationKey, 0, 1)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(result3[0].Member).To(Equal("denix"))
 		ttlInt, _ := strconv.ParseInt(ttl, 10, 64)
-		Expect(result3[0].Score).To(BeNumerically("~", time.Now().Unix()+ttlInt, 1))
-		result4, err := redisClient.ZRange(context.Background(), lbName, 0, 1)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(len(result4)).To(Equal(1))
-		Expect(result4[0].Member).To(Equal("denix"))
+		Expect(member.ExpireAt).To(BeNumerically("~", time.Now().Unix()+ttlInt, 1))
 		runWorker(1)
 
-		res, err := redisClient.ZRange(context.Background(), lbName, 0, 1)
+		total, err := leaderboards.TotalMembers(context.Background(), lbName)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(len(res)).To(Equal(1))
-
-		members, err := redisClient.SMembers(context.Background(), database.ExpirationSet)
+		Expect(total).To(Equal(1))
+		expirationLeaderboards, err = redisClient.GetExpirationLeaderboards(context.Background())
 		Expect(err).NotTo(HaveOccurred())
-		Expect(len(members)).To(Equal(1))
-
-		err = redisClient.Exists(context.Background(), redisLBExpirationKey)
-		Expect(err).NotTo(HaveOccurred())
+		Expect(expirationLeaderboards).To(ConsistOf(lbName))
 	})
 
 	It("should not expire scores that are not inserted with scoreTTL set", func() {
 		ttl := ""
-		redisLBExpirationKey := fmt.Sprintf("%s:ttl", lbName)
 		_, err := leaderboards.SetMemberScore(context.Background(), lbName, "denix", 481516, false, ttl)
 		Expect(err).NotTo(HaveOccurred())
-		err = redisClient.Exists(context.Background(), redisLBExpirationKey)
-		Expect(err).To(MatchError(redis.NewKeyNotFoundError(redisLBExpirationKey)))
-		err = redisClient.Exists(context.Background(), database.ExpirationSet)
-		Expect(err).To(MatchError(redis.NewKeyNotFoundError(database.ExpirationSet)))
-		result4, err := redisClient.ZRange(context.Background(), lbName, 0, 1)
+		expirationLeaderboards, err := redisClient.GetExpirationLeaderboards(context.Background())
 		Expect(err).NotTo(HaveOccurred())
-		Expect(len(result4)).To(Equal(1))
-		Expect(result4[0].Member).To(Equal("denix"))
+		Expect(expirationLeaderboards).To(BeEmpty())
 		runWorker(1)
 
-		res, err := redisClient.ZRange(context.Background(), lbName, 0, 1)
+		total, err := leaderboards.TotalMembers(context.Background(), lbName)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(len(res)).To(Equal(1))
-
-		members, err := redisClient.SMembers(context.Background(), database.ExpirationSet)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(len(members)).To(Equal(0))
-
-		err = redisClient.Exists(context.Background(), redisLBExpirationKey)
-		Expect(err).To(MatchError(redis.NewKeyNotFoundError(redisLBExpirationKey)))
+		Expect(total).To(Equal(1))
 	})
 
 	It("a call to expireScores should only remove ExpirationLimitPerRun members from a set", func() {
@@ -196,44 +153,24 @@ var _ = Describe("Scores Expirer Worker", func() {
 		Expect(err).NotTo(HaveOccurred())
 		_, err = leaderboards.SetMemberScore(context.Background(), lbName, "denix2", 481512, false, ttl)
 		Expect(err).NotTo(HaveOccurred())
-		redisLBExpirationKey := fmt.Sprintf("%s:ttl", lbName)
-		err = redisClient.Exists(context.Background(), redisLBExpirationKey)
+		expirationLeaderboards, err := redisClient.GetExpirationLeaderboards(context.Background())
 		Expect(err).NotTo(HaveOccurred())
-		err = redisClient.Exists(context.Background(), database.ExpirationSet)
-		Expect(err).NotTo(HaveOccurred())
-		result2, err := redisClient.SMembers(context.Background(), database.ExpirationSet)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(result2).To(ContainElement(redisLBExpirationKey))
-		result3, err := redisClient.ZRange(context.Background(), redisLBExpirationKey, 0, 1)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(result3[0].Member).To(Equal("denix"))
-		Expect(result3[1].Member).To(Equal("denix2"))
-		result4, err := redisClient.ZRange(context.Background(), lbName, 0, 2)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(len(result4)).To(Equal(2))
-		Expect(result4[0].Member).To(Equal("denix2"))
-		Expect(result4[1].Member).To(Equal("denix"))
-
-		err = redisClient.ZAdd(
-			context.Background(),
-			redisLBExpirationKey,
-			&redis.Member{Member: "denix", Score: 0},
-			&redis.Member{Member: "denix2", Score: 0},
-		)
+		Expect(expirationLeaderboards).To(ConsistOf(lbName))
+		err = redisClient.SetMembersTTL(context.Background(), lbName, []*database.Member{
+			{Member: "denix", TTL: time.Unix(0, 0)},
+			{Member: "denix2", TTL: time.Unix(0, 0)},
+		})
 		Expect(err).NotTo(HaveOccurred())
 		runWorker(1)
 
-		res, err := redisClient.ZRange(context.Background(), lbName, 0, 2)
+		total, err := leaderboards.TotalMembers(context.Background(), lbName)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(len(res)).To(Equal(1))
-		Expect(res[0].Member).To(Equal("denix2"))
-
-		members, err := redisClient.SMembers(context.Background(), database.ExpirationSet)
+		Expect(total).To(Equal(1))
+		_, err = leaderboards.GetMember(context.Background(), lbName, "denix2", "desc", false)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(len(members)).To(Equal(1))
-
-		err = redisClient.Exists(context.Background(), redisLBExpirationKey)
+		expirationLeaderboards, err = redisClient.GetExpirationLeaderboards(context.Background())
 		Expect(err).NotTo(HaveOccurred())
+		Expect(expirationLeaderboards).To(ConsistOf(lbName))
 	})
 
 	It("should create a valid expiration worker with external configuration", func() {

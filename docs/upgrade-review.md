@@ -1,6 +1,6 @@
 # Modernization and observability review
 
-Reviewed: 2026-07-27
+Reviewed: 2026-07-30
 
 ## Executive summary
 
@@ -8,10 +8,10 @@ Podium has been upgraded from its legacy module and observability stack to the
 `github.com/TeneficGames/podium` module family, Go 1.26, maintained dependencies,
 OpenTelemetry, and `sentry-go`.
 
-The application, leaderboard module, client module, generated protobuf code,
-container build, CI workflow, lint configuration, tests, and operational
+The application, internal leaderboard and client packages, generated protobuf
+code, container build, CI workflow, lint configuration, tests, and operational
 documentation were reviewed together. The repository builds and lints cleanly,
-and its Redis-backed test suites pass with Redis 8.
+and its Redis-backed test suites pass with the supported Redis LTS lines.
 
 The migration intentionally does not preserve Raven, New Relic v1, OpenTracing,
 Jaeger client, DogStatsD, or `topfreegames/extensions` behavior. Those
@@ -19,21 +19,13 @@ dependencies and their configuration keys have been removed.
 
 ## Current architecture
 
-### Modules and toolchain
+### Source layout and toolchain
 
-| Component | Module |
-| --- | --- |
-| Server and worker | `github.com/TeneficGames/podium` |
-| Leaderboard library | `github.com/TeneficGames/podium/leaderboard` |
-| HTTP client | `github.com/TeneficGames/podium/client` |
-
-All modules use Go 1.26 with the repository-pinned Go 1.26.5 toolchain. The
-server uses a local `replace` directive for the leaderboard module during
-development. The leaderboard starts a new v1 line under the Tenefic Games
-module path, so its Go import path has no major-version suffix and its release
-tags use the nested-module form `leaderboard/v1.x.x`. Direct dependencies are
-current at review time; remaining `go list -m -u all` results are transitive
-versions selected by their owners.
+The repository uses Go 1.26 with the repository-pinned Go 1.26.5 toolchain.
+Nested Go modules isolate internal server components during development and CI;
+they are not versioned or distributed as public libraries. Podium's supported
+distribution artifact is its OCI container image, and consumers use its
+HTTP/JSON or gRPC API.
 
 ### Observability ownership
 
@@ -141,15 +133,16 @@ make test
 make coverage
 ```
 
-The tests require Redis on `127.0.0.1:6379`. Root API tests use Redis database 0;
-worker tests use database 1.
+The default tests use miniredis and require no external Redis process. CI also
+tests Redis 6.2, 7.2, 7.4, and 8.2 in standalone mode and exercises a real
+three-primary Redis 8.2 Cluster.
 
 The review also checks:
 
-- `go mod verify` in all three modules.
-- `go test ./...` in all three modules.
-- `golangci-lint run ./...` in all three modules.
-- `govulncheck ./...` in all three modules.
+- `go mod verify` in every internal module.
+- `go test ./...` in every internal module.
+- `golangci-lint run ./...` in every internal module.
+- `govulncheck ./...` in every internal module.
 - Reproducible generated protobuf code.
 - `git diff --check`.
 - No remaining Raven, New Relic v1, OpenTracing, Jaeger client,
@@ -159,15 +152,9 @@ The review also checks:
 
 These items require project-owner or infrastructure choices and were not guessed:
 
-1. Container publishing is intentionally disabled. Choose the TeneficGames
-   Docker Hub namespace or GHCR target, define its permissions and secrets, and
-   add an owned release workflow before publishing images.
-2. Redis Cluster CI is not configured. Add it using an owned, maintained
-   cluster setup before claiming cluster-mode coverage.
-3. The Read the Docs/Sphinx setup still references Python 2.7 and should be
+1. The Read the Docs/Sphinx setup still references Python 2.7 and should be
    replaced or removed if hosted documentation remains a requirement.
-4. OTLP is intentionally gRPC-only. Add OTLP/HTTP exporters if an environment
+2. OTLP is intentionally gRPC-only. Add OTLP/HTTP exporters if an environment
    cannot provide gRPC connectivity.
-5. OpenTelemetry and Sentry are process-global. Podium assumes one application
-   or worker runtime per process; embedding multiple independently configured
-   Podium applications in one process is unsupported.
+3. OpenTelemetry and Sentry are process-global. The supported deployment model
+   runs one Podium process per container.

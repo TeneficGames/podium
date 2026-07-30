@@ -12,17 +12,22 @@ package redis
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
+	podiumtesting "github.com/TeneficGames/podium/leaderboard/testing"
 	goredis "github.com/redis/go-redis/v9"
 )
 
 func TestClusterClientAgainstStandaloneRedis(t *testing.T) {
-	const (
-		address = "localhost:6379"
-		key     = "podium:cluster-client:test"
-	)
+	const key = "podium:cluster-client:test"
+	server, err := podiumtesting.StartRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(server.Close)
+	address := server.Addr()
 
 	goRedisClient := goredis.NewClusterClient(&goredis.ClusterOptions{
 		Addrs: []string{address},
@@ -174,6 +179,53 @@ func TestClusterClientAgainstStandaloneRedis(t *testing.T) {
 	}
 	if _, err := client.ZCard(ctx, key); !isKeyNotFound(err) {
 		t.Fatalf("expected missing sorted set, got %v", err)
+	}
+
+	tieKeys := TieBreakKeys{
+		Scores:    "{podium:cluster-client:tiebreak}:scores",
+		ScoresAsc: "{podium:cluster-client:tiebreak}:scores-asc",
+		Members:   "{podium:cluster-client:tiebreak}:members",
+		Sequence:  "{podium:cluster-client:tiebreak}:sequence",
+		TTL:       "{podium:cluster-client:tiebreak}:ttl",
+	}
+	ranks, err = client.UpsertMembersWithTieBreak(
+		ctx,
+		tieKeys,
+		"desc",
+		&Member{Member: "alice", Score: 100},
+		&Member{Member: "bob", Score: 90},
+	)
+	if err != nil || fmt.Sprint(ranks) != "[0 1]" {
+		t.Fatalf("unexpected tie-break ranks: %v, %v", ranks, err)
+	}
+	memberExpiration := time.Now().Add(5 * time.Minute).Truncate(time.Second)
+	if err := client.SetMembersTTLWithTieBreak(
+		ctx,
+		tieKeys,
+		&Member{Member: "alice", TTL: memberExpiration},
+	); err != nil {
+		t.Fatalf("set tie-break member TTL: %v", err)
+	}
+	tieMembers, err := client.GetMembersWithTieBreak(ctx, tieKeys, "desc", true, "alice", "missing")
+	if err != nil || len(tieMembers) != 2 || tieMembers[0] == nil ||
+		tieMembers[0].Rank != 0 || !tieMembers[0].TTL.Equal(memberExpiration) || tieMembers[1] != nil {
+		t.Fatalf("unexpected tie-break members: %#v, %v", tieMembers, err)
+	}
+	if rank, err := client.GetRankWithTieBreak(ctx, tieKeys, "bob", "desc"); err != nil || rank != 1 {
+		t.Fatalf("unexpected tie-break rank: %d, %v", rank, err)
+	}
+	if incremented, err := client.IncrementWithTieBreak(ctx, tieKeys, "bob", "desc", 20); err != nil ||
+		incremented.Score != 110 || incremented.Rank != 0 {
+		t.Fatalf("unexpected tie-break increment: %#v, %v", incremented, err)
+	}
+	if err := client.ExpireMembersWithTieBreak(ctx, tieKeys, "alice"); err != nil {
+		t.Fatalf("expire tie-break member: %v", err)
+	}
+	if err := client.ExpireTieBreakKeysAt(ctx, tieKeys, time.Now().Add(time.Hour)); err != nil {
+		t.Fatalf("expire tie-break leaderboard: %v", err)
+	}
+	if err := client.DeleteLeaderboard(ctx, tieKeys); err != nil {
+		t.Fatalf("delete tie-break leaderboard: %v", err)
 	}
 }
 

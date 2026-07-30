@@ -19,6 +19,77 @@ type fastRedisClient struct {
 	err    error
 }
 
+type failingTieBreakClient struct {
+	redis.Client
+	err error
+}
+
+func (c *failingTieBreakClient) DeleteLeaderboard(context.Context, redis.TieBreakKeys) error {
+	return c.err
+}
+
+func (c *failingTieBreakClient) ExpireMembersWithTieBreak(
+	context.Context,
+	redis.TieBreakKeys,
+	...string,
+) error {
+	return c.err
+}
+
+func (c *failingTieBreakClient) ExpireTieBreakKeysAt(
+	context.Context,
+	redis.TieBreakKeys,
+	time.Time,
+) error {
+	return c.err
+}
+
+func (c *failingTieBreakClient) GetMembersWithTieBreak(
+	context.Context,
+	redis.TieBreakKeys,
+	string,
+	bool,
+	...string,
+) ([]*redis.Member, error) {
+	return nil, c.err
+}
+
+func (c *failingTieBreakClient) GetRankWithTieBreak(
+	context.Context,
+	redis.TieBreakKeys,
+	string,
+	string,
+) (int64, error) {
+	return 0, c.err
+}
+
+func (c *failingTieBreakClient) IncrementWithTieBreak(
+	context.Context,
+	redis.TieBreakKeys,
+	string,
+	string,
+	float64,
+) (*redis.Member, error) {
+	return nil, c.err
+}
+
+func (c *failingTieBreakClient) SetMembersTTLWithTieBreak(
+	context.Context,
+	redis.TieBreakKeys,
+	...*redis.Member,
+) error {
+	return c.err
+}
+
+func (c *failingTieBreakClient) UpsertMembersWithTieBreak(
+	context.Context,
+	redis.TieBreakKeys,
+	string,
+	...*redis.Member,
+) ([]int64, error) {
+	return nil, c.err
+}
+
 func (c *fastRedisClient) ZAddAndRanks(
 	context.Context,
 	string,
@@ -951,6 +1022,113 @@ var _ = Describe("Redis Database", func() {
 
 			err := redisDatabase.SetMembersTTL(context.Background(), leaderboard, databaseMembers)
 			Expect(err).To(Equal(database.NewGeneralError("New redis error")))
+		})
+	})
+
+	Describe("Tie-break adapter failures", func() {
+		var tieBreakDatabase *database.Redis
+		var tieBreakError error
+
+		BeforeEach(func() {
+			tieBreakError = fmt.Errorf("tie-break error")
+			tieBreakDatabase = &database.Redis{
+				Client: &failingTieBreakClient{Client: mock, err: tieBreakError},
+			}
+		})
+
+		It("selects standalone and cluster clients from configuration", func() {
+			standalone := database.NewRedisDatabase(database.RedisOptions{
+				Host: "127.0.0.1",
+				Port: 6379,
+			})
+			cluster := database.NewRedisDatabase(database.RedisOptions{
+				ClusterEnabled: true,
+				Addrs:          []string{"127.0.0.1:6379"},
+			})
+
+			Expect(fmt.Sprintf("%T", standalone.Client)).To(Equal("*redis.standaloneClient"))
+			Expect(fmt.Sprintf("%T", cluster.Client)).To(Equal("*redis.clusterClient"))
+		})
+
+		It("routes expiration and cardinality reads to the tie-break score key", func() {
+			mock.EXPECT().TTL(gomock.Any(), gomock.Not(gomock.Eq(leaderboard))).Return(time.Second, nil)
+			mock.EXPECT().ZCard(gomock.Any(), gomock.Not(gomock.Eq(leaderboard))).Return(int64(2), nil)
+
+			ttl, err := tieBreakDatabase.GetLeaderboardExpiration(context.Background(), leaderboard)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(ttl).To(Equal(int64(time.Second)))
+
+			total, err := tieBreakDatabase.GetTotalMembers(context.Background(), leaderboard)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(total).To(Equal(2))
+		})
+
+		It("rejects malformed internal members returned by range reads", func() {
+			mock.EXPECT().ZRevRangeByScore(
+				gomock.Any(),
+				gomock.Not(gomock.Eq(leaderboard)),
+				gomock.Any(),
+				gomock.Any(),
+				gomock.Any(),
+				gomock.Any(),
+			).Return([]string{"malformed"}, nil)
+			mock.EXPECT().ZRange(
+				gomock.Any(),
+				gomock.Not(gomock.Eq(leaderboard)),
+				gomock.Any(),
+				gomock.Any(),
+			).Return([]*redis.Member{{Member: "malformed"}}, nil)
+
+			_, err := tieBreakDatabase.GetMemberIDsWithScoreInsideRange(
+				context.Background(),
+				leaderboard,
+				"0",
+				"100",
+				0,
+				10,
+			)
+			Expect(err).To(Equal(database.NewGeneralError("invalid encoded leaderboard member")))
+
+			_, err = tieBreakDatabase.GetOrderedMembers(
+				context.Background(),
+				leaderboard,
+				0,
+				10,
+				"asc",
+			)
+			Expect(err).To(Equal(database.NewGeneralError("invalid encoded leaderboard member")))
+		})
+
+		It("maps tie-break operation failures to database errors", func() {
+			ctx := context.Background()
+			members := []*database.Member{{Member: member, Score: score, TTL: time.Now()}}
+
+			_, err := tieBreakDatabase.GetMembers(ctx, leaderboard, "desc", false, member)
+			Expect(err).To(Equal(database.NewGeneralError(tieBreakError.Error())))
+
+			_, err = tieBreakDatabase.GetRank(ctx, leaderboard, member, "desc")
+			Expect(err).To(Equal(database.NewGeneralError(tieBreakError.Error())))
+
+			Expect(tieBreakDatabase.IncrementMemberScore(ctx, leaderboard, member, 1)).
+				To(Equal(database.NewGeneralError(tieBreakError.Error())))
+
+			_, err = tieBreakDatabase.IncrementMemberScoreAndGetRank(ctx, leaderboard, member, "desc", 1)
+			Expect(err).To(Equal(database.NewGeneralError(tieBreakError.Error())))
+
+			Expect(tieBreakDatabase.RemoveLeaderboard(ctx, leaderboard)).
+				To(Equal(database.NewGeneralError(tieBreakError.Error())))
+			Expect(tieBreakDatabase.RemoveMembers(ctx, leaderboard, member)).
+				To(Equal(database.NewGeneralError(tieBreakError.Error())))
+			Expect(tieBreakDatabase.SetLeaderboardExpiration(ctx, leaderboard, time.Now())).
+				To(Equal(database.NewGeneralError(tieBreakError.Error())))
+			Expect(tieBreakDatabase.SetMembers(ctx, leaderboard, members)).
+				To(Equal(database.NewGeneralError(tieBreakError.Error())))
+
+			_, err = tieBreakDatabase.SetMembersAndGetRanks(ctx, leaderboard, "desc", members)
+			Expect(err).To(Equal(database.NewGeneralError(tieBreakError.Error())))
+
+			Expect(tieBreakDatabase.SetMembersTTL(ctx, leaderboard, members)).
+				To(Equal(database.NewGeneralError(tieBreakError.Error())))
 		})
 	})
 })

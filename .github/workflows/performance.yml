@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       redis:
-        image: redis:8-alpine
+        image: redis:8.2-alpine
         options: '--health-cmd "redis-cli ping" --health-interval 1s --health-timeout 3s --health-retries 10'
         ports:
           - "6379:6379"

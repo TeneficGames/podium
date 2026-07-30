@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TeneficGames/podium/leaderboard/database/redis"
+	podiumredis "github.com/TeneficGames/podium/leaderboard/database/redis"
 )
 
 // Redis is a type that implements Database interface with redis client
 type Redis struct {
-	redis.Client
+	podiumredis.Client
 }
 
 // ExpirationSet is used to list expirations set that worker will use to remove members
@@ -30,13 +30,13 @@ type RedisOptions struct {
 // NewRedisDatabase create a database based on redis
 func NewRedisDatabase(options RedisOptions) *Redis {
 	if options.ClusterEnabled {
-		return &Redis{redis.NewClusterClient(redis.ClusterOptions{
+		return &Redis{podiumredis.NewClusterClient(podiumredis.ClusterOptions{
 			Addrs:    options.Addrs,
 			Password: options.Password,
 		})}
 	}
 
-	return &Redis{redis.NewStandaloneClient(redis.StandaloneOptions{
+	return &Redis{podiumredis.NewStandaloneClient(podiumredis.StandaloneOptions{
 		Host:     options.Host,
 		Port:     options.Port,
 		Password: options.Password,
@@ -46,9 +46,13 @@ func NewRedisDatabase(options RedisOptions) *Redis {
 
 // GetLeaderboardExpiration return leaderboard expiration time
 func (r *Redis) GetLeaderboardExpiration(ctx context.Context, leaderboard string) (int64, error) {
-	duration, err := r.Client.TTL(ctx, leaderboard)
+	key := leaderboard
+	if _, ok := r.tieBreakStore(); ok {
+		key = leaderboardKeys(leaderboard).Scores
+	}
+	duration, err := r.Client.TTL(ctx, key)
 	if err != nil {
-		var notFoundErr *redis.TTLNotFoundError
+		var notFoundErr *podiumredis.TTLNotFoundError
 		if errors.As(err, &notFoundErr) {
 			return int64(-1), NewTTLNotFoundError(leaderboard)
 		}
@@ -64,7 +68,33 @@ func (r *Redis) GetMembers(ctx context.Context, leaderboard, order string, inclu
 		return nil, NewInvalidOrderError(order)
 	}
 
-	if reader, ok := r.Client.(redis.MemberReader); ok {
+	if store, ok := r.tieBreakStore(); ok {
+		redisMembers, err := store.GetMembersWithTieBreak(
+			ctx,
+			leaderboardKeys(leaderboard),
+			order,
+			includeTTL,
+			members...,
+		)
+		if err != nil {
+			return nil, NewGeneralError(err.Error())
+		}
+		membersToReturn := make([]*Member, len(redisMembers))
+		for i, member := range redisMembers {
+			if member == nil {
+				continue
+			}
+			membersToReturn[i] = &Member{
+				Member: member.Member,
+				Score:  member.Score,
+				Rank:   member.Rank,
+				TTL:    member.TTL,
+			}
+		}
+		return membersToReturn, nil
+	}
+
+	if reader, ok := r.Client.(podiumredis.MemberReader); ok {
 		redisMembers, err := reader.ZMembers(ctx, leaderboard, order, includeTTL, members...)
 		if err != nil {
 			return nil, NewGeneralError(err.Error())
@@ -90,7 +120,7 @@ func (r *Redis) GetMembers(ctx context.Context, leaderboard, order string, inclu
 	for _, member := range members {
 		score, err := r.Client.ZScore(ctx, leaderboard, member)
 		if err != nil {
-			var notFoundErr *redis.MemberNotFoundError
+			var notFoundErr *podiumredis.MemberNotFoundError
 			if errors.As(err, &notFoundErr) {
 				membersToReturn = append(membersToReturn, nil)
 				continue
@@ -136,9 +166,12 @@ func (r *Redis) GetMembers(ctx context.Context, leaderboard, order string, inclu
 
 func (r *Redis) getMemberTTL(ctx context.Context, leaderboard, member string) (time.Time, error) {
 	leaderboardTTL := fmt.Sprintf("%s:ttl", leaderboard)
+	if _, ok := r.tieBreakStore(); ok {
+		leaderboardTTL = leaderboardKeys(leaderboard).TTL
+	}
 	ttl, err := r.Client.ZScore(ctx, leaderboardTTL, member)
 	if err != nil {
-		var notFoundErr *redis.MemberNotFoundError
+		var notFoundErr *podiumredis.MemberNotFoundError
 		if errors.As(err, &notFoundErr) {
 			return time.Time{}, NewMemberNotFoundError(leaderboardTTL, member)
 		}
@@ -150,24 +183,50 @@ func (r *Redis) getMemberTTL(ctx context.Context, leaderboard, member string) (t
 
 // GetMemberIDsWithScoreInsideRange find members with score close to
 func (r *Redis) GetMemberIDsWithScoreInsideRange(ctx context.Context, leaderboard string, min, max string, offset, count int) ([]string, error) {
-	members, err := r.Client.ZRevRangeByScore(ctx, leaderboard, min, max, int64(offset), int64(count))
+	key := leaderboard
+	tieBreak := false
+	if _, ok := r.tieBreakStore(); ok {
+		key = leaderboardKeys(leaderboard).Scores
+		tieBreak = true
+	}
+	members, err := r.Client.ZRevRangeByScore(ctx, key, min, max, int64(offset), int64(count))
 	if err != nil {
 		return nil, NewGeneralError(err.Error())
 	}
 
+	if tieBreak {
+		for i, member := range members {
+			publicID, err := decodeTieBreakMember(member)
+			if err != nil {
+				return nil, NewGeneralError(err.Error())
+			}
+			members[i] = publicID
+		}
+	}
 	return members, nil
 }
 
 // GetOrderedMembers call redis ZRange if order is asc, if desc call redis ZRevRange
 func (r *Redis) GetOrderedMembers(ctx context.Context, leaderboard string, start, stop int, order string) ([]*Member, error) {
-	var redisMembers []*redis.Member
+	var redisMembers []*podiumredis.Member
 	var err error
+	key := leaderboard
+	tieBreak := false
+	if _, ok := r.tieBreakStore(); ok {
+		keys := leaderboardKeys(leaderboard)
+		if order == "asc" {
+			key = keys.ScoresAsc
+		} else {
+			key = keys.Scores
+		}
+		tieBreak = true
+	}
 
 	switch order {
 	case "asc":
-		redisMembers, err = r.Client.ZRange(ctx, leaderboard, int64(start), int64(stop))
+		redisMembers, err = r.Client.ZRange(ctx, key, int64(start), int64(stop))
 	case "desc":
-		redisMembers, err = r.Client.ZRevRange(ctx, leaderboard, int64(start), int64(stop))
+		redisMembers, err = r.Client.ZRevRange(ctx, key, int64(start), int64(stop))
 	default:
 		return nil, NewInvalidOrderError(order)
 	}
@@ -178,8 +237,15 @@ func (r *Redis) GetOrderedMembers(ctx context.Context, leaderboard string, start
 
 	members := make([]*Member, 0, len(redisMembers))
 	for i, member := range redisMembers {
+		publicID := member.Member
+		if tieBreak {
+			publicID, err = decodeTieBreakMember(member.Member)
+			if err != nil {
+				return nil, NewGeneralError(err.Error())
+			}
+		}
 		members = append(members, &Member{
-			Member: member.Member,
+			Member: publicID,
 			Score:  member.Score,
 			Rank:   int64(start + i),
 		})
@@ -193,6 +259,21 @@ func (r *Redis) GetRank(ctx context.Context, leaderboard, member, order string) 
 	var err error
 	var rank int64
 
+	if order != "asc" && order != "desc" {
+		return -1, NewInvalidOrderError(order)
+	}
+	if store, ok := r.tieBreakStore(); ok {
+		rank, err = store.GetRankWithTieBreak(ctx, leaderboardKeys(leaderboard), member, order)
+		if err != nil {
+			var notFoundErr *podiumredis.MemberNotFoundError
+			if errors.As(err, &notFoundErr) {
+				return -1, NewMemberNotFoundError(leaderboard, member)
+			}
+			return -1, NewGeneralError(err.Error())
+		}
+		return int(rank), nil
+	}
+
 	switch order {
 	case "asc":
 		rank, err = r.Client.ZRank(ctx, leaderboard, member)
@@ -203,7 +284,7 @@ func (r *Redis) GetRank(ctx context.Context, leaderboard, member, order string) 
 	}
 
 	if err != nil {
-		var notFoundErr *redis.MemberNotFoundError
+		var notFoundErr *podiumredis.MemberNotFoundError
 		if errors.As(err, &notFoundErr) {
 			return -1, NewMemberNotFoundError(leaderboard, member)
 		}
@@ -216,9 +297,13 @@ func (r *Redis) GetRank(ctx context.Context, leaderboard, member, order string) 
 
 // GetTotalMembers return total members in a leaderboard
 func (r *Redis) GetTotalMembers(ctx context.Context, leaderboard string) (int, error) {
-	totalMembers, err := r.Client.ZCard(ctx, leaderboard)
+	key := leaderboard
+	if _, ok := r.tieBreakStore(); ok {
+		key = leaderboardKeys(leaderboard).Scores
+	}
+	totalMembers, err := r.Client.ZCard(ctx, key)
 	if err != nil {
-		var notFoundErr *redis.KeyNotFoundError
+		var notFoundErr *podiumredis.KeyNotFoundError
 		if errors.As(err, &notFoundErr) {
 			return 0, nil
 		}
@@ -239,6 +324,19 @@ func (r *Redis) Healthcheck(ctx context.Context) error {
 
 // IncrementMemberScore add to member score the value in parameter
 func (r *Redis) IncrementMemberScore(ctx context.Context, leaderboard, member string, increment float64) error {
+	if store, ok := r.tieBreakStore(); ok {
+		_, err := store.IncrementWithTieBreak(
+			ctx,
+			leaderboardKeys(leaderboard),
+			member,
+			"desc",
+			increment,
+		)
+		if err != nil {
+			return NewGeneralError(err.Error())
+		}
+		return nil
+	}
 	err := r.ZIncrBy(ctx, leaderboard, member, increment)
 	if err != nil {
 		return NewGeneralError(err.Error())
@@ -252,7 +350,28 @@ func (r *Redis) IncrementMemberScoreAndGetRank(
 	leaderboard, member, order string,
 	increment float64,
 ) (*Member, error) {
-	if incrementer, ok := r.Client.(redis.MemberIncrementer); ok {
+	if order != "asc" && order != "desc" {
+		return nil, NewInvalidOrderError(order)
+	}
+	if store, ok := r.tieBreakStore(); ok {
+		redisMember, err := store.IncrementWithTieBreak(
+			ctx,
+			leaderboardKeys(leaderboard),
+			member,
+			order,
+			increment,
+		)
+		if err != nil {
+			return nil, NewGeneralError(err.Error())
+		}
+		return &Member{
+			Member: redisMember.Member,
+			Score:  redisMember.Score,
+			Rank:   redisMember.Rank,
+		}, nil
+	}
+
+	if incrementer, ok := r.Client.(podiumredis.MemberIncrementer); ok {
 		redisMember, err := incrementer.ZIncrByAndRank(ctx, leaderboard, member, order, increment)
 		if err != nil {
 			return nil, NewGeneralError(err.Error())
@@ -276,6 +395,15 @@ func (r *Redis) IncrementMemberScoreAndGetRank(
 
 // RemoveLeaderboard delete leaderboard key from redis
 func (r *Redis) RemoveLeaderboard(ctx context.Context, leaderboard string) error {
+	if store, ok := r.tieBreakStore(); ok {
+		if err := store.DeleteLeaderboard(ctx, leaderboardKeys(leaderboard)); err != nil {
+			return NewGeneralError(err.Error())
+		}
+		if err := r.Client.SRem(ctx, ExpirationSet, leaderboard); err != nil {
+			return NewGeneralError(err.Error())
+		}
+		return nil
+	}
 	err := r.Client.Del(ctx, leaderboard)
 	if err != nil {
 		return NewGeneralError(err.Error())
@@ -285,6 +413,12 @@ func (r *Redis) RemoveLeaderboard(ctx context.Context, leaderboard string) error
 
 // RemoveMembers delete from redis members
 func (r *Redis) RemoveMembers(ctx context.Context, leaderboard string, members ...string) error {
+	if store, ok := r.tieBreakStore(); ok {
+		if err := store.ExpireMembersWithTieBreak(ctx, leaderboardKeys(leaderboard), members...); err != nil {
+			return NewGeneralError(err.Error())
+		}
+		return nil
+	}
 	err := r.Client.ZRem(ctx, leaderboard, members...)
 	if err != nil {
 		return NewGeneralError(err.Error())
@@ -294,6 +428,12 @@ func (r *Redis) RemoveMembers(ctx context.Context, leaderboard string, members .
 
 // SetLeaderboardExpiration will set leaderboard expiration time
 func (r *Redis) SetLeaderboardExpiration(ctx context.Context, leaderboard string, expireAt time.Time) error {
+	if store, ok := r.tieBreakStore(); ok {
+		if err := store.ExpireTieBreakKeysAt(ctx, leaderboardKeys(leaderboard), expireAt); err != nil {
+			return NewGeneralError(err.Error())
+		}
+		return nil
+	}
 	err := r.Client.ExpireAt(ctx, leaderboard, expireAt)
 	if err != nil {
 		return NewGeneralError(err.Error())
@@ -303,9 +443,27 @@ func (r *Redis) SetLeaderboardExpiration(ctx context.Context, leaderboard string
 
 // SetMembers will set member score and ttl
 func (r *Redis) SetMembers(ctx context.Context, leaderboard string, databaseMembers []*Member) error {
-	redisMembers := make([]*redis.Member, 0, len(databaseMembers))
+	if err := validateDistinctMembers(databaseMembers); err != nil {
+		return err
+	}
+	if store, ok := r.tieBreakStore(); ok {
+		redisMembers := make([]*podiumredis.Member, len(databaseMembers))
+		for i, member := range databaseMembers {
+			redisMembers[i] = &podiumredis.Member{Member: member.Member, Score: member.Score}
+		}
+		if _, err := store.UpsertMembersWithTieBreak(
+			ctx,
+			leaderboardKeys(leaderboard),
+			"desc",
+			redisMembers...,
+		); err != nil {
+			return NewGeneralError(err.Error())
+		}
+		return nil
+	}
+	redisMembers := make([]*podiumredis.Member, 0, len(databaseMembers))
 	for _, member := range databaseMembers {
-		redisMembers = append(redisMembers, &redis.Member{
+		redisMembers = append(redisMembers, &podiumredis.Member{
 			Member: member.Member,
 			Score:  member.Score,
 		})
@@ -323,10 +481,33 @@ func (r *Redis) SetMembersAndGetRanks(
 	leaderboard, order string,
 	databaseMembers []*Member,
 ) ([]int64, error) {
-	if writer, ok := r.Client.(redis.MemberWriter); ok {
-		redisMembers := make([]*redis.Member, len(databaseMembers))
+	if order != "asc" && order != "desc" {
+		return nil, NewInvalidOrderError(order)
+	}
+	if err := validateDistinctMembers(databaseMembers); err != nil {
+		return nil, err
+	}
+	if store, ok := r.tieBreakStore(); ok {
+		redisMembers := make([]*podiumredis.Member, len(databaseMembers))
 		for i, member := range databaseMembers {
-			redisMembers[i] = &redis.Member{
+			redisMembers[i] = &podiumredis.Member{Member: member.Member, Score: member.Score}
+		}
+		ranks, err := store.UpsertMembersWithTieBreak(
+			ctx,
+			leaderboardKeys(leaderboard),
+			order,
+			redisMembers...,
+		)
+		if err != nil {
+			return nil, NewGeneralError(err.Error())
+		}
+		return ranks, nil
+	}
+
+	if writer, ok := r.Client.(podiumredis.MemberWriter); ok {
+		redisMembers := make([]*podiumredis.Member, len(databaseMembers))
+		for i, member := range databaseMembers {
+			redisMembers[i] = &podiumredis.Member{
 				Member: member.Member,
 				Score:  member.Score,
 			}
@@ -364,9 +545,26 @@ func (r *Redis) SetMembersAndGetRanks(
 //
 //	Note: the worker expiration set is expiration_set
 func (r *Redis) SetMembersTTL(ctx context.Context, leaderboard string, databaseMembers []*Member) error {
-	redisMembers := make([]*redis.Member, 0, len(databaseMembers))
+	if store, ok := r.tieBreakStore(); ok {
+		redisMembers := make([]*podiumredis.Member, len(databaseMembers))
+		for i, member := range databaseMembers {
+			redisMembers[i] = &podiumredis.Member{Member: member.Member, TTL: member.TTL}
+		}
+		if err := store.SetMembersTTLWithTieBreak(
+			ctx,
+			leaderboardKeys(leaderboard),
+			redisMembers...,
+		); err != nil {
+			return NewGeneralError(err.Error())
+		}
+		if err := r.Client.SAdd(ctx, ExpirationSet, leaderboard); err != nil {
+			return NewGeneralError(err.Error())
+		}
+		return nil
+	}
+	redisMembers := make([]*podiumredis.Member, 0, len(databaseMembers))
 	for _, member := range databaseMembers {
-		redisMembers = append(redisMembers, &redis.Member{
+		redisMembers = append(redisMembers, &podiumredis.Member{
 			Member: member.Member,
 			Score:  float64(member.TTL.Unix()),
 		})
@@ -383,5 +581,19 @@ func (r *Redis) SetMembersTTL(ctx context.Context, leaderboard string, databaseM
 		return NewGeneralError(err.Error())
 	}
 
+	return nil
+}
+
+func validateDistinctMembers(members []*Member) error {
+	seen := make(map[string]struct{}, len(members))
+	for _, member := range members {
+		if member == nil {
+			return NewGeneralError("member is nil")
+		}
+		if _, ok := seen[member.Member]; ok {
+			return NewGeneralError(fmt.Sprintf("duplicate member %s", member.Member))
+		}
+		seen[member.Member] = struct{}{}
+	}
 	return nil
 }

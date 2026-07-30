@@ -16,6 +16,7 @@ var _ Client = &clusterClient{}
 var _ MemberReader = &clusterClient{}
 var _ MemberWriter = &clusterClient{}
 var _ MemberIncrementer = &clusterClient{}
+var _ TieBreakStore = &clusterClient{}
 
 // ClusterOptions define configuration parameters to instantiate a new ClusterClient
 type ClusterOptions struct {
@@ -31,6 +32,80 @@ func NewClusterClient(clusterOptions ClusterOptions) Client {
 	})
 
 	return &clusterClient{goRedisClient}
+}
+
+func (cc *clusterClient) DeleteLeaderboard(ctx context.Context, keys TieBreakKeys) error {
+	if err := cc.ClusterClient.Del(
+		ctx,
+		keys.Scores,
+		keys.ScoresAsc,
+		keys.Members,
+		keys.Sequence,
+		keys.TTL,
+	).Err(); err != nil {
+		return NewGeneralError(err.Error())
+	}
+	return nil
+}
+
+func (cc *clusterClient) ExpireMembersWithTieBreak(
+	ctx context.Context,
+	keys TieBreakKeys,
+	members ...string,
+) error {
+	return removeMembersWithTieBreak(ctx, cc.ClusterClient, keys, members...)
+}
+
+func (cc *clusterClient) ExpireTieBreakKeysAt(
+	ctx context.Context,
+	keys TieBreakKeys,
+	expireAt time.Time,
+) error {
+	return expireTieBreakKeysAt(ctx, cc.ClusterClient, keys, expireAt)
+}
+
+func (cc *clusterClient) GetMembersWithTieBreak(
+	ctx context.Context,
+	keys TieBreakKeys,
+	order string,
+	includeTTL bool,
+	members ...string,
+) ([]*Member, error) {
+	return getMembersWithTieBreak(ctx, cc.ClusterClient, keys, order, includeTTL, members...)
+}
+
+func (cc *clusterClient) GetRankWithTieBreak(
+	ctx context.Context,
+	keys TieBreakKeys,
+	member, order string,
+) (int64, error) {
+	return getRankWithTieBreak(ctx, cc.ClusterClient, keys, member, order)
+}
+
+func (cc *clusterClient) IncrementWithTieBreak(
+	ctx context.Context,
+	keys TieBreakKeys,
+	member, order string,
+	increment float64,
+) (*Member, error) {
+	return incrementWithTieBreak(ctx, cc.ClusterClient, keys, member, order, increment)
+}
+
+func (cc *clusterClient) SetMembersTTLWithTieBreak(
+	ctx context.Context,
+	keys TieBreakKeys,
+	members ...*Member,
+) error {
+	return setMembersTTLWithTieBreak(ctx, cc.ClusterClient, keys, members...)
+}
+
+func (cc *clusterClient) UpsertMembersWithTieBreak(
+	ctx context.Context,
+	keys TieBreakKeys,
+	order string,
+	members ...*Member,
+) ([]int64, error) {
+	return upsertMembersWithTieBreak(ctx, cc.ClusterClient, keys, order, members...)
 }
 
 // ZMembers returns scores, ranks, and optional TTLs in one Redis pipeline.

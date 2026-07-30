@@ -16,6 +16,15 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+var _ = AfterSuite(func() {
+	if testRedisServer != nil {
+		testRedisServer.Close()
+	}
+	if faultyRedisServer != nil {
+		faultyRedisServer.Close()
+	}
+})
+
 func TestLeaderboard(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Leaderboard Suite")
