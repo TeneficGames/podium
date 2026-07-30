@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"math"
 	"time"
 
 	"github.com/TeneficGames/podium/leaderboard/model"
@@ -20,6 +21,10 @@ func (s *Service) GetMember(ctx context.Context, leaderboard, member string, ord
 		return nil, NewMemberNotFoundError(leaderboard, member)
 	}
 
+	if databaseMembers[0].Rank < 0 || databaseMembers[0].Rank >= math.MaxInt32 {
+		return nil, NewGeneralError(getMemberServiceLabel, "member rank is outside supported range")
+	}
+
 	var ttl int64 = 0
 	if (databaseMembers[0].TTL != time.Time{}) {
 		ttl = databaseMembers[0].TTL.Unix()
@@ -28,7 +33,7 @@ func (s *Service) GetMember(ctx context.Context, leaderboard, member string, ord
 	return &model.Member{
 		PublicID: databaseMembers[0].Member,
 		Score:    int64(databaseMembers[0].Score),
-		Rank:     int(databaseMembers[0].Rank) + 1,
+		Rank:     int(databaseMembers[0].Rank + 1),
 		ExpireAt: int(ttl),
 	}, nil
 }
