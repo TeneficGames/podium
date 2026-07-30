@@ -36,14 +36,25 @@ const (
 )
 
 func validateBulkUpsertScoresRequest(req *api.BulkUpsertScoresRequest) error {
+	if req.MemberScores == nil {
+		return status.Error(codes.InvalidArgument, "memberScores is required")
+	}
 	if len(req.MemberScores.Members) == 0 {
 		return status.Error(codes.InvalidArgument, "at least one member is required")
 	}
 
+	seen := make(map[string]struct{}, len(req.MemberScores.Members))
 	for _, m := range req.MemberScores.Members {
+		if m == nil {
+			return status.Error(codes.InvalidArgument, "member is required")
+		}
 		if m.PublicId == "" {
 			return status.Error(codes.InvalidArgument, "publicId is required")
 		}
+		if _, ok := seen[m.PublicId]; ok {
+			return status.Errorf(codes.InvalidArgument, "duplicate publicId: %s", m.PublicId)
+		}
+		seen[m.PublicId] = struct{}{}
 	}
 	return nil
 }

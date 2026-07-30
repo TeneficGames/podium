@@ -1,40 +1,85 @@
-Podium's Benchmarks
-===================
+# Benchmarking Podium
 
-You can see Podium's build history in [GitHub Actions](https://github.com/TeneficGames/podium/actions).
+Podium includes end-to-end HTTP benchmarks and implementation-level Redis
+benchmarks. Results depend on CPU load, Redis topology, network latency, dataset
+size, persistence settings, and the selected Redis patch release.
 
-## Running Benchmarks
+## Requirements
 
-If you want to run your own benchmarks, just download the project, and run:
+- Go 1.26
+- Docker
+- `curl`
+- Ports 6379, 8888, and 8889 available locally
 
+The default benchmark Redis image is `redis:8.2-alpine`. Override it with
+`BENCH_REDIS_IMAGE` when comparing another supported Redis release.
+
+## End-to-end HTTP benchmarks
+
+Start Redis and Podium:
+
+```bash
+make bench-redis
+make bench-podium-app
 ```
-$ make bench-redis bench-podium-app bench-run
+
+Run every HTTP benchmark five times:
+
+```bash
+make bench-run
 ```
 
-## Generating test data
+Override the repetition count when needed:
 
-If you want to run your perf tests against a database with more volume of data, just run this command, instead:
-
+```bash
+make bench-run BENCH_COUNT=10
 ```
-$ make bench-redis bench-seed bench-podium-app bench-run
-```
-**Warning**: This will take a long time running.
 
-## Results
+Each benchmark invocation uses isolated leaderboard IDs and removes its data
+afterward. Setup and cleanup are outside the timed operation.
 
-The results should be similar to these:
+Stop the local processes when finished:
 
+```bash
+make bench-podium-app-kill
+make bench-redis-kill
 ```
-BenchmarkSetMemberScore-8                           30000        284307 ns/op       0.32 MB/s        5635 B/op         81 allocs/op
-BenchmarkSetMembersScore-8                           5000       1288746 ns/op       3.01 MB/s       51452 B/op        583 allocs/op
-BenchmarkIncrementMemberScore-8                     30000        288306 ns/op       0.32 MB/s        5651 B/op         81 allocs/op
-BenchmarkRemoveMember-8                             50000        202398 ns/op       0.08 MB/s        4648 B/op         68 allocs/op
-BenchmarkGetMember-8                                30000        215802 ns/op       0.33 MB/s        4728 B/op         68 allocs/op
-BenchmarkGetMemberRank-8                            50000        201367 ns/op       0.28 MB/s        4712 B/op         68 allocs/op
-BenchmarkGetAroundMember-8                          20000        397849 ns/op       3.14 MB/s        8703 B/op         69 allocs/op
-BenchmarkGetTotalMembers-8                          50000        192860 ns/op       0.16 MB/s        4536 B/op         64 allocs/op
-BenchmarkGetTopMembers-8                            20000        306186 ns/op       3.85 MB/s        8585 B/op         66 allocs/op
-BenchmarkGetTopPercentage-8                          1000      10011287 ns/op      11.88 MB/s      510300 B/op         77 allocs/op
-BenchmarkSetMemberScoreForSeveralLeaderboards-8      1000     106129629 ns/op       1.03 MB/s      516103 B/op         98 allocs/op
-BenchmarkGetMembers-8                                2000       3931289 ns/op       9.13 MB/s      243755 B/op         76 allocs/op
+
+## Tie-break strategy benchmarks
+
+Compare the production deterministic tie-break representation with a plain
+Redis sorted-set baseline and alternative representations:
+
+```bash
+make bench-redis
+make bench-tiebreak
+make bench-redis-kill
 ```
+
+The suite reports operation latency, Go allocations, and Redis bytes per member
+for insert, score change, duplicate score, rank, and top-50 workloads.
+
+## Large datasets
+
+The seed command writes through the production leaderboard service and
+therefore creates the same Redis data model used at runtime:
+
+```bash
+make bench-redis
+cd bench/seed
+go run . -leaderboards=3 -mpl=5000000
+```
+
+Large seeds can take a long time and consume substantial Redis memory. Start
+with a smaller `-mpl` value when validating a new environment.
+
+## Interpreting results
+
+- Compare medians from multiple repetitions, not a single run.
+- Run old and new builds back-to-back on the same idle machine.
+- Flush or restart Redis between implementations.
+- Keep response sizes and dataset cardinality equal.
+- Treat local standalone Redis measurements separately from Redis Cluster
+  capacity or failover tests.
+
+The README contains the latest recorded local results and their environment.

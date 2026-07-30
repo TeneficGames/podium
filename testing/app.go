@@ -11,7 +11,7 @@ import (
 	"github.com/TeneficGames/podium/leaderboard/database"
 	"github.com/TeneficGames/podium/leaderboard/database/redis"
 	"github.com/TeneficGames/podium/leaderboard/service"
-	"github.com/TeneficGames/podium/leaderboard/testing"
+	leaderboardtesting "github.com/TeneficGames/podium/leaderboard/testing"
 	"github.com/TeneficGames/podium/log"
 	. "github.com/onsi/gomega"
 	"go.uber.org/zap"
@@ -21,11 +21,53 @@ import (
 var serverInitialized map[string]bool = map[string]bool{}
 var defaultApp *api.App
 var defaultFaultyRedisApp *api.App
+var testRedisServer *leaderboardtesting.RedisServer
+var faultyTestRedisServer *leaderboardtesting.RedisServer
+
+// StartTestRedis starts the shared in-process Redis server used by API tests.
+func StartTestRedis() error {
+	if testRedisServer != nil {
+		return nil
+	}
+	server, err := leaderboardtesting.StartRedis()
+	if err != nil {
+		return err
+	}
+	for key, value := range map[string]string{
+		"PODIUM_REDIS_CLUSTER_ENABLED": "false",
+		"PODIUM_REDIS_HOST":            server.Host,
+		"PODIUM_REDIS_PORT":            fmt.Sprint(server.Port),
+		"PODIUM_REDIS_PASSWORD":        "",
+		"PODIUM_REDIS_DB":              "0",
+	} {
+		if err := os.Setenv(key, value); err != nil {
+			server.Close()
+			return err
+		}
+	}
+	testRedisServer = server
+	return nil
+}
+
+// StopTestRedis stops the shared API test Redis server.
+func StopTestRedis() {
+	if testRedisServer != nil {
+		testRedisServer.Close()
+		testRedisServer = nil
+	}
+	if faultyTestRedisServer != nil {
+		faultyTestRedisServer.Close()
+		faultyTestRedisServer = nil
+	}
+}
 
 // GetDefaultTestApp returns a testing app
 func GetDefaultTestApp() *api.App {
 	if defaultApp != nil {
 		return defaultApp
+	}
+	if err := StartTestRedis(); err != nil {
+		panic(fmt.Sprintf("Could not start test Redis: %s\n", err.Error()))
 	}
 
 	logger := log.CreateLoggerWithLevel(zap.FatalLevel, log.LoggerOptions{WriteSyncer: os.Stdout, RemoveTimestamp: true})
@@ -69,18 +111,19 @@ func GetDefaultTestAppWithFaultyRedis() *api.App {
 	if defaultFaultyRedisApp != nil {
 		return defaultFaultyRedisApp
 	}
+	Expect(StartTestRedis()).To(Succeed())
+	var err error
+	faultyTestRedisServer, err = leaderboardtesting.StartRedis()
+	Expect(err).NotTo(HaveOccurred())
+	faultyTestRedisServer.SetError("ERR injected Redis failure")
 
 	logger := log.CreateLoggerWithLevel(zapcore.DebugLevel, log.LoggerOptions{WriteSyncer: os.Stdout, RemoveTimestamp: true})
 	app, err := api.New("127.0.0.1", 8082, 8083, "../config/test.yaml", false, logger)
 	Expect(err).NotTo(HaveOccurred())
 
 	leaderboard := service.NewService(database.NewRedisDatabase(database.RedisOptions{
-		ClusterEnabled: app.Config.GetBool("faultyRedis.clusterEnabled"),
-		Addrs:          app.Config.GetStringSlice("faultyRedis.addrs"),
-		Host:           app.Config.GetString("faultyRedis.host"),
-		Port:           app.Config.GetInt("faultyRedis.port"),
-		Password:       app.Config.GetString("faultyRedis.password"),
-		DB:             app.Config.GetInt("faultyRedis.db"),
+		Host: faultyTestRedisServer.Host,
+		Port: faultyTestRedisServer.Port,
 	}))
 	app.Leaderboards = leaderboard
 
@@ -97,28 +140,20 @@ func ShutdownDefaultTestAppWithFaltyRedis() {
 
 // GetTestingRedis creates a redis instance based on the default app configuration
 func GetTestingRedis(app *api.App) (redis.Client, error) {
-	config, err := testing.GetDefaultConfig("../config/test.yaml")
-	if err != nil {
-		return nil, err
-	}
-	shouldRunOnCluster := config.GetBool("redis.cluster.enabled")
-	password := config.GetString("redis.password")
+	shouldRunOnCluster := app.Config.GetBool("redis.cluster.enabled")
+	password := app.Config.GetString("redis.password")
 	if shouldRunOnCluster {
-		addrs := config.GetStringSlice("redis.addrs")
+		addrs := app.Config.GetStringSlice("redis.addrs")
 		return redis.NewClusterClient(redis.ClusterOptions{
 			Addrs:    addrs,
 			Password: password,
 		}), nil
 	}
 
-	host := config.GetString("redis.host")
-	port := config.GetInt("redis.port")
-	db := config.GetInt("redis.db")
-
 	return redis.NewStandaloneClient(redis.StandaloneOptions{
-		Host:     host,
-		Port:     port,
+		Host:     app.Config.GetString("redis.host"),
+		Port:     app.Config.GetInt("redis.port"),
 		Password: password,
-		DB:       db,
+		DB:       app.Config.GetInt("redis.db"),
 	}), nil
 }

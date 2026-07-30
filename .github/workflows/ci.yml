@@ -64,12 +64,6 @@ jobs:
   integration-podium:
     name: Integration tests (server)
     runs-on: ubuntu-latest
-    services:
-      redis:
-        image: redis:8-alpine
-        options: '--health-cmd "redis-cli ping" --health-interval 1s --health-timeout 3s --health-retries 10'
-        ports:
-          - '6379:6379'
     steps:
       - uses: actions/checkout@v7
       - name: Set up Go
@@ -94,12 +88,6 @@ jobs:
   integration-leaderboard:
     name: Integration tests (leaderboard)
     runs-on: ubuntu-latest
-    services:
-      redis:
-        image: redis:8-alpine
-        options: '--health-cmd "redis-cli ping" --health-interval 1s --health-timeout 3s --health-retries 10'
-        ports:
-          - '6379:6379'
     steps:
       - uses: actions/checkout@v7
       - name: Set up Go
@@ -117,6 +105,57 @@ jobs:
           path: |
             leaderboard/leaderboard.coverprofile
             _build/test-results/leaderboard.xml
+
+  redis-compatibility:
+    name: Redis compatibility (${{ matrix.redis }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        redis:
+          - "6.2"
+          - "7.2"
+          - "7.4"
+          - "8.2"
+    services:
+      redis:
+        image: redis:${{ matrix.redis }}-alpine
+        options: '--health-cmd "redis-cli ping" --health-interval 1s --health-timeout 3s --health-retries 10'
+        ports:
+          - '6379:6379'
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: leaderboard/go.mod
+          cache-dependency-path: leaderboard/go.sum
+      - name: Test
+        env:
+          PODIUM_TEST_REDIS_VERSION: ${{ matrix.redis }}
+        run: make test-redis-compat
+
+  redis-cluster:
+    name: Redis Cluster integration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Generate Docker Compose configuration
+        run: make deployments/docker-compose.yaml
+      - name: Start Redis Cluster
+        run: make compose-up-dependencies
+      - name: Test
+        run: >-
+          docker compose -f deployments/docker-compose.yaml run --rm --no-deps
+          --entrypoint make
+          -e PODIUM_REDIS_ADDRS=redis-node-0:6379
+          podium-test test-redis-cluster
+      - name: Show Redis Cluster logs
+        if: failure()
+        run: docker compose -f deployments/docker-compose.yaml logs
+      - name: Stop Redis Cluster
+        if: always()
+        run: make compose-down
 
   integration-client:
     name: Integration tests (client)
@@ -264,6 +303,8 @@ jobs:
       - verify
       - unit-tests
       - coverage
+      - redis-compatibility
+      - redis-cluster
       - golangci-lint
       - govulncheck
       - client-compatibility
@@ -311,6 +352,8 @@ jobs:
       - verify
       - unit-tests
       - coverage
+      - redis-compatibility
+      - redis-cluster
       - golangci-lint
       - govulncheck
       - client-compatibility

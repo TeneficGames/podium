@@ -15,14 +15,18 @@ import (
 	"testing"
 	"time"
 
+	podiumtesting "github.com/TeneficGames/podium/leaderboard/testing"
 	goredis "github.com/redis/go-redis/v9"
 )
 
 func TestClusterClientAgainstStandaloneRedis(t *testing.T) {
-	const (
-		address = "localhost:6379"
-		key     = "podium:cluster-client:test"
-	)
+	const key = "podium:cluster-client:test"
+	server, err := podiumtesting.StartRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(server.Close)
+	address := server.Addr()
 
 	goRedisClient := goredis.NewClusterClient(&goredis.ClusterOptions{
 		Addrs: []string{address},

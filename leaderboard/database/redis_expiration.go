@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TeneficGames/podium/leaderboard/database/redis"
+	podiumredis "github.com/TeneficGames/podium/leaderboard/database/redis"
 )
 
 var _ Expiration = &Redis{}
@@ -22,7 +22,11 @@ func (r *Redis) GetExpirationLeaderboards(ctx context.Context) ([]string, error)
 
 	expirationLeaderboards := make([]string, 0, len(expirationKeys))
 	for _, expirationKey := range expirationKeys {
-		expirationLeaderboards = append(expirationLeaderboards, strings.TrimSuffix(expirationKey, ":ttl"))
+		if _, ok := r.tieBreakStore(); ok {
+			expirationLeaderboards = append(expirationLeaderboards, expirationKey)
+		} else {
+			expirationLeaderboards = append(expirationLeaderboards, strings.TrimSuffix(expirationKey, ":ttl"))
+		}
 	}
 
 	return expirationLeaderboards, nil
@@ -31,10 +35,13 @@ func (r *Redis) GetExpirationLeaderboards(ctx context.Context) ([]string, error)
 // GetMembersToExpire get members in the leaderboard to expire
 func (r *Redis) GetMembersToExpire(ctx context.Context, leaderboard string, amount int, maxTime time.Time) ([]string, error) {
 	expirationSet := fmt.Sprintf("%s:ttl", leaderboard)
+	if _, ok := r.tieBreakStore(); ok {
+		expirationSet = leaderboardKeys(leaderboard).TTL
+	}
 
 	err := r.Client.Exists(ctx, expirationSet)
 	if err != nil {
-		var notFoundErr *redis.KeyNotFoundError
+		var notFoundErr *podiumredis.KeyNotFoundError
 		if errors.As(err, &notFoundErr) {
 			return nil, NewLeaderboardWithoutMemberToExpireError(leaderboard)
 		}
@@ -54,6 +61,9 @@ func (r *Redis) GetMembersToExpire(ctx context.Context, leaderboard string, amou
 // RemoveLeaderboardFromExpireList remove from leaderboard expiration list the leaderboard
 func (r *Redis) RemoveLeaderboardFromExpireList(ctx context.Context, leaderboard string) error {
 	leaderboardExpirationKey := fmt.Sprintf("%s:ttl", leaderboard)
+	if _, ok := r.tieBreakStore(); ok {
+		leaderboardExpirationKey = leaderboard
+	}
 
 	err := r.Client.SRem(ctx, ExpirationSet, leaderboardExpirationKey)
 	if err != nil {
@@ -65,6 +75,12 @@ func (r *Redis) RemoveLeaderboardFromExpireList(ctx context.Context, leaderboard
 
 // ExpireMembers remove members from leaderboard
 func (r *Redis) ExpireMembers(ctx context.Context, leaderboard string, members []string) error {
+	if store, ok := r.tieBreakStore(); ok {
+		if err := store.ExpireMembersWithTieBreak(ctx, leaderboardKeys(leaderboard), members...); err != nil {
+			return NewGeneralError(err.Error())
+		}
+		return nil
+	}
 	leaderboardExpirationKey := fmt.Sprintf("%s:ttl", leaderboard)
 
 	err := r.Client.ZRem(ctx, leaderboard, members...)

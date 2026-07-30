@@ -9,7 +9,6 @@ import (
 	redismock "github.com/go-redis/redismock/v9"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/redis/go-redis/v9"
 )
 
 var _ = Describe("Members array to keys array test", func() {
@@ -154,9 +153,7 @@ var _ = Describe("Ericher cacheConfig Set tests", func() {
 	tenantID := "tenantID"
 
 	It("should set the data in redis", func() {
-		redis := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
-
-		cache := NewEnricherRedisCache(redis)
+		cache := NewEnricherRedisCache(testRedisClient)
 		members := []*model.Member{
 			{
 				PublicID: "member1",
@@ -175,18 +172,20 @@ var _ = Describe("Ericher cacheConfig Set tests", func() {
 		err := cache.Set(context.Background(), tenantID, members, 0)
 		Expect(err).NotTo(HaveOccurred())
 
-		res, err := redis.Get(context.Background(), fmt.Sprintf(cacheKeyFormat, tenantID, "member1")).Result()
+		res, err := testRedisClient.Get(context.Background(), fmt.Sprintf(cacheKeyFormat, tenantID, "member1")).Result()
 		Expect(res).To(Equal("{\"key1\":\"value1\"}"))
 		Expect(err).To(BeNil())
 
-		res, err = redis.Get(context.Background(), fmt.Sprintf(cacheKeyFormat, tenantID, "member2")).Result()
+		res, err = testRedisClient.Get(context.Background(), fmt.Sprintf(cacheKeyFormat, tenantID, "member2")).Result()
 		Expect(res).To(Equal("{\"key2\":\"value2\"}"))
 		Expect(err).To(BeNil())
 	})
 
 	AfterEach(func() {
-		redis := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
-		redis.Del(context.Background(), fmt.Sprintf(cacheKeyFormat, tenantID, "member1"))
-		redis.Del(context.Background(), fmt.Sprintf(cacheKeyFormat, tenantID, "member2"))
+		Expect(testRedisClient.Del(
+			context.Background(),
+			fmt.Sprintf(cacheKeyFormat, tenantID, "member1"),
+			fmt.Sprintf(cacheKeyFormat, tenantID, "member2"),
+		).Err()).To(Succeed())
 	})
 })

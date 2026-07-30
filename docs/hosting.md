@@ -1,51 +1,130 @@
-Hosting Podium
-==============
+# Hosting Podium
 
-There are three ways to host Podium: docker, binaries or from source.
+Podium is distributed as a multi-architecture OCI container image for Linux
+AMD64 and ARM64. Run it with Docker, containerd, Kubernetes, or another
+OCI-compatible platform. The API keeps leaderboard state in Redis, allowing
+multiple identically configured replicas to run behind a load balancer.
 
-## Docker
+## Image tags
 
-Running Podium with docker is rather simple. Our docker container image comes bundled with the API binary. All you need to do is load balance all the containers and you're good to go.
+Images are published to Docker Hub. Stable tags follow semantic-version
+aliases:
 
-Podium uses Redis to store leaderboard information. The container takes parameters to specify this connection:
+- `trungdlp/podium:latest` selects the latest stable release.
+- `trungdlp/podium:edge` tracks the current `main` branch.
+- `trungdlp/podium:X` tracks a major release line.
+- `trungdlp/podium:X.Y` tracks a minor release line.
+- `trungdlp/podium:X.Y.Z` selects an immutable release.
 
-* `PODIUM_REDIS_HOST` - Redis host to connect to;
-* `PODIUM_REDIS_PORT` - Redis port to connect to;
-* `PODIUM_REDIS_PASSWORD` - Password of the Redis Server to connect to;
-* `PODIUM_REDIS_DB` - DB Number of the Redis Server to connect to;
+Use immutable patch tags in production when repeatable rollouts are required.
 
-Other than that, there are a couple more configurations you can pass using environment variables:
+## Runtime examples
 
-* `PODIUM_BASICAUTH_USERNAME` - If you specify this key, Podium will be configured to use basic auth with this user;
-* `PODIUM_BASICAUTH_PASSWORD` - If you specify `PODIUM_BASICAUTH_USERNAME`, Podium will be configured to use basic auth with this password.
+These snippets assume the Redis endpoint resolves as `redis`. Docker is
+convenient for a local process:
+
+```bash
+docker run --rm \
+  --publish 8880:8880 \
+  --publish 8881:8881 \
+  --env PODIUM_REDIS_HOST=redis \
+  --env PODIUM_REDIS_PORT=6379 \
+  trungdlp/podium:latest start
+```
+
+With containerd, `nerdctl` can run the same image:
+
+```bash
+nerdctl run --rm \
+  --publish 8880:8880 \
+  --publish 8881:8881 \
+  --env PODIUM_REDIS_HOST=redis \
+  --env PODIUM_REDIS_PORT=6379 \
+  trungdlp/podium:latest start
+```
+
+A minimal Kubernetes container specification is:
+
+```yaml
+containers:
+  - name: podium
+    image: trungdlp/podium:latest
+    args: ["start"]
+    ports:
+      - name: http
+        containerPort: 8880
+      - name: grpc
+        containerPort: 8881
+    env:
+      - name: PODIUM_REDIS_HOST
+        value: redis
+      - name: PODIUM_REDIS_PORT
+        value: "6379"
+    readinessProbe:
+      httpGet:
+        path: /healthcheck
+        port: http
+```
+
+## Supported Redis versions
+
+Podium supports Redis 6.2, 7.2, 7.4, and 8.2. Always deploy the latest patch
+release in the selected line.
+
+For standalone Redis, configure:
+
+- `PODIUM_REDIS_HOST`
+- `PODIUM_REDIS_PORT`
+- `PODIUM_REDIS_PASSWORD`
+- `PODIUM_REDIS_DB`
+
+## Redis Cluster
+
+Enable cluster mode with:
+
+```text
+PODIUM_REDIS_CLUSTER_ENABLED=true
+PODIUM_REDIS_ADDRS=redis-node-0:6379
+PODIUM_REDIS_PASSWORD=
+```
+
+One reachable seed address is sufficient; the Redis client discovers the rest
+of the cluster. The ascending and descending score indexes, member metadata,
+tie sequence, and expiration data for each leaderboard share one Redis hash tag
+so Lua operations remain on one cluster slot.
+
+Redis Cluster distributes independent leaderboards, not members of one
+leaderboard. Capacity-plan exceptionally hot leaderboards for the Redis primary
+that owns their slot.
+
+## Authentication
+
+Podium is intended to sit behind a trusted game backend. Optional HTTP basic
+authentication uses:
+
+- `PODIUM_BASICAUTH_USERNAME`
+- `PODIUM_BASICAUTH_PASSWORD`
+
+Use network controls and TLS termination appropriate for the deployment.
 
 ## Observability
 
-Podium exports traces and metrics over OTLP/gRPC when an OTLP endpoint is configured. It uses the standard OpenTelemetry environment variables:
+Podium exports traces and metrics over OTLP/gRPC:
 
-* `OTEL_SERVICE_NAME` - Service name, defaulting to `podium` for the API and `podium-worker` for the expiration worker.
-* `OTEL_EXPORTER_OTLP_ENDPOINT` - Shared OTLP collector endpoint.
-* `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` - Optional trace-specific endpoint.
-* `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` - Optional metric-specific endpoint.
-* `OTEL_EXPORTER_OTLP_INSECURE=true` - Use plaintext transport for a local collector.
-* `OTEL_EXPORTER_OTLP_PROTOCOL=grpc` - Podium currently supports OTLP/gRPC.
-* `OTEL_TRACES_SAMPLER` - Trace sampler, such as `parentbased_traceidratio`.
-* `OTEL_TRACES_SAMPLER_ARG` - Sampling ratio used by ratio-based samplers.
-* `OTEL_TRACES_EXPORTER=otlp` - Enable trace export using the default endpoint when no endpoint variable is set.
-* `OTEL_TRACES_EXPORTER=none` - Disable trace export.
-* `OTEL_METRICS_EXPORTER=otlp` - Enable metric export using the default endpoint when no endpoint variable is set.
-* `OTEL_METRICS_EXPORTER=none` - Disable metric export.
+- `OTEL_SERVICE_NAME`
+- `OTEL_EXPORTER_OTLP_ENDPOINT`
+- `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`
+- `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT`
+- `OTEL_EXPORTER_OTLP_INSECURE=true`
+- `OTEL_EXPORTER_OTLP_PROTOCOL=grpc`
+- `OTEL_TRACES_SAMPLER`
+- `OTEL_TRACES_SAMPLER_ARG`
+- `OTEL_TRACES_EXPORTER=otlp` or `none`
+- `OTEL_METRICS_EXPORTER=otlp` or `none`
 
-Errors are sent to Sentry when `SENTRY_DSN` is set. `SENTRY_ENVIRONMENT` and `SENTRY_RELEASE` add deployment metadata. Telemetry export is disabled by default, so local development does not require a collector or Sentry account.
+Telemetry export is disabled by default. Set `SENTRY_DSN` to report errors to
+Sentry; `SENTRY_ENVIRONMENT` and `SENTRY_RELEASE` add deployment metadata.
+Invalid exporter, protocol, sampler, and sample-ratio values fail startup.
 
-Invalid exporter, protocol, sampler, and sample-ratio values fail application startup. See the [modernization and observability review](upgrade-review.md) for the supported values, emitted metrics, and remaining operational decisions.
-
-## Binaries
-
-Whenever we publish a new version of Podium, we'll always supply binaries for both Linux and Darwin, on i386 and x86_64 architectures. If you'd rather run your own servers instead of containers, just use the binaries that match your platform and architecture.
-
-The API server is the `podium` binary. It takes a configuration yaml file that specifies the connection to Redis and some additional parameters. You can learn more about it at [default.yaml](https://github.com/TeneficGames/podium/blob/master/config/default.yaml).
-
-## Source
-
-Left as an exercise to the reader.
+Podium does not publish an embeddable leaderboard library or downloadable OS
+binaries. Source builds are for development and contribution.

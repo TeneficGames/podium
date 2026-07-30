@@ -50,6 +50,15 @@ Podium API
 
 ## Leaderboard Routes
 
+  ### Equal Scores
+
+  Members with equal scores are ranked by when they reached their current score:
+  the earlier member ranks higher in both ascending and descending leaderboards.
+  Submitting the same score again is idempotent and keeps the member's position.
+  Changing away from a score and later returning to it creates a new arrival, as
+  does removing and re-adding a member. A bulk request must contain each
+  `publicId` at most once.
+
   ### Create or Update a Member Score
   `PUT /l/:leaderboardID/members/:memberPublicID/score`
 
@@ -65,7 +74,7 @@ Podium API
 
   Atomically creates a new member within a leaderboard or if member already exists in leaderboard, update their score.
 
-  Leaderboard ID should be a valid [leaderboard name](leaderboard-names.html) and memberPublicID should be a unique identifier for the member associated with the score.
+  Leaderboard ID should be a valid [leaderboard name](leaderboard-names.md) and memberPublicID should be a unique identifier for the member associated with the score.
 
   * Payload
 
@@ -128,7 +137,7 @@ Podium API
 
   Atomically creates many new members within a leaderboard or if some members already exists in leaderboard, update their scores.
 
-  Leaderboard ID should be a valid [leaderboard name](leaderboard-names.html) and publicID should be a unique identifier for the member associated with the score.
+  Leaderboard ID should be a valid [leaderboard name](leaderboard-names.md) and publicID should be a unique identifier for the member associated with the score.
 
   * Payload
 
@@ -190,7 +199,7 @@ Podium API
 
   Atomically creates a new member within a leaderboard with the given increment as score. If member already exists in leaderboard just increment their score.
 
-  Leaderboard ID should be a valid [leaderboard name](leaderboard-names.html) and memberPublicID should be a unique identifier for the member associated with the score.
+  Leaderboard ID should be a valid [leaderboard name](leaderboard-names.md) and memberPublicID should be a unique identifier for the member associated with the score.
 
   **WARNING:** Incrementing a member score by 0 is not a valid operation and will return a 400 Bad Request result.
 
@@ -247,7 +256,7 @@ Podium API
 
   **WARNING: This operation cannot be undone and all the information in the leaderboard will be destroyed.**
 
-  `leaderboardID` should be a valid [leaderboard name](leaderboard-names.html).
+  `leaderboardID` should be a valid [leaderboard name](leaderboard-names.md).
 
   * Success Response
     * Code: `200`
@@ -284,7 +293,7 @@ Podium API
 
   Gets a member score and rank within a leaderboard.
 
-  Leaderboard ID should be a valid [leaderboard name](leaderboard-names.html) and memberPublicID should be a unique identifier for the desired member.
+  Leaderboard ID should be a valid [leaderboard name](leaderboard-names.md) and memberPublicID should be a unique identifier for the desired member.
 
   * Success Response
     * Code: `200`
@@ -339,7 +348,7 @@ Podium API
 
   If any public IDs are not found, they will be returned in the `notFound` list in the response. This is so a list of all the desired members (i.e.: player's friends) can be retrieved and only the ones in the leaderboard get returned.
 
-  Leaderboard ID should be a valid [leaderboard name](leaderboard-names.html) and publicIDcsv should be a comma-separated list of the desired members Public IDs.
+  Leaderboard ID should be a valid [leaderboard name](leaderboard-names.md) and publicIDcsv should be a comma-separated list of the desired members Public IDs.
 
   * Success Response
     * Code: `200`
@@ -389,7 +398,7 @@ Podium API
 
   Removes specified members from leaderboard. If a member is not in leaderboard, do nothing.
 
-  Leaderboard ID should be a valid [leaderboard name](leaderboard-names.html) and ids should be a list of unique identifier for the members being removed, separated by commas.
+  Leaderboard ID should be a valid [leaderboard name](leaderboard-names.md) and ids should be a list of unique identifier for the members being removed, separated by commas.
 
   * Success Response
     * Code: `200`
@@ -475,7 +484,7 @@ Podium API
 
   Gets a member rank within a leaderboard.
 
-  Leaderboard ID should be a valid [leaderboard name](leaderboard-names.html) and memberPublicID should be a unique identifier for the desired member.
+  Leaderboard ID should be a valid [leaderboard name](leaderboard-names.md) and memberPublicID should be a unique identifier for the desired member.
 
   * Success Response
     * Code: `200`
@@ -530,7 +539,7 @@ Podium API
 
   Podium will compensate if no more members can be found above or below (first or last member in the leaderboard ranking) to ensure that the desired number of members is returned (up to the number of members in the leaderboard).
 
-  Leaderboard ID should be a valid [leaderboard name](leaderboard-names.html) and memberPublicID should be a unique identifier for the desired member.
+  Leaderboard ID should be a valid [leaderboard name](leaderboard-names.md) and memberPublicID should be a unique identifier for the desired member.
 
   * Success Response
     * Code: `200`
@@ -590,7 +599,7 @@ Podium API
 
   Podium will compensate if no more members can be found above or below (first or last member in the leaderboard ranking) to ensure that the desired number of members is returned (up to the number of members in the leaderboard).
 
-  Leaderboard ID should be a valid [leaderboard name](leaderboard-names.html) and `score` should be a valid number.
+  Leaderboard ID should be a valid [leaderboard name](leaderboard-names.md) and `score` should be a valid number.
 
   * Success Response
     * Code: `200`
@@ -650,7 +659,7 @@ Podium API
 
   Gets the number of members in a leaderboard.
 
-  Leaderboard ID should be a valid [leaderboard name](leaderboard-names.html).
+  Leaderboard ID should be a valid [leaderboard name](leaderboard-names.md).
 
   * Success Response
     * Code: `200`
@@ -684,7 +693,7 @@ Podium API
 
   Gets the top N members in a leaderboard, by page.
 
-  `leaderboardID` should be a valid [leaderboard name](leaderboard-names.html), `pageNumber` is the current page you are looking for and `pageSize` is the number of members per page that will be returned.
+  `leaderboardID` should be a valid [leaderboard name](leaderboard-names.md), `pageNumber` is the current page you are looking for and `pageSize` is the number of members per page that will be returned.
 
   This means that if you want the top 20 members, you'll call `/l/my-leaderboard/top/1?pageSize=20` for the first 20, `/l/my-leaderboard/top/2?pageSize=20` for members 21-40 and so on.
 
@@ -741,7 +750,7 @@ Podium API
 
   Gets the top x% members in a leaderboard.
 
-  `leaderboardID` should be a valid [leaderboard name](leaderboard-names.html), `percentage` is the % of members you want to return.
+  `leaderboardID` should be a valid [leaderboard name](leaderboard-names.md), `percentage` is the % of members you want to return.
 
   The number of members is bound by the configuration `api.maxReturnedMembers`, that defaults to 2000 members.
 
@@ -806,7 +815,7 @@ Podium API
 
   Atomically creates a new member within many leaderboard or if member already exists in each leaderboard, updates their score.
 
-  `memberPublicID` should be a unique identifier for the member associated with the score. Each `leaderboardID` should be a valid [leaderboard name](leaderboard-names.html).
+  `memberPublicID` should be a unique identifier for the member associated with the score. Each `leaderboardID` should be a valid [leaderboard name](leaderboard-names.md).
 
   * Payload
 

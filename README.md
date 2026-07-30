@@ -2,61 +2,44 @@
 
 [![CI](https://github.com/TeneficGames/podium/actions/workflows/ci.yml/badge.svg)](https://github.com/TeneficGames/podium/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/TeneficGames/podium/branch/main/graph/badge.svg)](https://codecov.io/gh/TeneficGames/podium)
-[![Go Reference](https://pkg.go.dev/badge/github.com/TeneficGames/podium/leaderboard.svg)](https://pkg.go.dev/github.com/TeneficGames/podium/leaderboard)
 
-**Fast, Redis-backed leaderboards for games and competitive applications.**
+![Podium high-performance distributed leaderboard](docs/assets/podium-hero.webp)
 
-Podium is an open-source leaderboard service built in Go. It gives game and
-application teams a ready-to-run HTTP and gRPC API for scores, ranks, seasons,
-and player-relative views without defining every leaderboard in advance.
+**High-performance, Redis-backed leaderboards for games and competitive
+applications.**
 
-Run Podium as a service with Docker, connect through the Go client, or embed the
-leaderboard module directly in your application.
+Podium provides ready-to-run HTTP and gRPC APIs for scores, ranks, seasons, and
+player-relative views. It is designed for backend teams operating large fleets
+of independent leaderboards without provisioning each leaderboard in advance.
 
-[Quickstart](#quickstart) · [API](docs/API.md) ·
-[Documentation](docs/overview.md) ·
+- Fair, deterministic ordering when scores are equal.
+- Single and bulk score updates, including multi-leaderboard fan-out.
+- Standalone Redis and real Redis Cluster integration coverage.
+- Deploy one multi-architecture OCI image with Docker, containerd, Kubernetes,
+  or another OCI-compatible runtime.
+
+[Quickstart](#quickstart) · [Performance](#performance) ·
+[API](docs/API.md) · [Documentation](docs/overview.md) ·
 [Docker Hub](https://hub.docker.com/r/trungdlp/podium)
-
-## Why Podium?
-
-- **No upfront configuration:** a leaderboard is ready as soon as its first
-  score is submitted.
-- **Multi-tenant by design:** isolate global, regional, clan, event, or game
-  leaderboards with simple names.
-- **Season-aware naming:** names such as `year2026week01` and
-  `year2026month06` support expiring seasonal leaderboards.
-- **Flexible ranking views:** query top members, top percentages, individual
-  ranks, members around a player, or members around a score.
-- **Efficient score updates:** update one or many members, increment scores,
-  or submit one member to multiple leaderboards.
-- **Built-in expiration:** expire entire seasonal leaderboards or individual
-  member scores.
-- **Production interfaces:** use HTTP/JSON, gRPC, the Go API client, or the
-  embeddable Go library.
-- **Operational visibility:** export OpenTelemetry traces and metrics over
-  OTLP/gRPC, with optional Sentry error reporting.
 
 ## Quickstart
 
-### 1. Start Podium with Docker
-
-Podium requires Redis. The following commands create an isolated Docker
-network, start Redis, and run the
-[`trungdlp/podium:latest`](https://hub.docker.com/r/trungdlp/podium) image:
+Start Redis 8.2 and the latest stable Podium image:
 
 ```bash
 docker network create podium
-docker run --detach --name podium-redis --network podium redis:8-alpine
+docker run --detach --name podium-redis --network podium redis:8.2-alpine
 
 docker run --detach --rm --name podium \
   --network podium \
   --publish 8880:8880 \
+  --publish 8881:8881 \
   --env PODIUM_REDIS_HOST=podium-redis \
   --env PODIUM_REDIS_PORT=6379 \
   trungdlp/podium:latest start
 ```
 
-Verify that Podium is ready:
+Verify the service:
 
 ```bash
 curl http://localhost:8880/healthcheck
@@ -66,166 +49,200 @@ curl http://localhost:8880/healthcheck
 WORKING
 ```
 
-Use `trungdlp/podium:v1` to stay on the v1 release line:
+Submit two equal scores:
 
 ```bash
-docker pull trungdlp/podium:v1
+curl --request PUT \
+  --header 'Content-Type: application/json' \
+  --data '{"score":100}' \
+  http://localhost:8880/l/weekly-global/members/player-a/score
+
+curl --request PUT \
+  --header 'Content-Type: application/json' \
+  --data '{"score":100}' \
+  http://localhost:8880/l/weekly-global/members/player-b/score
 ```
 
-See [Hosting Podium](docs/hosting.md) for Redis authentication, Redis Cluster,
-basic authentication, observability, and other configuration options.
-
-### 2. Connect with the Go client
-
-Install the HTTP API client:
+Retrieve the leaders:
 
 ```bash
-go get github.com/TeneficGames/podium/client@latest
+curl 'http://localhost:8880/l/weekly-global/top/1?pageSize=10'
 ```
 
-Create a leaderboard, submit scores, and retrieve its leaders:
+`player-a` ranks above `player-b` because it reached the current score first.
 
-```go
-package main
+Use `trungdlp/podium:latest` for the latest stable release or
+`trungdlp/podium:edge` to track `main`. Versioned aliases are also published
+for deployments that require controlled upgrades.
 
-import (
-	"context"
-	"fmt"
-	"log"
+## Why Podium?
 
-	"github.com/TeneficGames/podium/client"
-	"github.com/spf13/viper"
-)
+- **No provisioning:** a leaderboard exists as soon as its first score is
+  submitted.
+- **Many leaderboard types:** use names to separate global, regional, clan,
+  event, seasonal, or game-specific rankings.
+- **Flexible reads:** query top pages, top percentages, individual ranks,
+  members around a player, or members around a score.
+- **Efficient writes:** set or increment one score, update many members, or
+  update one member across many leaderboards.
+- **Deterministic ties:** rank equal scores by arrival at the current score,
+  not by an arbitrary player ID.
+- **Expiration:** expire a whole seasonal leaderboard or individual member
+  scores.
+- **Production interfaces:** HTTP/JSON and gRPC from the same container image.
+- **Observability:** OpenTelemetry traces and metrics over OTLP/gRPC, with
+  optional Sentry error reporting.
 
-func main() {
-	config := viper.New()
-	config.Set("podium.url", "http://localhost:8880")
-	podium := client.NewPodium(config)
-	ctx := context.Background()
+## Performance
 
-	const leaderboardID = "weekly-global"
+These are sequential end-to-end HTTP operations through Podium and a local
+Redis 8.2 instance. Results are five-run medians recorded on July 30, 2026,
+using Go 1.26.5 and an Apple M4 Pro.
 
-	players := []*client.Member{
-		{PublicID: "player1", Score: 10},
-		{PublicID: "player2", Score: 20},
-	}
+| Operation | Median | Allocated bytes |
+| --- | ---: | ---: |
+| Set one member score | 305 µs | 6.7 KB |
+| Set 50 member scores | 657 µs | 36.1 KB |
+| Get one member rank | 282 µs | 5.4 KB |
+| Get a top-members page | 441 µs | 9.5 KB |
+| Update one member across 100 leaderboards | 3.58 ms | 78.3 KB |
+| Get 501 members | 3.17 ms | 222.6 KB |
 
-	if _, err := podium.UpdateMembersScore(ctx, leaderboardID, players, 0); err != nil {
-		log.Fatalf("update scores: %v", err)
-	}
+Each benchmark invocation uses isolated leaderboard IDs and removes its data
+afterward. Setup and cleanup are outside the timed operation.
 
-	leaders, err := podium.GetTop(ctx, leaderboardID, 1, 10)
-	if err != nil {
-		log.Fatalf("get leaders: %v", err)
-	}
+In direct Redis strategy benchmarks, deterministic ordering added about 11% for
+inserts, 17% for score changes, 5% for idempotent score submissions, 1% for
+rank reads, and 3% for top-50 reads compared with a plain sorted set. Supporting
+the same arrival order for both ascending and descending leaderboards used
+about 287 Redis bytes per member versus 99 bytes for the plain baseline. In the
+end-to-end HTTP suite, a 501-member bulk lookup was approximately 78% slower
+than the pre-tie-break implementation and remains an optimization target.
 
-	for _, player := range leaders.Members {
-		fmt.Printf("%s: score=%d rank=%d\n", player.PublicID, player.Score, player.Rank)
-	}
-}
+<details>
+<summary>Full Go benchmark medians</summary>
+
+```text
+BenchmarkSetMemberScore-14                           3894        305184 ns/op       0.41 MB/s        6657 B/op         80 allocs/op
+BenchmarkSetMembersScore-14                          1834        657072 ns/op       8.49 MB/s       36064 B/op        336 allocs/op
+BenchmarkIncrementMemberScore-14                     3645        315205 ns/op       0.40 MB/s        6643 B/op         80 allocs/op
+BenchmarkRemoveMember-14                             3973        294295 ns/op       0.10 MB/s        5429 B/op         68 allocs/op
+BenchmarkGetMember-14                                3688        292886 ns/op       0.36 MB/s        5413 B/op         67 allocs/op
+BenchmarkGetMemberRank-14                            4112        281604 ns/op       0.21 MB/s        5382 B/op         68 allocs/op
+BenchmarkGetAroundMember-14                          2077        572332 ns/op       2.62 MB/s        9657 B/op         71 allocs/op
+BenchmarkGetTotalMembers-14                          4531        264758 ns/op       0.11 MB/s        5278 B/op         65 allocs/op
+BenchmarkGetTopMembers-14                            2652        440669 ns/op       3.40 MB/s        9531 B/op         69 allocs/op
+BenchmarkGetTopPercentage-14                         2808       1034887 ns/op      20.21 MB/s       80142 B/op         80 allocs/op
+BenchmarkSetMemberScoreForSeveralLeaderboards-14      320       3581346 ns/op       5.17 MB/s       78344 B/op        101 allocs/op
+BenchmarkGetMembers-14                                429       3172862 ns/op      16.17 MB/s      222581 B/op         86 allocs/op
 ```
+
+</details>
+
+These measurements use one local Redis instance and are not Redis Cluster
+capacity results. See the [benchmark guide](docs/benchmark.md) for the
+reproducible commands and interpretation rules.
+
+## Scaling model
+
+Podium keeps leaderboard state in Redis, allowing multiple API replicas to
+serve the same leaderboard fleet behind a load balancer.
+
+With Redis Cluster enabled, different leaderboard IDs distribute across
+cluster slots. The ascending and descending score indexes, member metadata,
+sequence, and expiration keys
+for one leaderboard share a Redis hash tag, keeping its atomic Lua operations
+on one slot. CI validates this behavior against a real three-primary Redis 8.2
+Cluster covering all 16,384 slots.
+
+Multi-leaderboard writes use no more than 32 workers per request, bounding
+in-process fan-out concurrency.
+
+Redis Cluster scales across independent leaderboards; it does not divide one
+sorted set across shards. One exceptionally hot or large leaderboard remains
+limited by the Redis primary that owns its slot. Partition that workload at the
+application level when it must exceed one node's capacity.
+
+## Deterministic ties versus upstream
+
+The upstream [`topfreegames/podium`](https://github.com/topfreegames/podium)
+stores public member IDs directly in a Redis sorted set. Redis consequently
+orders equal scores lexicographically by member ID.
+
+This fork assigns a monotonic Redis sequence whenever a member reaches a new
+score:
+
+- The member who reached the current score first ranks higher.
+- Repeating the same score preserves the member's position.
+- Leaving a score and returning later creates a new arrival behind members
+  already at that score.
+- Removing and re-adding a member also creates a new arrival.
+
+Redis commits the score update, sequence assignment, and resulting rank
+atomically. The implementation does not use wall-clock timestamps, so
+concurrent submissions cannot receive the same tie-break value.
+
+## Redis support
+
+Podium tests the current Redis LTS lines:
+
+| Redis line | Validation |
+| --- | --- |
+| 8.2 | Standalone compatibility and real Redis Cluster integration |
+| 7.4 | Standalone compatibility |
+| 7.2 | Standalone compatibility |
+| 6.2 | Standalone compatibility |
+
+Always deploy the latest patch release in the selected line.
 
 ## Documentation
 
 | Resource | Description |
 | --- | --- |
-| [Overview](docs/overview.md) | Concepts, architecture, and use cases |
-| [HTTP API](docs/API.md) | Endpoints and request examples |
-| [OpenAPI specification](docs/openapi/spec.swagger.yaml) | Machine-readable HTTP API contract |
-| [Leaderboard names](docs/leaderboard-names.md) | Seasonal naming and expiration rules |
-| [Hosting](docs/hosting.md) | Deployment, configuration, authentication, and observability |
-| [Go library](docs/library.md) | Use the Redis-backed leaderboard module directly |
-| [Leaderboard enrichment](docs/leaderboard-enrichment.md) | Enrich members with external metadata |
-| [Benchmark guide](docs/benchmark.md) | Benchmark workflow and test-data generation |
-
-## Go modules
-
-Podium is published as four Go modules:
-
-| Module | Purpose |
-| --- | --- |
-| `github.com/TeneficGames/podium` | Podium service and CLI |
-| `github.com/TeneficGames/podium/client` | HTTP and gRPC API clients |
-| `github.com/TeneficGames/podium/leaderboard` | Embeddable Redis-backed leaderboard library |
-| `github.com/TeneficGames/podium/proto` | Protobuf and gRPC contracts |
-
-The move from `github.com/topfreegames/podium` changed import paths and is a
-breaking change for downstream consumers. Go v1 module paths intentionally omit
-a `/v1` suffix; releases use module-prefixed tags such as
-`leaderboard/v1.0.0`, `proto/v1.0.0`, and `client/v1.0.0`.
+| [Overview](docs/overview.md) | Capabilities, architecture, and scaling model |
+| [HTTP API](docs/API.md) | Endpoints, payloads, and responses |
+| [OpenAPI](docs/openapi/spec.swagger.yaml) | Machine-readable HTTP API |
+| [Leaderboard names](docs/leaderboard-names.md) | Seasonal naming and expiration |
+| [Hosting](docs/hosting.md) | Container runtimes, Kubernetes, Redis, and observability |
+| [Enrichment](docs/leaderboard-enrichment.md) | Add external member metadata |
+| [Benchmarks](docs/benchmark.md) | Reproduce and interpret measurements |
+| [Releasing](docs/releasing.md) | Publish OCI images and version aliases |
 
 ## Development
 
-Development and CI use Go 1.26 and Redis 8.
+The default test suite uses
+[`miniredis`](https://github.com/alicebob/miniredis), so it does not require an
+external Redis installation. CI additionally tests every supported Redis line
+and a real Redis Cluster.
 
 ```bash
 make setup
 make build
 make test
+make lint
 ```
 
-Generate HTML coverage reports:
+Run the real cluster suite locally:
 
 ```bash
-make test-coverage-html
+make compose-up-dependencies
+docker compose -f deployments/docker-compose.yaml run --rm --no-deps \
+  --entrypoint make \
+  -e PODIUM_REDIS_ADDRS=redis-node-0:6379 \
+  podium-test test-redis-cluster
+make compose-down
 ```
-
-## Benchmarks
-
-These end-to-end benchmarks measure HTTP requests through Podium backed by
-Redis. Results were recorded on July 27, 2026, using Go 1.26.5, Redis 8, and an
-Apple M4 Pro. Performance-sensitive paths were repeated five times and report
-the median run:
-
-```text
-BenchmarkSetMemberScore-14                           4466        277589 ns/op       0.45 MB/s        6581 B/op         80 allocs/op
-BenchmarkSetMembersScore-14                          2394        551913 ns/op      10.19 MB/s       35796 B/op        336 allocs/op
-BenchmarkIncrementMemberScore-14                     4028        279474 ns/op       0.45 MB/s        6605 B/op         80 allocs/op
-BenchmarkRemoveMember-14                             4452        272088 ns/op       0.11 MB/s        5336 B/op         69 allocs/op
-BenchmarkGetMember-14                                4405        267569 ns/op       0.40 MB/s        5349 B/op         68 allocs/op
-BenchmarkGetMemberRank-14                            3783        273388 ns/op       0.21 MB/s        5318 B/op         68 allocs/op
-BenchmarkGetAroundMember-14                          2160        561633 ns/op       2.76 MB/s        9843 B/op         71 allocs/op
-BenchmarkGetTotalMembers-14                          4501        268036 ns/op       0.11 MB/s        5215 B/op         65 allocs/op
-BenchmarkGetTopMembers-14                            2713        441550 ns/op       3.39 MB/s        9461 B/op         69 allocs/op
-BenchmarkGetTopPercentage-14                          823       1869259 ns/op      32.66 MB/s      208971 B/op         84 allocs/op
-BenchmarkSetMemberScoreForSeveralLeaderboards-14      393       2853186 ns/op       5.65 MB/s       67410 B/op         98 allocs/op
-BenchmarkGetMembers-14                                894       1783058 ns/op      28.78 MB/s      222499 B/op         86 allocs/op
-```
-
-### Peak local throughput
-
-Podium sustained more than **46,000 RPS on a single leaderboard** over HTTP.
-A 100-leaderboard fan-out workload maintained the same underlying write rate,
-processing more than **46,000 individual leaderboard updates per second**.
-
-| Workload | Peak throughput | Median latency | P99 latency |
-| --- | ---: | ---: | ---: |
-| Single leaderboard, HTTP | 46,210 RPS | 11.0 ms | 17.2 ms |
-| Single leaderboard, gRPC | 44,866 calls/s | 5.2 ms | 15.5 ms |
-| 100-leaderboard fan-out, HTTP | 46,170 leaderboard updates/s | 34.3 ms | 41.8 ms |
-
-The fan-out result is 461.7 compound API requests per second, with each request
-updating 100 leaderboards. At this throughput, Redis writes are the limiting
-factor, so HTTP and gRPC converge near the same ceiling.
-
-During the fan-out test, process RSS increased from 20.3 MiB idle to 63.7 MiB.
-Live goroutines increased from 18 to 562 and settled at 37 after the load ended,
-with no continuing growth. Multi-leaderboard requests use at most 32 worker
-goroutines each.
-
-Benchmark results vary with hardware, Redis topology, network conditions, and
-workload. See the [benchmark guide](docs/benchmark.md) for the benchmark design.
 
 ## Contributing
 
 Bug reports, feature proposals, and pull requests are welcome. Open an
-[issue](https://github.com/TeneficGames/podium/issues) to discuss substantial
-changes before implementation, and include tests and documentation with code
-changes.
+[issue](https://github.com/TeneficGames/podium/issues) before substantial
+changes, and include tests and documentation.
 
-## License
+## License and history
 
-© 2026 Tenefic Games. Released under the [MIT License](LICENSE).
+Released under the [MIT License](LICENSE).
 
-Forked from
-[© 2026 Top Free Games](https://github.com/topfreegames/podium).
+Podium is maintained by Tenefic Games and forked from
+[`topfreegames/podium`](https://github.com/topfreegames/podium). See the license
+and source headers for full attribution.

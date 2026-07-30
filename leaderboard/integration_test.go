@@ -17,7 +17,6 @@ import (
 
 	"github.com/TeneficGames/podium/leaderboard/database"
 	"github.com/TeneficGames/podium/leaderboard/database/redis"
-	"github.com/TeneficGames/podium/leaderboard/testing"
 
 	"github.com/TeneficGames/podium/leaderboard/model"
 	"github.com/TeneficGames/podium/leaderboard/service"
@@ -37,22 +36,14 @@ var _ = Describe("Leaderboard integration tests", func() {
 	BeforeEach(func() {
 		var err error
 
-		defaultConfig, err := testing.GetDefaultConfig("../config/test.yaml")
-		Expect(err).NotTo(HaveOccurred())
-
 		redisDatabase, err = GetDefaultRedis()
 		Expect(err).NotTo(HaveOccurred())
 
 		leaderboards = service.NewService(redisDatabase)
 
-		faultyLeaderboards = service.NewService(database.NewRedisDatabase(database.RedisOptions{
-			ClusterEnabled: defaultConfig.GetBool("faultyRedis.clusterEnabled"),
-			Addrs:          defaultConfig.GetStringSlice("faultyRedis.addrs"),
-			Host:           defaultConfig.GetString("faultyRedis.host"),
-			Port:           defaultConfig.GetInt("faultyRedis.port"),
-			Password:       defaultConfig.GetString("faultyRedis.password"),
-			DB:             defaultConfig.GetInt("faultyRedis.db"),
-		}))
+		faultyDatabase, err := GetFaultyRedis()
+		Expect(err).NotTo(HaveOccurred())
+		faultyLeaderboards = service.NewService(faultyDatabase)
 
 		err = leaderboards.RemoveLeaderboard(NewEmptyCtx(), testLeaderboardID)
 		Expect(err).NotTo(HaveOccurred())
@@ -76,20 +67,16 @@ var _ = Describe("Leaderboard integration tests", func() {
 			_, err := leaderboards.SetMemberScore(NewEmptyCtx(), testLeaderboardID,
 				"denix", 481516, false, ttl)
 			Expect(err).NotTo(HaveOccurred())
-			redisLBExpirationKey := fmt.Sprintf("%s:ttl", testLeaderboardID)
-			err = redisDatabase.Exists(context.Background(), redisLBExpirationKey)
-			Expect(err).NotTo(HaveOccurred())
 			redisExpirationSetKey := "expiration-sets"
 			err = redisDatabase.Exists(context.Background(), redisExpirationSetKey)
 			Expect(err).NotTo(HaveOccurred())
 			result2, err := redisDatabase.SMembers(context.Background(), redisExpirationSetKey)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(result2).To(ContainElement(redisLBExpirationKey))
-			Expect(err).NotTo(HaveOccurred())
-			result3, err := redisDatabase.ZScore(context.Background(), redisLBExpirationKey, "denix")
+			Expect(result2).To(ContainElement(testLeaderboardID))
+			member, err := leaderboards.GetMember(NewEmptyCtx(), testLeaderboardID, "denix", "desc", true)
 			Expect(err).NotTo(HaveOccurred())
 			ttlInt, _ := strconv.ParseInt(ttl, 10, 64)
-			Expect(result3).To(BeNumerically("~", time.Now().Unix()+ttlInt, 1))
+			Expect(member.ExpireAt).To(BeNumerically("~", time.Now().Unix()+ttlInt, 1))
 		})
 
 		It("should set scores and return previous ranks", func() {
@@ -114,7 +101,44 @@ var _ = Describe("Leaderboard integration tests", func() {
 			_, err := faultyLeaderboards.SetMemberScore(NewEmptyCtx(), testLeaderboardID, "dayvson",
 				481516, false, "")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("connection refused"))
+			Expect(err.Error()).To(ContainSubstring("injected Redis failure"))
+		})
+
+		It("should rank the first member to reach an equal score higher", func() {
+			first, err := leaderboards.SetMemberScore(NewEmptyCtx(), testLeaderboardID, "first", 100, false, "")
+			Expect(err).NotTo(HaveOccurred())
+			second, err := leaderboards.SetMemberScore(NewEmptyCtx(), testLeaderboardID, "second", 100, false, "")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(first.Rank).To(Equal(1))
+			Expect(second.Rank).To(Equal(2))
+
+			second, err = leaderboards.SetMemberScore(NewEmptyCtx(), testLeaderboardID, "second", 100, false, "")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(second.Rank).To(Equal(2))
+
+			_, err = leaderboards.SetMemberScore(NewEmptyCtx(), testLeaderboardID, "first", 90, false, "")
+			Expect(err).NotTo(HaveOccurred())
+			first, err = leaderboards.SetMemberScore(NewEmptyCtx(), testLeaderboardID, "first", 100, false, "")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(first.Rank).To(Equal(2))
+
+			leaders, err := leaderboards.GetLeaders(NewEmptyCtx(), testLeaderboardID, 10, 1, "desc")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(leaders).To(HaveLen(2))
+			Expect(leaders[0].PublicID).To(Equal("second"))
+			Expect(leaders[1].PublicID).To(Equal("first"))
+		})
+
+		It("should treat a removed and returning member as a new arrival", func() {
+			_, err := leaderboards.SetMemberScore(NewEmptyCtx(), testLeaderboardID, "first", 100, false, "")
+			Expect(err).NotTo(HaveOccurred())
+			_, err = leaderboards.SetMemberScore(NewEmptyCtx(), testLeaderboardID, "second", 100, false, "")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(leaderboards.RemoveMember(NewEmptyCtx(), testLeaderboardID, "first")).To(Succeed())
+
+			first, err := leaderboards.SetMemberScore(NewEmptyCtx(), testLeaderboardID, "first", 100, false, "")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(first.Rank).To(Equal(2))
 		})
 	})
 
@@ -142,22 +166,19 @@ var _ = Describe("Leaderboard integration tests", func() {
 			}
 			err := leaderboards.SetMembersScore(NewEmptyCtx(), testLeaderboardID, members, false, ttl)
 			Expect(err).NotTo(HaveOccurred())
-			redisLBExpirationKey := fmt.Sprintf("%s:ttl", testLeaderboardID)
-			err = redisDatabase.Exists(context.Background(), redisLBExpirationKey)
-			Expect(err).NotTo(HaveOccurred())
 			redisExpirationSetKey := "expiration-sets"
 			err = redisDatabase.Exists(context.Background(), redisExpirationSetKey)
 			Expect(err).NotTo(HaveOccurred())
 			result2, err := redisDatabase.SMembers(context.Background(), redisExpirationSetKey)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(result2).To(ContainElement(redisLBExpirationKey))
-			result3, err := redisDatabase.ZScore(context.Background(), redisLBExpirationKey, "denix1")
+			Expect(result2).To(ContainElement(testLeaderboardID))
+			result3, err := leaderboards.GetMember(NewEmptyCtx(), testLeaderboardID, "denix1", "desc", true)
 			Expect(err).NotTo(HaveOccurred())
 			ttlInt, _ := strconv.ParseInt(ttl, 10, 64)
-			Expect(result3).To(BeNumerically("~", time.Now().Unix()+ttlInt, 1))
-			result4, err := redisDatabase.ZScore(context.Background(), redisLBExpirationKey, "denix2")
+			Expect(result3.ExpireAt).To(BeNumerically("~", time.Now().Unix()+ttlInt, 1))
+			result4, err := leaderboards.GetMember(NewEmptyCtx(), testLeaderboardID, "denix2", "desc", true)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(result4).To(BeNumerically("~", time.Now().Unix()+ttlInt, 1))
+			Expect(result4.ExpireAt).To(BeNumerically("~", time.Now().Unix()+ttlInt, 1))
 		})
 
 		It("should set many scores and return previous ranks", func() {
@@ -186,7 +207,19 @@ var _ = Describe("Leaderboard integration tests", func() {
 		It("should fail if invalid connection to Redis", func() {
 			err := faultyLeaderboards.SetMembersScore(NewEmptyCtx(), testLeaderboardID, []*model.Member{}, false, "")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("connection refused"))
+			Expect(err.Error()).To(ContainSubstring("injected Redis failure"))
+		})
+
+		It("should reject duplicate members in one bulk submission", func() {
+			members := []*model.Member{
+				{Score: 100, PublicID: "duplicate"},
+				{Score: 200, PublicID: "duplicate"},
+			}
+			err := leaderboards.SetMembersScore(NewEmptyCtx(), testLeaderboardID, members, false, "")
+			Expect(err).To(HaveOccurred())
+			total, totalErr := leaderboards.TotalMembers(NewEmptyCtx(), testLeaderboardID)
+			Expect(totalErr).NotTo(HaveOccurred())
+			Expect(total).To(Equal(0))
 		})
 	})
 
@@ -202,9 +235,9 @@ var _ = Describe("Leaderboard integration tests", func() {
 			Expect(member.Score).To(Equal(int64(1010)))
 			Expect(member.PublicID).To(Equal("dayvson"))
 
-			score, err := redisDatabase.ZScore(context.Background(), lbID, "dayvson")
+			stored, err := leaderboards.GetMember(NewEmptyCtx(), lbID, "dayvson", "desc", false)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(int(score)).To(Equal(1010))
+			Expect(stored.Score).To(Equal(int64(1010)))
 		})
 
 		It("should increment member score when leaderboard does not exist and return ranks", func() {
@@ -215,15 +248,15 @@ var _ = Describe("Leaderboard integration tests", func() {
 			Expect(member.Score).To(Equal(int64(10)))
 			Expect(member.PublicID).To(Equal("dayvson"))
 
-			score, err := redisDatabase.ZScore(context.Background(), lbID, "dayvson")
+			stored, err := leaderboards.GetMember(NewEmptyCtx(), lbID, "dayvson", "desc", false)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(int(score)).To(Equal(10))
+			Expect(stored.Score).To(Equal(int64(10)))
 		})
 
 		It("should fail if invalid connection to Redis", func() {
 			_, err := faultyLeaderboards.IncrementMemberScore(NewEmptyCtx(), testLeaderboardID, "dayvson", 16, "")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("connection refused"))
+			Expect(err.Error()).To(ContainSubstring("injected Redis failure"))
 		})
 	})
 
@@ -241,7 +274,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 		It("should fail if faulty redis client", func() {
 			_, err := faultyLeaderboards.TotalMembers(NewEmptyCtx(), testLeaderboardID)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("connection refused"))
+			Expect(err.Error()).To(ContainSubstring("injected Redis failure"))
 		})
 	})
 
@@ -279,7 +312,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 			members[0] = "invalid member"
 			err := faultyLeaderboards.RemoveMembers(NewEmptyCtx(), testLeaderboardID, members)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("connection refused"))
+			Expect(err.Error()).To(ContainSubstring("injected Redis failure"))
 		})
 	})
 
@@ -296,7 +329,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 		It("should fail if faulty redis client", func() {
 			_, err := faultyLeaderboards.TotalPages(NewEmptyCtx(), testLeaderboardID, 10)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("connection refused"))
+			Expect(err.Error()).To(ContainSubstring("injected Redis failure"))
 		})
 	})
 
@@ -362,7 +395,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 		It("should fail if faulty redis client", func() {
 			_, err := faultyLeaderboards.GetMember(NewEmptyCtx(), testLeaderboardID, "qwe", "desc", false)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("connection refused"))
+			Expect(err.Error()).To(ContainSubstring("injected Redis failure"))
 		})
 	})
 
@@ -475,7 +508,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 		It("should fail if faulty redis client", func() {
 			_, err := faultyLeaderboards.GetAroundMe(NewEmptyCtx(), testLeaderboardID, 10, "qwe", "desc", false)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("connection refused"))
+			Expect(err.Error()).To(ContainSubstring("injected Redis failure"))
 		})
 	})
 
@@ -559,7 +592,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 		It("should fail if faulty redis client", func() {
 			_, err := faultyLeaderboards.GetAroundScore(NewEmptyCtx(), testLeaderboardID, 10, 20, "desc")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("connection refused"))
+			Expect(err.Error()).To(ContainSubstring("injected Redis failure"))
 		})
 	})
 
@@ -593,7 +626,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 			rank, err := faultyLeaderboards.GetRank(NewEmptyCtx(), uuid.New().String(), "invalid-member", "desc")
 			Expect(rank).To(Equal(-1))
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("connection refused"))
+			Expect(err.Error()).To(ContainSubstring("injected Redis failure"))
 		})
 	})
 
@@ -678,7 +711,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 			//testLeaderboard := NewClient(getFaultyRedis(), "test-leaderboard", 25)
 			_, err := faultyLeaderboards.GetLeaders(NewEmptyCtx(), testLeaderboardID, 25, 1, "desc")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("connection refused"))
+			Expect(err.Error()).To(ContainSubstring("injected Redis failure"))
 		})
 	})
 
@@ -695,12 +728,10 @@ var _ = Describe("Leaderboard integration tests", func() {
 			_, err := leaderboards.SetMemberScore(NewEmptyCtx(), leaderboardID, "dayvson", 12345, false, "")
 			Expect(err).NotTo(HaveOccurred())
 
-			result, err := redisDatabase.TTL(context.Background(), leaderboardID)
+			result, err := redisDatabase.GetLeaderboardExpiration(context.Background(), leaderboardID)
 			Expect(err).NotTo(HaveOccurred())
 
-			exp := result.Seconds()
-			Expect(err).NotTo(HaveOccurred())
-			Expect(exp).To(BeNumerically(">", int64(-1)))
+			Expect(result).To(BeNumerically(">", int64(-1)))
 		})
 	})
 
@@ -843,7 +874,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 			members, err := faultyLeaderboards.GetTopPercentage(NewEmptyCtx(), uuid.New().String(), 25, 10, 2000, "desc")
 			Expect(members).To(BeEmpty())
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("connection refused"))
+			Expect(err.Error()).To(ContainSubstring("injected Redis failure"))
 		})
 	})
 
@@ -871,7 +902,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 			leaderboardID := uuid.New().String()
 			_, err := faultyLeaderboards.GetMembersByRange(NewEmptyCtx(), leaderboardID, 20, 39, "desc")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("connection refused"))
+			Expect(err.Error()).To(ContainSubstring("injected Redis failure"))
 		})
 	})
 
@@ -895,7 +926,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 			leaderboardID := uuid.New().String()
 			err := faultyLeaderboards.RemoveLeaderboard(NewEmptyCtx(), leaderboardID)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("connection refused"))
+			Expect(err.Error()).To(ContainSubstring("injected Redis failure"))
 		})
 	})
 
@@ -1004,7 +1035,7 @@ var _ = Describe("Leaderboard integration tests", func() {
 			lbID := uuid.New().String()
 			_, err := faultyLeaderboards.GetMembers(NewEmptyCtx(), lbID, []string{"member-example"}, "desc", false)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("connection refused"))
+			Expect(err.Error()).To(ContainSubstring("injected Redis failure"))
 		})
 	})
 

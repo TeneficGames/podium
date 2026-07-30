@@ -51,13 +51,9 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 	})
 
 	AfterEach(func() {
-		redisClient.Del(context.Background(), "testkey")
-		redisClient.Del(context.Background(), "testkey:ttl")
-		redisClient.Del(context.Background(), "testkey1")
-		redisClient.Del(context.Background(), "testkey2")
-		redisClient.Del(context.Background(), "testkey3")
-		redisClient.Del(context.Background(), "testkey4")
-		redisClient.Del(context.Background(), "testkey5")
+		for _, leaderboardID := range []string{"testkey", "testkey1", "testkey2", "testkey3", "testkey4", "testkey5"} {
+			Expect(app.Leaderboards.RemoveLeaderboard(context.Background(), leaderboardID)).To(Succeed())
+		}
 	})
 
 	Describe("When leaderboard has expired", func() {
@@ -277,21 +273,18 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 				Expect(memb.ExpireAt).To(BeNumerically("~", time.Now().Unix()+int64(ttl), 1))
 			}
 
-			redisLBExpirationKey := fmt.Sprintf("%s:ttl", lbName)
-			err := redisClient.Exists(context.Background(), redisLBExpirationKey)
-			Expect(err).NotTo(HaveOccurred())
 			redisExpirationSetKey := "expiration-sets"
-			err = redisClient.Exists(context.Background(), redisExpirationSetKey)
+			err := redisClient.Exists(context.Background(), redisExpirationSetKey)
 			Expect(err).NotTo(HaveOccurred())
 			result3, err := redisClient.SMembers(context.Background(), redisExpirationSetKey)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(result3).To(ContainElement(redisLBExpirationKey))
-			result4, err := redisClient.ZScore(context.Background(), redisLBExpirationKey, "memberpublicid1")
+			Expect(result3).To(ContainElement(lbName))
+			result4, err := app.Leaderboards.GetMember(NewEmptyCtx(), lbName, "memberpublicid1", "desc", true)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(result4).To(BeNumerically("~", time.Now().Unix()+int64(ttl), 1))
-			result5, err := redisClient.ZScore(context.Background(), redisLBExpirationKey, "memberpublicid2")
+			Expect(result4.ExpireAt).To(BeNumerically("~", time.Now().Unix()+int64(ttl), 1))
+			result5, err := app.Leaderboards.GetMember(NewEmptyCtx(), lbName, "memberpublicid2", "desc", true)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(result5).To(BeNumerically("~", time.Now().Unix()+int64(ttl), 1))
+			Expect(result5.ExpireAt).To(BeNumerically("~", time.Now().Unix()+int64(ttl), 1))
 
 		})
 
@@ -375,6 +368,20 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 			Expect(result["reason"]).To(Equal("publicId is required"))
 		})
 
+		It("Should reject duplicate public IDs without applying a partial update", func() {
+			payload := map[string]interface{}{"members": []map[string]interface{}{
+				{"publicId": "duplicate", "score": 100},
+				{"publicId": "duplicate", "score": 200},
+			}}
+			status, body := PutJSON(app, "/l/testkey/scores", payload)
+			Expect(status).To(Equal(http.StatusBadRequest), body)
+			Expect(body).To(ContainSubstring("duplicate publicId: duplicate"))
+
+			total, err := app.Leaderboards.TotalMembers(NewEmptyCtx(), testLeaderboardID)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(total).To(Equal(0))
+		})
+
 		It("Should fail if invalid payload", func() {
 			status, body := Put(app, "/l/testkey/scores", "invalid")
 			Expect(status).To(Equal(http.StatusBadRequest), body)
@@ -393,7 +400,7 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 
 			status, body := PutJSON(app, "/l/testkey/scores", payload)
 			Expect(status).To(Equal(500), body)
-			Expect(body).To(ContainSubstring("connection refused"))
+			Expect(body).To(ContainSubstring("injected Redis failure"))
 		})
 
 		HTTPMeasure("it should update member score", func(ctx map[string]interface{}) {
@@ -502,18 +509,15 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 			Expect(member.PublicID).To(Equal("memberpublicid"))
 			Expect(member.ExpireAt).To(BeNumerically("~", time.Now().Unix()+int64(ttl), 1))
 
-			redisLBExpirationKey := fmt.Sprintf("%s:ttl", lbName)
-			err = redisClient.Exists(context.Background(), redisLBExpirationKey)
-			Expect(err).NotTo(HaveOccurred())
 			redisExpirationSetKey := "expiration-sets"
 			err = redisClient.Exists(context.Background(), redisExpirationSetKey)
 			Expect(err).NotTo(HaveOccurred())
 			result3, err := redisClient.SMembers(context.Background(), redisExpirationSetKey)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(result3).To(ContainElement(redisLBExpirationKey))
-			result4, err := redisClient.ZScore(context.Background(), redisLBExpirationKey, "memberpublicid")
+			Expect(result3).To(ContainElement(lbName))
+			result4, err := app.Leaderboards.GetMember(NewEmptyCtx(), lbName, "memberpublicid", "desc", true)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(result4).To(BeNumerically("~", time.Now().Unix()+int64(ttl), 1))
+			Expect(result4.ExpireAt).To(BeNumerically("~", time.Now().Unix()+int64(ttl), 1))
 		})
 
 		It("Should set correct member score in redis and respond with previous rank", func() {
@@ -612,7 +616,7 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 
 			status, body := PutJSON(app, "/l/testkey/members/memberpublicid/score", payload)
 			Expect(status).To(Equal(500), body)
-			Expect(body).To(ContainSubstring("connection refused"))
+			Expect(body).To(ContainSubstring("injected Redis failure"))
 		})
 
 		HTTPMeasure("it should update member score", func(ctx map[string]interface{}) {
@@ -745,7 +749,7 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 
 			status, body := PatchJSON(app, "/l/testkey/members/memberpublicid/score", payload)
 			Expect(status).To(Equal(500), body)
-			Expect(body).To(ContainSubstring("connection refused"))
+			Expect(body).To(ContainSubstring("injected Redis failure"))
 		})
 
 		HTTPMeasure("it should update member score", func(ctx map[string]interface{}) {
@@ -826,7 +830,7 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 
 			status, body := Delete(app, "/l/testkey/members?ids=memberpublicid")
 			Expect(status).To(Equal(500), body)
-			Expect(body).To(ContainSubstring("connection refused"))
+			Expect(body).To(ContainSubstring("injected Redis failure"))
 		})
 
 		It("Should not fail in deleting member score from redis if score does not exist", func() {
@@ -986,7 +990,7 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 
 			status, body := Get(app, "/l/testkey/members/member_99")
 			Expect(status).To(Equal(500), body)
-			Expect(body).To(ContainSubstring("connection refused"))
+			Expect(body).To(ContainSubstring("injected Redis failure"))
 		})
 
 		HTTPMeasure("it should get member", func(ctx map[string]interface{}) {
@@ -1083,7 +1087,7 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 
 			status, body := Get(app, "/l/testkey/members/member_99/rank")
 			Expect(status).To(Equal(500), body)
-			Expect(body).To(ContainSubstring("connection refused"))
+			Expect(body).To(ContainSubstring("injected Redis failure"))
 		})
 
 		HTTPMeasure("it should get member rank", func(ctx map[string]interface{}) {
@@ -1512,7 +1516,7 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 
 			status, body := Get(app, "/l/testkey/members/member_99/around")
 			Expect(status).To(Equal(500), body)
-			Expect(body).To(ContainSubstring("connection refused"))
+			Expect(body).To(ContainSubstring("injected Redis failure"))
 		})
 
 		It("Should fail if error in Redis", func() {
@@ -1520,7 +1524,7 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 
 			status, body := Get(app, "/l/testkey/members/member_99/around?getLastIfNotFound=true")
 			Expect(status).To(Equal(500), body)
-			Expect(body).To(ContainSubstring("connection refused"))
+			Expect(body).To(ContainSubstring("injected Redis failure"))
 		})
 
 		HTTPMeasure("it should get around member", func(ctx map[string]interface{}) {
@@ -1875,7 +1879,7 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 
 			status, body := Get(app, "/l/testkey/scores/50/around")
 			Expect(status).To(Equal(500), body)
-			Expect(body).To(ContainSubstring("connection refused"))
+			Expect(body).To(ContainSubstring("injected Redis failure"))
 		})
 	})
 
@@ -1922,7 +1926,7 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 
 			status, body := Get(app, "/l/testkey/members-count")
 			Expect(status).To(Equal(500), body)
-			Expect(body).To(ContainSubstring("connection refused"))
+			Expect(body).To(ContainSubstring("injected Redis failure"))
 		})
 
 		HTTPMeasure("it should get total members", func(ctx map[string]interface{}) {
@@ -2250,7 +2254,7 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 
 			status, body := Get(faultyRedisApp, "/l/testkey/top/1")
 			Expect(status).To(Equal(500), body)
-			Expect(body).To(ContainSubstring("connection refused"))
+			Expect(body).To(ContainSubstring("injected Redis failure"))
 		})
 
 		HTTPMeasure("it should get top members", func(ctx map[string]interface{}) {
@@ -2458,7 +2462,7 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 
 			status, body := Get(faultyRedisApp, "/l/testkey/top-percent/10")
 			Expect(status).To(Equal(500), body)
-			Expect(body).To(ContainSubstring("connection refused"))
+			Expect(body).To(ContainSubstring("injected Redis failure"))
 		})
 
 		HTTPMeasure("it should get top percentage of members", func(ctx map[string]interface{}) {
@@ -2661,7 +2665,7 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 			}
 			status, body := PutJSON(faultyRedisApp, "/m/memberpublicid/scores", payload)
 			Expect(status).To(Equal(500), body)
-			Expect(body).To(ContainSubstring("connection refused"))
+			Expect(body).To(ContainSubstring("injected Redis failure"))
 		})
 
 		HTTPMeasure("it should set correct member score for all leaderboards", func(ctx map[string]interface{}) {
@@ -2710,7 +2714,7 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 
 			status, body := Delete(faultyRedisApp, fmt.Sprintf("/l/%s", uuid.New().String()))
 			Expect(status).To(Equal(500), body)
-			Expect(body).To(ContainSubstring("connection refused"))
+			Expect(body).To(ContainSubstring("injected Redis failure"))
 		})
 	})
 
@@ -2940,7 +2944,7 @@ var _ = Describe("Leaderboard Handler", Ordered, func() {
 			)
 
 			Expect(status).To(Equal(500), body)
-			Expect(body).To(ContainSubstring("connection refused"))
+			Expect(body).To(ContainSubstring("injected Redis failure"))
 		})
 
 		HTTPMeasure("it should get members", func(ctx map[string]interface{}) {

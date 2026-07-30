@@ -19,6 +19,7 @@ var keeper interface{}
 
 func BenchmarkSetMemberScore(b *testing.B) {
 	lbID := generateNMembers(b.N)
+	b.Cleanup(func() { removeLeaderboard(lbID) })
 
 	b.ResetTimer()
 
@@ -40,6 +41,7 @@ func BenchmarkSetMemberScore(b *testing.B) {
 func BenchmarkSetMembersScore(b *testing.B) {
 	members := make([]map[string]interface{}, 50)
 	lbID := generateNMembers(b.N)
+	b.Cleanup(func() { removeLeaderboard(lbID) })
 	for j := 0; j < 50; j++ {
 		memberID := uuid.New().String()
 		members[j] = map[string]interface{}{"publicId": memberID, "score": int64(100)}
@@ -61,6 +63,7 @@ func BenchmarkSetMembersScore(b *testing.B) {
 
 func BenchmarkIncrementMemberScore(b *testing.B) {
 	lbID := generateNMembers(b.N)
+	b.Cleanup(func() { removeLeaderboard(lbID) })
 
 	b.ResetTimer()
 
@@ -81,6 +84,7 @@ func BenchmarkIncrementMemberScore(b *testing.B) {
 
 func BenchmarkRemoveMember(b *testing.B) {
 	lbID := generateNMembers(b.N)
+	b.Cleanup(func() { removeLeaderboard(lbID) })
 
 	b.ResetTimer()
 
@@ -97,6 +101,7 @@ func BenchmarkRemoveMember(b *testing.B) {
 
 func BenchmarkGetMember(b *testing.B) {
 	lbID := generateNMembers(b.N)
+	b.Cleanup(func() { removeLeaderboard(lbID) })
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
@@ -112,6 +117,7 @@ func BenchmarkGetMember(b *testing.B) {
 
 func BenchmarkGetMemberRank(b *testing.B) {
 	lbID := generateNMembers(b.N)
+	b.Cleanup(func() { removeLeaderboard(lbID) })
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
@@ -127,6 +133,7 @@ func BenchmarkGetMemberRank(b *testing.B) {
 
 func BenchmarkGetAroundMember(b *testing.B) {
 	lbID := generateNMembers(b.N)
+	b.Cleanup(func() { removeLeaderboard(lbID) })
 
 	b.ResetTimer()
 
@@ -143,6 +150,7 @@ func BenchmarkGetAroundMember(b *testing.B) {
 
 func BenchmarkGetTotalMembers(b *testing.B) {
 	lbID := generateNMembers(b.N)
+	b.Cleanup(func() { removeLeaderboard(lbID) })
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
@@ -157,6 +165,7 @@ func BenchmarkGetTotalMembers(b *testing.B) {
 
 func BenchmarkGetTopMembers(b *testing.B) {
 	lbID := generateNMembers(b.N)
+	b.Cleanup(func() { removeLeaderboard(lbID) })
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
@@ -171,6 +180,7 @@ func BenchmarkGetTopMembers(b *testing.B) {
 
 func BenchmarkGetTopPercentage(b *testing.B) {
 	lbID := generateNMembers(b.N)
+	b.Cleanup(func() { removeLeaderboard(lbID) })
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
@@ -190,11 +200,17 @@ func BenchmarkSetMemberScoreForSeveralLeaderboards(b *testing.B) {
 	)
 
 	leaderboards := make([]string, leaderboardCount)
+	runID := uuid.NewString()
 	for i := 0; i < leaderboardCount; i++ {
-		lbID := fmt.Sprintf("benchmark-multi-leaderboard-%d", i)
+		lbID := fmt.Sprintf("benchmark-multi-%s-%d", runID, i)
 		generateNMembersForLeaderboard(lbID, membersPerLeaderboard)
 		leaderboards[i] = lbID
 	}
+	b.Cleanup(func() {
+		for _, leaderboard := range leaderboards {
+			removeLeaderboard(leaderboard)
+		}
+	})
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
@@ -216,7 +232,8 @@ func BenchmarkSetMemberScoreForSeveralLeaderboards(b *testing.B) {
 func BenchmarkGetMembers(b *testing.B) {
 	const memberCount = 501
 
-	lbID := generateNMembersForLeaderboard("benchmark-get-members", memberCount)
+	lbID := generateNMembersForLeaderboard("benchmark-get-members-"+uuid.NewString(), memberCount)
+	b.Cleanup(func() { removeLeaderboard(lbID) })
 	memberIDs := make([]string, 0, memberCount)
 	for i := 0; i < memberCount; i++ {
 		memberID := fmt.Sprintf("bench-member-%d", i)

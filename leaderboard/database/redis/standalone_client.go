@@ -16,6 +16,7 @@ var _ Client = &standaloneClient{}
 var _ MemberReader = &standaloneClient{}
 var _ MemberWriter = &standaloneClient{}
 var _ MemberIncrementer = &standaloneClient{}
+var _ TieBreakStore = &standaloneClient{}
 
 // StandaloneOptions define configuration parameters to instantiate a new StandaloneClient
 type StandaloneOptions struct {
@@ -34,6 +35,80 @@ func NewStandaloneClient(options StandaloneOptions) Client {
 	})
 
 	return &standaloneClient{goRedisClient}
+}
+
+func (c *standaloneClient) DeleteLeaderboard(ctx context.Context, keys TieBreakKeys) error {
+	if err := c.Client.Del(
+		ctx,
+		keys.Scores,
+		keys.ScoresAsc,
+		keys.Members,
+		keys.Sequence,
+		keys.TTL,
+	).Err(); err != nil {
+		return NewGeneralError(err.Error())
+	}
+	return nil
+}
+
+func (c *standaloneClient) ExpireMembersWithTieBreak(
+	ctx context.Context,
+	keys TieBreakKeys,
+	members ...string,
+) error {
+	return removeMembersWithTieBreak(ctx, c.Client, keys, members...)
+}
+
+func (c *standaloneClient) ExpireTieBreakKeysAt(
+	ctx context.Context,
+	keys TieBreakKeys,
+	expireAt time.Time,
+) error {
+	return expireTieBreakKeysAt(ctx, c.Client, keys, expireAt)
+}
+
+func (c *standaloneClient) GetMembersWithTieBreak(
+	ctx context.Context,
+	keys TieBreakKeys,
+	order string,
+	includeTTL bool,
+	members ...string,
+) ([]*Member, error) {
+	return getMembersWithTieBreak(ctx, c.Client, keys, order, includeTTL, members...)
+}
+
+func (c *standaloneClient) GetRankWithTieBreak(
+	ctx context.Context,
+	keys TieBreakKeys,
+	member, order string,
+) (int64, error) {
+	return getRankWithTieBreak(ctx, c.Client, keys, member, order)
+}
+
+func (c *standaloneClient) IncrementWithTieBreak(
+	ctx context.Context,
+	keys TieBreakKeys,
+	member, order string,
+	increment float64,
+) (*Member, error) {
+	return incrementWithTieBreak(ctx, c.Client, keys, member, order, increment)
+}
+
+func (c *standaloneClient) SetMembersTTLWithTieBreak(
+	ctx context.Context,
+	keys TieBreakKeys,
+	members ...*Member,
+) error {
+	return setMembersTTLWithTieBreak(ctx, c.Client, keys, members...)
+}
+
+func (c *standaloneClient) UpsertMembersWithTieBreak(
+	ctx context.Context,
+	keys TieBreakKeys,
+	order string,
+	members ...*Member,
+) ([]int64, error) {
+	return upsertMembersWithTieBreak(ctx, c.Client, keys, order, members...)
 }
 
 // ZMembers returns scores, ranks, and optional TTLs in one Redis pipeline.
