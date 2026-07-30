@@ -3,6 +3,7 @@ package service_test
 import (
 	"context"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/TeneficGames/podium/leaderboard/database"
@@ -94,6 +95,20 @@ var _ = Describe("Service GetMember", func() {
 		_, err := svc.GetMember(context.Background(), leaderboard, member, order, includeTTL)
 		Expect(err).To(Equal(service.NewMemberNotFoundError(leaderboard, member)))
 
+	})
+
+	It("Should return error if database returns a rank outside the supported range", func() {
+		membersDatabaseReturn := []*database.Member{
+			{
+				Member: "member1",
+				Rank:   math.MaxInt32,
+			},
+		}
+
+		mock.EXPECT().GetMembers(gomock.Any(), gomock.Eq(leaderboard), gomock.Eq(order), gomock.Eq(includeTTL), gomock.Eq(member)).Return(membersDatabaseReturn, nil)
+
+		_, err := svc.GetMember(context.Background(), leaderboard, member, order, includeTTL)
+		Expect(err).To(Equal(service.NewGeneralError("get member", "member rank is outside supported range")))
 	})
 
 	It("Should return error if database return in error", func() {

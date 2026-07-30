@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"math"
 	"sort"
 	"time"
 
@@ -23,6 +24,10 @@ func (s *Service) GetMembers(ctx context.Context, leaderboard string, members []
 			continue
 		}
 
+		if member.Rank < 0 || member.Rank >= math.MaxInt32 {
+			return nil, NewGeneralError(getMembersServiceLabel, "member rank is outside supported range")
+		}
+
 		var ttl int64
 		if (member.TTL != time.Time{}) {
 			ttl = member.TTL.Unix()
@@ -30,7 +35,7 @@ func (s *Service) GetMembers(ctx context.Context, leaderboard string, members []
 		newMember := &model.Member{
 			PublicID: member.Member,
 			Score:    int64(member.Score),
-			Rank:     int(member.Rank) + 1,
+			Rank:     int(member.Rank + 1),
 			ExpireAt: int(ttl),
 		}
 		membersToReturn = append(membersToReturn, newMember)
