@@ -7,16 +7,22 @@ multiple identically configured replicas to run behind a load balancer.
 
 ## Image tags
 
-Images are published to Docker Hub. Stable tags follow semantic-version
-aliases:
+Images are published with identical content and tags to:
 
-- `trungdlp/podium:latest` selects the latest stable release.
-- `trungdlp/podium:edge` tracks the current `main` branch.
-- `trungdlp/podium:X` tracks a major release line.
-- `trungdlp/podium:X.Y` tracks a minor release line.
-- `trungdlp/podium:X.Y.Z` selects an immutable release.
+- Docker Hub: `trungdlp/podium`
+- GitHub Container Registry: `ghcr.io/teneficgames/podium`
+
+Stable tags follow semantic-version aliases:
+
+- `latest` selects the latest stable release.
+- `edge` tracks the current `main` branch.
+- `X` tracks a major release line.
+- `X.Y` tracks a minor release line.
+- `X.Y.Z` selects an immutable release.
 
 Use immutable patch tags in production when repeatable rollouts are required.
+Replace `trungdlp/podium` in the examples below with
+`ghcr.io/teneficgames/podium` to pull the same image from GHCR.
 
 ## Runtime examples
 

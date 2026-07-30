@@ -22,6 +22,15 @@ helm upgrade --install podium ./charts/podium \
   --set redis.host=redis.example.internal
 ```
 
+The default image is `trungdlp/podium` from Docker Hub. Every Podium image is
+also published to GHCR; select that registry with:
+
+```yaml
+image:
+  repository: ghcr.io/teneficgames/podium
+  tag: "1.0.5"
+```
+
 Released chart versions can be installed directly from GHCR:
 
 ```bash
