@@ -2,53 +2,40 @@
 # package ecosystems to update and where the package manifests are located.
 # Please see the documentation for all configuration options:
 # https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
-
 version: 2
-  updates:
-    - package-ecosystem: "gomod"
-      directories:
-        - "/"
-        - "/client"
-        - "/leaderboard"
-        - "/proto"
-      schedule:
-        interval: "weekly"
-      groups:
-        go-dependencies:
-          patterns:
-            - "*"
-      commit-message:
-        prefix: "chore(deps)"
 
-    - package-ecosystem: "github-actions"
-      directory: "/"
-      schedule:
-        interval: "weekly"
-      groups:
-        github-actions:
-          patterns:
-            - "*"
-      commit-message:
-        prefix: "ci(deps)"
+updates:
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
 
-    - package-ecosystem: "docker"
-      directory: "/build"
-      schedule:
-        interval: "weekly"
-      groups:
-        docker-images:
-          patterns:
-            - "*"
-      commit-message:
-        prefix: "chore(deps)"
+  - package-ecosystem: "gomod"
+    directory: "/client"
+    schedule:
+      interval: "weekly"
 
-    - package-ecosystem: "docker-compose"
-      directory: "/deployments"
-      schedule:
-        interval: "weekly"
-      groups:
-        docker-compose-images:
-          patterns:
-            - "*"
-      commit-message:
-        prefix: "chore(deps)"
+  - package-ecosystem: "gomod"
+    directory: "/leaderboard"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "gomod"
+    directory: "/proto"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "docker"
+    directory: "/build"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "docker-compose"
+    directory: "/deployments"
+    schedule:
+      interval: "weekly"
