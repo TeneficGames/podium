@@ -1,0 +1,39 @@
+suite: Expiration worker
+templates:
+  - templates/worker-deployment.yaml
+  - templates/secret.yaml
+tests:
+  - it: does not render by default
+    template: templates/worker-deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders separately from the horizontally scaled API
+    template: templates/worker-deployment.yaml
+    set:
+      worker.enabled: true
+      worker.expirationCheckInterval: 30s
+      worker.expirationLimitPerRun: 500
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.labels["app.kubernetes.io/component"]
+          value: worker
+      - equal:
+          path: metadata.annotations["reloader.stakater.com/auto"]
+          value: "true"
+      - equal:
+          path: spec.replicas
+          value: 1
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PODIUM_WORKER_EXPIRATIONCHECKINTERVAL
+            value: 30s
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PODIUM_WORKER_EXPIRATIONLIMITPERRUN
+            value: "500"

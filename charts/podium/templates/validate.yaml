@@ -1,0 +1,4 @@
+{{- if and .Values.redis.cluster.enabled (not .Values.redis.cluster.addrs) -}}
+{{- fail "redis.cluster.addrs must contain at least one seed when redis.cluster.enabled=true" -}}
+{{- end -}}
+

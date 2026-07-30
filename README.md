@@ -20,7 +20,9 @@ of independent leaderboards without provisioning each leaderboard in advance.
 
 [Quickstart](#quickstart) · [Performance](#performance) ·
 [API](docs/API.md) · [Documentation](docs/overview.md) ·
-[Docker Hub](https://hub.docker.com/r/trungdlp/podium)
+[Helm chart](charts/podium/README.md) ·
+[Docker Hub](https://hub.docker.com/r/trungdlp/podium) ·
+[GHCR](https://github.com/orgs/TeneficGames/packages/container/package/podium)
 
 ## Quickstart
 
@@ -207,6 +209,7 @@ Always deploy the latest patch release in the selected line.
 | [Enrichment](docs/leaderboard-enrichment.md) | Add external member metadata |
 | [Benchmarks](docs/benchmark.md) | Reproduce and interpret measurements |
 | [Releasing](docs/releasing.md) | Publish OCI images and version aliases |
+| [Helm releases](docs/helm-releasing.md) | Version and publish the Helm chart to GHCR |
 
 ## Development
 

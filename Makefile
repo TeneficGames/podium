@@ -25,7 +25,7 @@ help: Makefile ## Show list of commands
 	@echo ""
 	@awk 'BEGIN {FS = ":.*?## "} /[a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf "\033[36m%-40s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
 
-.PHONY: bench-podium-app bench-podium-app-kill bench-podium-app-run bench-redis bench-redis-kill bench-run bench-seed bench-tiebreak build compose-down compose-test compose-up-api compose-up-dependencies coverage-check docker-build docker-run docker-run-basic-auth docker-run-redis help lint mock-generate mock-lib proto proto-check proto-setup proto-tools redis-cluster-test rtfd setup setup-docs setup-hooks clear-hooks test test-client test-leaderboard test-podium test-redis-cluster test-redis-compat test-unit
+.PHONY: bench-podium-app bench-podium-app-kill bench-podium-app-run bench-redis bench-redis-kill bench-run bench-seed bench-tiebreak build compose-down compose-test compose-up-api compose-up-dependencies coverage-check docker-build docker-run docker-run-basic-auth docker-run-redis help lint mock-generate mock-lib proto proto-check proto-setup proto-tools redis-cluster-test rtfd setup setup-docs setup-hooks clear-hooks test test-client test-helm test-helm-minikube test-leaderboard test-podium test-redis-cluster test-redis-compat test-unit
 
 setup-hooks: ## Create pre-commit git hooks
 	@cd .git/hooks && ln -sf ../../hooks/pre-commit.sh pre-commit
@@ -55,6 +55,12 @@ test-unit: ## Execute Redis-independent unit tests
 	@cd leaderboard && go test ./database ./enriching ./expiration ./service
 	@cd proto && go test ./...
 	@cd client && go test ./...
+
+test-helm: ## Lint, render, package, and unit test the Helm chart
+	@./scripts/test-helm.sh
+
+test-helm-minikube: ## Build and smoke test the Helm chart in Minikube
+	@./scripts/test-helm-minikube.sh
 
 test-podium: ## Execute all API tests
 	@mkdir -p _build/test-results

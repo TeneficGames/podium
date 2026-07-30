@@ -1,0 +1,84 @@
+suite: API deployment
+templates:
+  - templates/deployment.yaml
+  - templates/secret.yaml
+tests:
+  - it: runs two hardened API replicas by default
+    template: templates/deployment.yaml
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.replicas
+          value: 2
+      - equal:
+          path: metadata.annotations["reloader.stakater.com/auto"]
+          value: "true"
+      - equal:
+          path: spec.strategy.rollingUpdate.maxUnavailable
+          value: 0
+      - equal:
+          path: spec.template.spec.automountServiceAccountToken
+          value: false
+      - equal:
+          path: spec.template.spec.securityContext.runAsUser
+          value: 65532
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
+          value: true
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /status
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /healthcheck
+
+  - it: omits replicas when autoscaling is enabled
+    template: templates/deployment.yaml
+    set:
+      autoscaling.enabled: true
+    asserts:
+      - notExists:
+          path: spec.replicas
+
+  - it: can disable the Reloader annotation
+    template: templates/deployment.yaml
+    set:
+      reloader.enabled: false
+    asserts:
+      - notExists:
+          path: metadata.annotations["reloader.stakater.com/auto"]
+
+  - it: configures Redis Cluster seed addresses
+    template: templates/deployment.yaml
+    set:
+      redis.cluster.enabled: true
+      redis.cluster.addrs:
+        - redis-0:6379
+        - redis-1:6379
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PODIUM_REDIS_CLUSTER_ENABLED
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PODIUM_REDIS_ADDRS
+            value: redis-0:6379,redis-1:6379
+
+  - it: reads Redis credentials from an existing Secret
+    template: templates/deployment.yaml
+    set:
+      redis.existingSecret.name: production-redis
+      redis.existingSecret.passwordKey: password
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PODIUM_REDIS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: production-redis
+                key: password

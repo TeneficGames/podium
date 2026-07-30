@@ -1,0 +1,52 @@
+suite: Extra objects
+templates:
+  - templates/extra-objects.yaml
+tests:
+  - it: renders no objects by default
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders structured objects and evaluates templates
+    release:
+      name: podium-production
+      namespace: games
+    set:
+      extraObjects:
+        - apiVersion: policy/v1
+          kind: PodDisruptionBudget
+          metadata:
+            name: '{{ include "podium.fullname" . }}-custom'
+            namespace: '{{ .Release.Namespace }}'
+          spec:
+            maxUnavailable: 1
+    asserts:
+      - isKind:
+          of: PodDisruptionBudget
+      - equal:
+          path: metadata.name
+          value: podium-production-custom
+      - equal:
+          path: metadata.namespace
+          value: games
+
+  - it: renders raw YAML strings
+    set:
+      extraObjects:
+        - |
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: '{{ .Release.Name }}-settings'
+          data:
+            mode: production
+    asserts:
+      - isKind:
+          of: ConfigMap
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-settings
+      - equal:
+          path: data.mode
+          value: production
+
