@@ -38,7 +38,7 @@ services:
       - podium
 
   redis-standalone:
-    image: redis:8.8-alpine
+    image: redis:8.10-alpine
     networks:
       - podium
     ports:
