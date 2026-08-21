@@ -274,7 +274,7 @@ jobs:
         with:
           cache-dependency-path: ${{ matrix.go_sum }}
           go-package: ./...
-          go-version-input: 1.26.5
+          go-version-input: 1.26.6
           repo-checkout: false
           work-dir: ${{ matrix.workdir }}
 

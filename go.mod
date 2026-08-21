@@ -2,7 +2,7 @@ module github.com/TeneficGames/podium
 
 go 1.26.0
 
-toolchain go1.26.5
+toolchain go1.26.6
 
 require (
 	github.com/TeneficGames/podium/leaderboard v1.0.0
