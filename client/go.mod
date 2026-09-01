@@ -8,7 +8,7 @@ require (
 	github.com/TeneficGames/podium/proto v1.0.0
 	github.com/jarcoal/httpmock v1.4.2
 	github.com/onsi/ginkgo/v2 v2.32.1
-	github.com/onsi/gomega v1.42.1
+	github.com/onsi/gomega v1.43.0
 	github.com/spf13/viper v1.21.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.70.0
 	go.uber.org/mock v0.6.0
