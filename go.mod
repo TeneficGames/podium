@@ -7,8 +7,8 @@ toolchain go1.26.6
 require (
 	github.com/TeneficGames/podium/leaderboard v1.0.0
 	github.com/TeneficGames/podium/proto v1.0.0
-	github.com/getsentry/sentry-go v0.48.0
-	github.com/getsentry/sentry-go/otel v0.48.0
+	github.com/getsentry/sentry-go v0.49.0
+	github.com/getsentry/sentry-go/otel v0.49.0
 	github.com/google/uuid v1.6.0
 	github.com/gosuri/uiprogress v0.0.1
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.3
