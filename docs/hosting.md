@@ -7,10 +7,8 @@ multiple identically configured replicas to run behind a load balancer.
 
 ## Image tags
 
-Images are published with identical content and tags to:
-
-- Docker Hub: `trungdlp/podium`
-- GitHub Container Registry: `ghcr.io/teneficgames/podium`
+Images are published to GitHub Container Registry as
+`ghcr.io/teneficgames/podium`.
 
 Stable tags follow semantic-version aliases:
 
@@ -21,8 +19,6 @@ Stable tags follow semantic-version aliases:
 - `X.Y.Z` selects an immutable release.
 
 Use immutable patch tags in production when repeatable rollouts are required.
-Replace `trungdlp/podium` in the examples below with
-`ghcr.io/teneficgames/podium` to pull the same image from GHCR.
 
 ## Runtime examples
 
@@ -35,7 +31,7 @@ docker run --rm \
   --publish 8881:8881 \
   --env PODIUM_REDIS_HOST=redis \
   --env PODIUM_REDIS_PORT=6379 \
-  trungdlp/podium:latest start
+  ghcr.io/teneficgames/podium:latest start
 ```
 
 With containerd, `nerdctl` can run the same image:
@@ -46,7 +42,7 @@ nerdctl run --rm \
   --publish 8881:8881 \
   --env PODIUM_REDIS_HOST=redis \
   --env PODIUM_REDIS_PORT=6379 \
-  trungdlp/podium:latest start
+  ghcr.io/teneficgames/podium:latest start
 ```
 
 A minimal Kubernetes container specification is:
@@ -54,7 +50,7 @@ A minimal Kubernetes container specification is:
 ```yaml
 containers:
   - name: podium
-    image: trungdlp/podium:latest
+    image: ghcr.io/teneficgames/podium:latest
     args: ["start"]
     ports:
       - name: http

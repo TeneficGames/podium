@@ -2,7 +2,7 @@ apiVersion: v2
 name: podium
 description: High-performance, Redis-backed leaderboards for games and competitive applications.
 type: application
-version: 1.0.0
+version: 1.0.1
 appVersion: "1.0.6"
 home: https://github.com/TeneficGames/podium
 sources:
