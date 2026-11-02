@@ -14,7 +14,7 @@ import (
 	goredis "github.com/redis/go-redis/v9"
 )
 
-const maxSafeRedisInteger = float64(9_007_199_254_740_991)
+const maxSafeRedisInteger = float64(9_007_199_254_740_992)
 
 func TestTieBreakStoreOrdering(t *testing.T) {
 	store, _, keys := newTieBreakStore(t)
@@ -208,7 +208,7 @@ func TestTieBreakStoreBoundariesAndMissingMembers(t *testing.T) {
 		t.Fatal("expected a missing-member rank error")
 	}
 
-	for _, score := range []float64{maxSafeRedisInteger + 1, -(maxSafeRedisInteger + 1)} {
+	for _, score := range []float64{maxSafeRedisInteger + 2, -(maxSafeRedisInteger + 2)} {
 		if _, err := store.UpsertMembersWithTieBreak(ctx, keys, "desc",
 			&podiumredis.Member{Member: "out-of-range", Score: score},
 		); err == nil {

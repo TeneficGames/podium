@@ -2,7 +2,9 @@ package service_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"testing"
 
 	"github.com/TeneficGames/podium/leaderboard/database"
 	"github.com/TeneficGames/podium/leaderboard/model"
@@ -135,3 +137,11 @@ var _ = Describe("Service pipelined fast paths", func() {
 		Expect(err).To(MatchError(ContainSubstring("increment error")))
 	})
 })
+
+func TestIncrementMemberScorePreservesInvalidScore(t *testing.T) {
+	svc := service.NewService(&fastPathDatabase{incrementErr: model.ErrInvalidScore})
+	member, err := svc.IncrementMemberScore(context.Background(), "board", "alice", 1, "")
+	if member != nil || !errors.Is(err, model.ErrInvalidScore) {
+		t.Fatalf("expected the original input error without a result, got %+v, %v", member, err)
+	}
+}

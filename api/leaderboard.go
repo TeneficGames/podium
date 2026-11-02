@@ -37,7 +37,7 @@ const (
 )
 
 func validateBulkUpsertScoresRequest(req *api.BulkUpsertScoresRequest) error {
-	if req.MemberScores == nil {
+	if req.GetMemberScores() == nil {
 		return status.Error(codes.InvalidArgument, "memberScores is required")
 	}
 	if len(req.MemberScores.Members) == 0 {
@@ -55,7 +55,17 @@ func validateBulkUpsertScoresRequest(req *api.BulkUpsertScoresRequest) error {
 		if _, ok := seen[m.PublicId]; ok {
 			return status.Errorf(codes.InvalidArgument, "duplicate publicId: %s", m.PublicId)
 		}
+		if err := validateScore(m.Score); err != nil {
+			return err
+		}
 		seen[m.PublicId] = struct{}{}
+	}
+	return nil
+}
+
+func validateScore(score float64) error {
+	if err := lmodel.ValidateScore(score); err != nil {
+		return status.Error(codes.InvalidArgument, err.Error())
 	}
 	return nil
 }
@@ -121,6 +131,13 @@ func getScoreTTL(scoreTTL int32) string {
 
 // UpsertScore is the handler responsible for creating or updating the member score.
 func (app *App) UpsertScore(ctx context.Context, req *api.UpsertScoreRequest) (*api.UpsertScoreResponse, error) {
+	if req.GetScoreChange() == nil {
+		return nil, status.Error(codes.InvalidArgument, "scoreChange is required")
+	}
+	if err := validateScore(req.ScoreChange.Score); err != nil {
+		return nil, err
+	}
+
 	lg := app.Logger.With(
 		zap.String("handler", "UpsertScore"),
 		zap.String("leaderboard", req.LeaderboardId),
@@ -165,6 +182,12 @@ func (app *App) UpsertScore(ctx context.Context, req *api.UpsertScoreRequest) (*
 
 // IncrementScore is the handler responsible for incrementing the member score.
 func (app *App) IncrementScore(ctx context.Context, req *api.IncrementScoreRequest) (*api.IncrementScoreResponse, error) {
+	if req.GetBody() == nil {
+		return nil, status.Error(codes.InvalidArgument, "body is required")
+	}
+	if err := validateScore(req.Body.Increment); err != nil {
+		return nil, err
+	}
 	if req.Body.Increment == 0 {
 		return nil, status.Error(codes.InvalidArgument, "increment is required")
 	}
@@ -183,6 +206,9 @@ func (app *App) IncrementScore(ctx context.Context, req *api.IncrementScoreReque
 			int(req.Body.Increment), getScoreTTL(req.ScoreTtl))
 
 		if err != nil {
+			if errors.Is(err, lmodel.ErrInvalidScore) {
+				return status.Error(codes.InvalidArgument, err.Error())
+			}
 			lg.Error("Member score increment failed.", zap.Error(err))
 			app.AddError()
 			var expiredErr *service.LeaderboardExpiredError
@@ -729,6 +755,12 @@ func newMemberRankResponseList(members []*lmodel.Member) []*api.Member {
 
 // UpsertScoreMultiLeaderboards sets the member score for all leaderboards.
 func (app *App) UpsertScoreMultiLeaderboards(ctx context.Context, req *api.UpsertScoreMultiLeaderboardsRequest) (*api.UpsertScoreMultiLeaderboardsResponse, error) {
+	if req.GetScoreMultiChange() == nil {
+		return nil, status.Error(codes.InvalidArgument, "scoreMultiChange is required")
+	}
+	if err := validateScore(req.ScoreMultiChange.Score); err != nil {
+		return nil, err
+	}
 	if len(req.ScoreMultiChange.Leaderboards) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "leaderboards is required")
 	}

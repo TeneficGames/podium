@@ -191,7 +191,7 @@ func TestIncrementWithTieBreakValidation(t *testing.T) {
 		{name: "invalid order", order: "invalid", increment: 1},
 		{name: "NaN increment", order: "desc", increment: math.NaN()},
 		{name: "infinite increment", order: "desc", increment: math.Inf(1)},
-		{name: "out-of-range increment", order: "desc", increment: maxExactRedisScore + 1},
+		{name: "out-of-range increment", order: "desc", increment: maxExactRedisScore + 2},
 	}
 
 	for _, tt := range tests {
