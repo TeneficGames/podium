@@ -18,7 +18,7 @@ Use an immutable Podium image tag in production:
 helm upgrade --install podium ./charts/podium \
   --namespace podium \
   --create-namespace \
-  --set image.tag=1.0.6 \
+  --set image.tag=1.0.9 \
   --set redis.host=redis.example.internal
 ```
 
@@ -31,14 +31,10 @@ Released chart versions can be installed directly from GHCR:
 ```bash
 helm upgrade --install podium \
   oci://ghcr.io/teneficgames/charts/podium \
-  --version 1.0.0 \
-  --set image.repository=ghcr.io/teneficgames/podium \
+  --version 1.0.1 \
   --namespace podium \
   --create-namespace
 ```
-
-Chart 1.0.0 needs the image repository override shown above; source charts
-from 1.0.1 onward default to GHCR.
 
 See the [chart release process](../../docs/helm-releasing.md) for versioning,
 publishing, verification, and first-release setup.
