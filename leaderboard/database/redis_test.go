@@ -2,11 +2,14 @@ package database_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"testing"
 	"time"
 
 	"github.com/TeneficGames/podium/leaderboard/database"
 	"github.com/TeneficGames/podium/leaderboard/database/redis"
+	"github.com/TeneficGames/podium/leaderboard/model"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"go.uber.org/mock/gomock"
@@ -1132,3 +1135,11 @@ var _ = Describe("Redis Database", func() {
 		})
 	})
 })
+
+func TestIncrementMemberScoreAndGetRankPreservesInvalidScore(t *testing.T) {
+	db := &database.Redis{Client: &failingTieBreakClient{err: model.ErrInvalidScore}}
+	member, err := db.IncrementMemberScoreAndGetRank(context.Background(), "board", "alice", "desc", 1)
+	if member != nil || !errors.Is(err, model.ErrInvalidScore) {
+		t.Fatalf("expected the original input error without a result, got %+v, %v", member, err)
+	}
+}
