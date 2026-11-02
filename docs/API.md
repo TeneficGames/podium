@@ -94,6 +94,18 @@ Podium API
   {"leaderboardId":"weekly","memberPublicId":"player-456","body":{"increment":100}}
   ```
 
+  ### Bulk request limit
+
+  `BulkUpsertScores` accepts at most **1,000 members** per request over both
+  HTTP and gRPC. Larger batches return HTTP `400` / gRPC `InvalidArgument`
+  before duplicate detection, model/response allocation, or Redis writes.
+  Existing transport byte limits still apply. The member bound limits the
+  work performed by one Redis script; it is not a production latency guarantee.
+
+  Split larger submissions into batches of at most 1,000 members. Each batch
+  is a separate operation; callers must handle progress between batches.
+  The limit is fixed rather than adding a new configuration setting.
+
   ### Equal Scores
 
   Members with equal scores are ranked by when they reached their current score:

@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -98,5 +99,25 @@ func TestInvalidIdempotencyKeys(t *testing.T) {
 		if status.Code(err) != codes.InvalidArgument {
 			t.Fatalf("invalid keys accepted: %v", err)
 		}
+	}
+}
+
+func TestBulkUpsertMemberLimit(t *testing.T) {
+	for _, count := range []int{0, 999, 1000, 1001} {
+		t.Run(fmt.Sprint(count), func(t *testing.T) {
+			members := make([]*pb.BulkUpsertScoresRequest_MemberScore, count)
+			for i := range members {
+				members[i] = &pb.BulkUpsertScoresRequest_MemberScore{PublicId: fmt.Sprintf("player-%d", i), Score: 100}
+			}
+			req := &pb.BulkUpsertScoresRequest{MemberScores: &pb.BulkUpsertScoresRequest_MemberScores{Members: members}}
+			err := validateBulkUpsertScoresRequest(req)
+			want := codes.OK
+			if count == 0 || count > 1000 {
+				want = codes.InvalidArgument
+			}
+			if status.Code(err) != want {
+				t.Fatalf("count %d: expected %s, got %v", count, want, err)
+			}
+		})
 	}
 }
