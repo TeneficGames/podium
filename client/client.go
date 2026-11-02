@@ -115,7 +115,6 @@ func getHTTPTransport(
 		DialContext: (&net.Dialer{
 			Timeout:   30 * time.Second,
 			KeepAlive: 30 * time.Second,
-			DualStack: true,
 		}).DialContext,
 		MaxIdleConns:          maxIdleConns,
 		IdleConnTimeout:       90 * time.Second,
