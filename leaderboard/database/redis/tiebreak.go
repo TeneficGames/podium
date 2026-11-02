@@ -2,11 +2,13 @@ package redis
 
 import (
 	"context"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"strconv"
 	"time"
 
+	"github.com/TeneficGames/podium/leaderboard/expiration"
 	"github.com/TeneficGames/podium/leaderboard/model"
 	goredis "github.com/redis/go-redis/v9"
 )
@@ -105,6 +107,34 @@ local function ascending_internal(internal, member)
   return table.concat(inverted) .. member
 end
 
+local once = #KEYS == 6
+local expire_at = 0
+if once then
+  -- Redis scripts do not roll back writes after a command error.
+  local types = {"zset", "zset", "hash", "string", "zset", "string"}
+  for i = 1, #KEYS do
+    local kind = redis.call("TYPE", KEYS[i]).ok
+    if kind ~= "none" and kind ~= types[i] then
+      return redis.error_reply("WRONGTYPE unexpected leaderboard key type")
+    end
+  end
+  local cached = redis.call("GET", KEYS[6])
+  if cached then
+    local result = cjson.decode(cached)
+    if result[1] ~= ARGV[6] then
+      return redis.error_reply("PODIUM_IDEMPOTENCY_CONFLICT")
+    end
+    return {result[2], result[3], result[4]}
+  end
+  if tonumber(ARGV[8]) == -2 then
+    return redis.error_reply("PODIUM_LEADERBOARD_EXPIRED")
+  end
+  if tonumber(ARGV[7]) ~= 0 then
+    local clock = redis.call("TIME")
+    expire_at = tonumber(clock[1]) + tonumber(ARGV[7])
+  end
+end
+
 local member = ARGV[1]
 local increment = tonumber(ARGV[2])
 local order = ARGV[3]
@@ -156,7 +186,23 @@ if order == "asc" then
 else
   rank = redis.call("ZREVRANK", KEYS[1], replacement)
 end
-return {redis.call("ZSCORE", KEYS[1], replacement), rank}
+local score = redis.call("ZSCORE", KEYS[1], replacement)
+if once then
+  if tonumber(ARGV[7]) ~= 0 then
+    redis.call("ZADD", KEYS[5], expire_at, member)
+  end
+  local leaderboard_expire_at = tonumber(ARGV[8])
+  if leaderboard_expire_at > 0 then
+    for i = 1, 5 do
+      if redis.call("EXISTS", KEYS[i]) == 1 then
+        redis.call("EXPIREAT", KEYS[i], leaderboard_expire_at)
+      end
+    end
+  end
+  redis.call("SET", KEYS[6], cjson.encode({ARGV[6], score, rank, expire_at}), "EX", 86400)
+  return {score, rank, expire_at}
+end
+return {score, rank}
 `)
 
 var getMembersWithTieBreakScript = goredis.NewScript(`
@@ -310,29 +356,66 @@ func incrementWithTieBreak(
 	member, order string,
 	increment float64,
 ) (*Member, error) {
+	return runIncrementWithTieBreak(ctx, client, keys, member, order, increment, "", 0, -1)
+}
+
+// IncrementOnceWithTieBreak atomically records an increment and its response for 24 hours.
+func IncrementOnceWithTieBreak(
+	ctx context.Context,
+	client goredis.Scripter,
+	keys TieBreakKeys,
+	member string,
+	increment float64,
+	requestKey string,
+	scoreTTL, expireAt int64,
+) (*Member, error) {
+	if requestKey == "" || increment == 0 {
+		return nil, NewGeneralError("idempotency key and nonzero increment are required")
+	}
+	return runIncrementWithTieBreak(ctx, client, keys, member, "desc", increment, requestKey, scoreTTL, expireAt)
+}
+
+func runIncrementWithTieBreak(
+	ctx context.Context,
+	client goredis.Scripter,
+	keys TieBreakKeys,
+	member, order string,
+	increment float64,
+	requestKey string,
+	scoreTTL, expireAt int64,
+) (*Member, error) {
 	if err := validateTieBreakOrder(order); err != nil {
 		return nil, err
 	}
 	if err := model.ValidateScore(increment); err != nil {
 		return nil, err
 	}
-	values, err := incrementWithTieBreakScript.Run(
-		ctx,
-		client,
-		[]string{keys.Scores, keys.ScoresAsc, keys.Members, keys.Sequence},
-		member,
-		strconv.FormatFloat(increment, 'f', -1, 64),
-		order,
-		maxTieBreakSequence,
-		strconv.FormatFloat(maxExactRedisScore, 'f', -1, 64),
-	).Slice()
+	incrementText := strconv.FormatFloat(increment, 'f', -1, 64)
+	redisKeys := []string{keys.Scores, keys.ScoresAsc, keys.Members, keys.Sequence}
+	args := []any{member, incrementText, order, maxTieBreakSequence, strconv.FormatFloat(maxExactRedisScore, 'f', -1, 64)}
+	if requestKey != "" {
+		digest := sha256.Sum256([]byte(requestKey))
+		redisKeys = append(redisKeys, keys.TTL, fmt.Sprintf("%s:idempotency:%x", keys.Scores, digest))
+		args = append(args, fmt.Sprintf("%q:%s:%d", member, incrementText, scoreTTL), scoreTTL, expireAt)
+	}
+	values, err := incrementWithTieBreakScript.Run(ctx, client, redisKeys, args...).Slice()
 	if err != nil {
 		if goredis.HasErrorPrefix(err, "PODIUM_SCORE_RANGE") {
 			return nil, model.ErrInvalidScore
 		}
+		if goredis.HasErrorPrefix(err, "PODIUM_IDEMPOTENCY_CONFLICT") {
+			return nil, model.ErrIdempotencyConflict
+		}
+		if goredis.HasErrorPrefix(err, "PODIUM_LEADERBOARD_EXPIRED") {
+			return nil, &expiration.LeaderboardExpiredError{}
+		}
 		return nil, NewGeneralError(err.Error())
 	}
-	if len(values) != 2 {
+	wantValues := 2
+	if requestKey != "" {
+		wantValues = 3
+	}
+	if len(values) != wantValues {
 		return nil, NewGeneralError("invalid increment result")
 	}
 	score, err := parseRedisFloat(values[0])
@@ -343,7 +426,17 @@ func incrementWithTieBreak(
 	if err != nil {
 		return nil, err
 	}
-	return &Member{Member: member, Score: score, Rank: rank}, nil
+	result := &Member{Member: member, Score: score, Rank: rank}
+	if requestKey != "" {
+		expireAt, err := parseRedisInt64(values[2])
+		if err != nil {
+			return nil, err
+		}
+		if expireAt != 0 {
+			result.TTL = time.Unix(expireAt, 0)
+		}
+	}
+	return result, nil
 }
 
 func getMembersWithTieBreak(

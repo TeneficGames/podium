@@ -532,7 +532,7 @@ func (app *App) shutdownObservability() {
 }
 
 func customHeadersMatcher(key string) (string, bool) {
-	if strings.EqualFold(key, TenantIDHeaderKey) {
+	if strings.EqualFold(key, TenantIDHeaderKey) || strings.EqualFold(key, IdempotencyKeyHeader) {
 		return key, true
 	}
 	return runtime.DefaultHeaderMatcher(key)

@@ -60,6 +60,40 @@ Podium API
   scores are supported; a zero increment remains invalid. Increments that would
   exceed the score range are rejected atomically without changing the score.
 
+  ### Retrying score increments
+
+  `IncrementScore` accepts an optional HTTP `Idempotency-Key` header or gRPC
+  `idempotency-key` metadata value (one nonempty value, at most 256 bytes).
+  Keys are scoped to the increment operation and leaderboard. Repeating a key
+  with the same member, increment, and score TTL returns the original response
+  for 24 hours, including the original rank and expiration time. Reusing it
+  with a different payload returns HTTP `409` / gRPC `AlreadyExists`.
+
+  The increment, score TTL, season TTLs, and replay response are committed in
+  one Redis script. If expiration-worker registration fails afterward, retry
+  the same key: registration is repaired without another increment or TTL
+  extension. A retry can also replay its response after the season expires.
+  Requests without a key keep the existing behavior. After 24 hours a key can
+  represent a new operation. The guarantee depends on retaining Redis data;
+  deleting/evicting replay records or losing Redis data can remove it. Each
+  distinct key retains one Redis record for that window; provision memory for
+  the traffic using this feature.
+
+  ```bash
+  curl --request PATCH \
+    --header 'Content-Type: application/json' \
+    --header 'Idempotency-Key: match-123-player-456' \
+    --data '{"increment":100}' \
+    http://localhost:8880/l/weekly/members/player-456/score
+  ```
+
+  For gRPC, send metadata `idempotency-key: match-123-player-456` with
+  `podium.api.v1.PodiumService/IncrementScore`, for example:
+
+  ```json
+  {"leaderboardId":"weekly","memberPublicId":"player-456","body":{"increment":100}}
+  ```
+
   ### Equal Scores
 
   Members with equal scores are ranked by when they reached their current score:

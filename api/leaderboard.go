@@ -30,10 +30,11 @@ import (
 )
 
 const (
-	notFoundError     = "Could not find data for member"
-	defaultPageSize   = 20
-	multiUpdateLimit  = 32
-	TenantIDHeaderKey = "tenant-id"
+	notFoundError        = "Could not find data for member"
+	defaultPageSize      = 20
+	multiUpdateLimit     = 32
+	TenantIDHeaderKey    = "tenant-id"
+	IdempotencyKeyHeader = "idempotency-key"
 )
 
 func validateBulkUpsertScoresRequest(req *api.BulkUpsertScoresRequest) error {
@@ -180,6 +181,10 @@ func (app *App) UpsertScore(ctx context.Context, req *api.UpsertScoreRequest) (*
 	}, nil
 }
 
+type idempotentIncrementer interface {
+	IncrementMemberScoreOnce(context.Context, string, string, int, string, string) (*lmodel.Member, error)
+}
+
 // IncrementScore is the handler responsible for incrementing the member score.
 func (app *App) IncrementScore(ctx context.Context, req *api.IncrementScoreRequest) (*api.IncrementScoreResponse, error) {
 	if req.GetBody() == nil {
@@ -190,6 +195,10 @@ func (app *App) IncrementScore(ctx context.Context, req *api.IncrementScoreReque
 	}
 	if req.Body.Increment == 0 {
 		return nil, status.Error(codes.InvalidArgument, "increment is required")
+	}
+	keys := metadata.ValueFromIncomingContext(ctx, IdempotencyKeyHeader)
+	if len(keys) > 1 || (len(keys) == 1 && (len(keys[0]) > 256 || strings.TrimSpace(keys[0]) == "")) {
+		return nil, status.Error(codes.InvalidArgument, "provide one nonempty idempotency key of at most 256 bytes")
 	}
 
 	lg := app.Logger.With(
@@ -202,12 +211,24 @@ func (app *App) IncrementScore(ctx context.Context, req *api.IncrementScoreReque
 	err := withSegment("Model", ctx, func() error {
 		var err error
 		lg.Debug("Incrementing member score.", zap.Int64("increment", int64(req.Body.Increment)))
-		member, err = app.Leaderboards.IncrementMemberScore(ctx, req.LeaderboardId, req.MemberPublicId,
-			int(req.Body.Increment), getScoreTTL(req.ScoreTtl))
+		if len(keys) == 1 {
+			writer, ok := app.Leaderboards.(idempotentIncrementer)
+			if !ok {
+				return status.Error(codes.Unimplemented, "leaderboard does not support idempotent increments")
+			}
+			member, err = writer.IncrementMemberScoreOnce(ctx, req.LeaderboardId, req.MemberPublicId,
+				int(req.Body.Increment), getScoreTTL(req.ScoreTtl), keys[0])
+		} else {
+			member, err = app.Leaderboards.IncrementMemberScore(ctx, req.LeaderboardId, req.MemberPublicId,
+				int(req.Body.Increment), getScoreTTL(req.ScoreTtl))
+		}
 
 		if err != nil {
 			if errors.Is(err, lmodel.ErrInvalidScore) {
 				return status.Error(codes.InvalidArgument, err.Error())
+			}
+			if errors.Is(err, lmodel.ErrIdempotencyConflict) {
+				return status.Error(codes.AlreadyExists, err.Error())
 			}
 			lg.Error("Member score increment failed.", zap.Error(err))
 			app.AddError()
