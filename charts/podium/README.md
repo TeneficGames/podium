@@ -4,9 +4,9 @@ This chart deploys the Podium HTTP and gRPC API against an external standalone
 Redis or Redis Cluster. The API is stateless and can be scaled horizontally.
 An optional, separately scaled score-expiration worker is included.
 
-## Upgrade to 2.0.0
+## Upgrade to 1.1.0
 
-Podium 2.0.0 limits bulk score requests to 1,000 members. Split larger requests
+Podium 1.1.0 limits bulk score requests to 1,000 members. Split larger requests
 into batches of at most 1,000; each batch is a separate operation. Score writes
 also reject fractional, non-finite, and out-of-range values. See the
 [API documentation](../../docs/API.md) for validation and idempotent increment
@@ -26,7 +26,7 @@ Use an immutable Podium image tag in production:
 helm upgrade --install podium ./charts/podium \
   --namespace podium \
   --create-namespace \
-  --set image.tag=2.0.0 \
+  --set image.tag=1.1.0 \
   --set redis.host=redis.example.internal
 ```
 
@@ -39,7 +39,7 @@ Released chart versions can be installed directly from GHCR:
 ```bash
 helm upgrade --install podium \
   oci://ghcr.io/teneficgames/charts/podium \
-  --version 2.0.0 \
+  --version 1.1.0 \
   --namespace podium \
   --create-namespace
 ```
