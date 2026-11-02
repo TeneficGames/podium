@@ -15,11 +15,9 @@ import (
 func TestCaptureExceptionIncludesTraceContext(t *testing.T) {
 	transport := &sentry.MockTransport{}
 	if err := sentry.Init(sentry.ClientOptions{
-		Dsn:            "https://public@example.com/1",
-		Transport:      transport,
-		DisableLogs:    true,
-		DisableMetrics: true,
-		Integrations:   sentryIntegrations,
+		Dsn:          "https://public@example.com/1",
+		Transport:    transport,
+		Integrations: sentryIntegrations,
 	}); err != nil {
 		t.Fatalf("initialize Sentry: %v", err)
 	}
