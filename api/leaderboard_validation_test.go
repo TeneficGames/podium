@@ -2,7 +2,10 @@ package api
 
 import (
 	"context"
+	"strings"
 	"testing"
+
+	"google.golang.org/grpc/metadata"
 
 	pb "github.com/TeneficGames/podium/proto/podium/api/v1"
 	"google.golang.org/grpc/codes"
@@ -84,5 +87,16 @@ func TestMissingScoreMessages(t *testing.T) {
 				t.Fatalf("expected InvalidArgument, got %v", err)
 			}
 		})
+	}
+}
+
+func TestInvalidIdempotencyKeys(t *testing.T) {
+	app := &App{}
+	for _, keys := range [][]string{{""}, {"   "}, {strings.Repeat("k", 257)}, {"one", "two"}} {
+		ctx := metadata.NewIncomingContext(context.Background(), metadata.MD{IdempotencyKeyHeader: keys})
+		_, err := app.IncrementScore(ctx, &pb.IncrementScoreRequest{Body: &pb.IncrementScoreRequest_Body{Increment: 1}})
+		if status.Code(err) != codes.InvalidArgument {
+			t.Fatalf("invalid keys accepted: %v", err)
+		}
 	}
 }

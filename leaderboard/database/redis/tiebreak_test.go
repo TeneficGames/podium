@@ -2,7 +2,11 @@ package redis_test
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"math"
+	"reflect"
 	"strconv"
 	"strings"
 	"sync"
@@ -10,6 +14,8 @@ import (
 	"time"
 
 	podiumredis "github.com/TeneficGames/podium/leaderboard/database/redis"
+	"github.com/TeneficGames/podium/leaderboard/expiration"
+	"github.com/TeneficGames/podium/leaderboard/model"
 	podiumtesting "github.com/TeneficGames/podium/leaderboard/testing"
 	goredis "github.com/redis/go-redis/v9"
 )
@@ -400,5 +406,98 @@ func assertMemberRanks(
 		if rank != expectedRank {
 			t.Fatalf("%s rank: expected %d, got %d", member, expectedRank, rank)
 		}
+	}
+}
+
+func TestIncrementOnceStoreResponseAndFailures(t *testing.T) {
+	store, client, keys := newTieBreakStore(t)
+	ctx := context.Background()
+	for _, tc := range []struct {
+		key       string
+		increment float64
+	}{{"", 1}, {"event", 0}, {"event", math.NaN()}} {
+		if _, err := podiumredis.IncrementOnceWithTieBreak(ctx, client, keys, "alice", tc.increment, tc.key, 0, -1); err == nil {
+			t.Fatal("invalid increment request accepted")
+		}
+	}
+	original, err := podiumredis.IncrementOnceWithTieBreak(ctx, client, keys, "alice", 10, "event", 60, -1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if original.Score != 10 || original.Rank != 0 || original.TTL.IsZero() {
+		t.Fatalf("unexpected original response: %+v", original)
+	}
+	if _, err := store.UpsertMembersWithTieBreak(ctx, keys, "desc", &podiumredis.Member{Member: "bob", Score: 100}); err != nil {
+		t.Fatal(err)
+	}
+	replay, err := podiumredis.IncrementOnceWithTieBreak(ctx, client, keys, "alice", 10, "event", 60, -1)
+	if err != nil || !reflect.DeepEqual(original, replay) {
+		t.Fatalf("original response changed: %+v, %v", replay, err)
+	}
+	_, err = podiumredis.IncrementOnceWithTieBreak(ctx, client, keys, "alice", 11, "event", 60, -1)
+	if !errors.Is(err, model.ErrIdempotencyConflict) {
+		t.Fatalf("expected conflict: %v", err)
+	}
+	plain, err := podiumredis.IncrementOnceWithTieBreak(ctx, client, keys, "alice", 1, "plain", 0, -1)
+	if err != nil || plain.Score != 11 || !plain.TTL.IsZero() {
+		t.Fatalf("unexpected no-TTL response: %+v, %v", plain, err)
+	}
+	_, err = podiumredis.IncrementOnceWithTieBreak(ctx, client, keys, "alice", 1, "expired", 0, -2)
+	var expired *expiration.LeaderboardExpiredError
+	if !errors.As(err, &expired) {
+		t.Fatalf("expected expired leaderboard: %v", err)
+	}
+}
+
+func TestCorruptIdempotencyResponseDoesNotRepeatIncrement(t *testing.T) {
+	store, client, keys := newTieBreakStore(t)
+	ctx := context.Background()
+	original, err := podiumredis.IncrementOnceWithTieBreak(ctx, client, keys, "alice", 10, "event", 60, -1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cacheKeys, err := client.Keys(ctx, keys.Scores+":idempotency:*").Result()
+	if err != nil || len(cacheKeys) != 1 {
+		t.Fatalf("expected one replay record: %v, %v", cacheKeys, err)
+	}
+	cached, err := client.Get(ctx, cacheKeys[0]).Bytes()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		name  string
+		field int
+	}{
+		{"incomplete response", -1}, {"invalid score", 1}, {"invalid rank", 2}, {"invalid expiry", 3},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var record []any
+			if err := json.Unmarshal(cached, &record); err != nil {
+				t.Fatal(err)
+			}
+			if tc.field == -1 {
+				record = record[:1]
+			} else {
+				record[tc.field] = "invalid-number"
+			}
+			broken, err := json.Marshal(record)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := client.Set(ctx, cacheKeys[0], broken, time.Hour).Err(); err != nil {
+				t.Fatal(err)
+			}
+			result, err := podiumredis.IncrementOnceWithTieBreak(ctx, client, keys, "alice", 10, "event", 60, -1)
+			if result != nil || err == nil {
+				t.Fatalf("corrupt replay record was accepted: %+v, %v", result, err)
+			}
+			members, err := store.GetMembersWithTieBreak(ctx, keys, "desc", true, "alice")
+			if err != nil || len(members) != 1 || members[0] == nil {
+				t.Fatalf("read original member: %+v, %v", members, err)
+			}
+			if members[0].Score != original.Score || !members[0].TTL.Equal(original.TTL) {
+				t.Fatalf("corrupt replay changed the committed score or TTL: %+v", members[0])
+			}
+		})
 	}
 }
