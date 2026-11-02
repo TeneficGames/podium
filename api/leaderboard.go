@@ -32,6 +32,7 @@ import (
 const (
 	notFoundError        = "Could not find data for member"
 	defaultPageSize      = 20
+	maxBulkMembers       = 1000
 	multiUpdateLimit     = 32
 	TenantIDHeaderKey    = "tenant-id"
 	IdempotencyKeyHeader = "idempotency-key"
@@ -43,6 +44,9 @@ func validateBulkUpsertScoresRequest(req *api.BulkUpsertScoresRequest) error {
 	}
 	if len(req.MemberScores.Members) == 0 {
 		return status.Error(codes.InvalidArgument, "at least one member is required")
+	}
+	if len(req.MemberScores.Members) > maxBulkMembers {
+		return status.Errorf(codes.InvalidArgument, "bulk requests support at most %d members", maxBulkMembers)
 	}
 
 	seen := make(map[string]struct{}, len(req.MemberScores.Members))
