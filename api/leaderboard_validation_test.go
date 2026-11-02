@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"testing"
 
 	pb "github.com/TeneficGames/podium/proto/podium/api/v1"
@@ -57,6 +58,30 @@ func TestValidateBulkUpsertScoresRequest(t *testing.T) {
 			}
 			if status.Convert(err).Message() != test.message {
 				t.Fatalf("expected %q, got %q", test.message, status.Convert(err).Message())
+			}
+		})
+	}
+}
+
+func TestMissingScoreMessages(t *testing.T) {
+	app := &App{}
+	ctx := context.Background()
+	checks := []struct {
+		name string
+		call func() error
+	}{
+		{"single", func() error { _, err := app.UpsertScore(ctx, &pb.UpsertScoreRequest{}); return err }},
+		{"increment", func() error { _, err := app.IncrementScore(ctx, &pb.IncrementScoreRequest{}); return err }},
+		{"multi", func() error {
+			_, err := app.UpsertScoreMultiLeaderboards(ctx, &pb.UpsertScoreMultiLeaderboardsRequest{})
+			return err
+		}},
+		{"bulk", func() error { _, err := app.BulkUpsertScores(ctx, &pb.BulkUpsertScoresRequest{}); return err }},
+	}
+	for _, check := range checks {
+		t.Run(check.name, func(t *testing.T) {
+			if err := check.call(); status.Code(err) != codes.InvalidArgument {
+				t.Fatalf("expected InvalidArgument, got %v", err)
 			}
 		})
 	}

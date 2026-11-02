@@ -7,6 +7,7 @@ import (
 	"time"
 
 	podiumredis "github.com/TeneficGames/podium/leaderboard/database/redis"
+	"github.com/TeneficGames/podium/leaderboard/model"
 )
 
 // Redis is a type that implements Database interface with redis client
@@ -362,6 +363,9 @@ func (r *Redis) IncrementMemberScoreAndGetRank(
 			increment,
 		)
 		if err != nil {
+			if errors.Is(err, model.ErrInvalidScore) {
+				return nil, err
+			}
 			return nil, NewGeneralError(err.Error())
 		}
 		return &Member{

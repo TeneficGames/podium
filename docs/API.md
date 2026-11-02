@@ -50,6 +50,16 @@ Podium API
 
 ## Leaderboard Routes
 
+  ### Score validation
+
+  Scores and increments must be finite integers in the inclusive range
+  `[-9007199254740992, 9007199254740992]` (`[-2^53, 2^53]`). Fractional,
+  non-finite, and out-of-range decoded values return HTTP `400` / gRPC
+  `InvalidArgument` before writes. Bulk requests validate every member first.
+  Missing score/increment messages also return an input error. Zero and negative
+  scores are supported; a zero increment remains invalid. Increments that would
+  exceed the score range are rejected atomically without changing the score.
+
   ### Equal Scores
 
   Members with equal scores are ranked by when they reached their current score:

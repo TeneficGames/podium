@@ -22,6 +22,9 @@ func (s *Service) IncrementMemberScore(ctx context.Context, leaderboard string, 
 
 	err := s.incrementMemberAndSetValues(ctx, leaderboard, modelMember, incrementMemberOrder, increment)
 	if err != nil {
+		if errors.Is(err, model.ErrInvalidScore) {
+			return nil, err
+		}
 		return nil, NewGeneralError(incrementMemberScoreServiceLabel, err.Error())
 	}
 

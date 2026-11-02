@@ -4,17 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
 	"strconv"
 	"time"
 
+	"github.com/TeneficGames/podium/leaderboard/model"
 	goredis "github.com/redis/go-redis/v9"
 )
 
 const (
 	tieBreakSequenceWidth = 19
 	maxTieBreakSequence   = "9223372036854775807"
-	maxExactRedisScore    = float64(9_007_199_254_740_991)
+	maxExactRedisScore    = float64(model.MaxScore)
 )
 
 var upsertMembersWithTieBreakScript = goredis.NewScript(`
@@ -113,11 +113,13 @@ local old_score = nil
 if internal then
   old_score = redis.call("ZSCORE", KEYS[1], internal)
 end
-local new_score = tonumber(old_score or "0") + increment
+local previous_score = tonumber(old_score or "0")
 local max_score = tonumber(ARGV[5])
-if new_score ~= new_score or new_score > max_score or new_score < -max_score then
-  return redis.error_reply("score is outside Redis exact integer range")
+if (increment > 0 and previous_score > max_score - increment) or
+   (increment < 0 and previous_score < -max_score - increment) then
+  return redis.error_reply("PODIUM_SCORE_RANGE")
 end
+local new_score = previous_score + increment
 
 if old_score and increment == 0 then
   local rank
@@ -311,8 +313,8 @@ func incrementWithTieBreak(
 	if err := validateTieBreakOrder(order); err != nil {
 		return nil, err
 	}
-	if math.IsNaN(increment) || math.IsInf(increment, 0) || math.Abs(increment) > maxExactRedisScore {
-		return nil, NewGeneralError("increment is outside Redis exact integer range")
+	if err := model.ValidateScore(increment); err != nil {
+		return nil, err
 	}
 	values, err := incrementWithTieBreakScript.Run(
 		ctx,
@@ -325,6 +327,9 @@ func incrementWithTieBreak(
 		strconv.FormatFloat(maxExactRedisScore, 'f', -1, 64),
 	).Slice()
 	if err != nil {
+		if goredis.HasErrorPrefix(err, "PODIUM_SCORE_RANGE") {
+			return nil, model.ErrInvalidScore
+		}
 		return nil, NewGeneralError(err.Error())
 	}
 	if len(values) != 2 {
@@ -530,8 +535,8 @@ func validateTieBreakMembers(order string, members []*Member) error {
 		if member == nil {
 			return NewGeneralError("member is nil")
 		}
-		if math.IsNaN(member.Score) || math.IsInf(member.Score, 0) || math.Abs(member.Score) > maxExactRedisScore {
-			return NewGeneralError(fmt.Sprintf("score for member %s is outside Redis exact integer range", member.Member))
+		if err := model.ValidateScore(member.Score); err != nil {
+			return err
 		}
 		if _, exists := seen[member.Member]; exists {
 			return NewGeneralError(fmt.Sprintf("duplicate member %s", member.Member))
