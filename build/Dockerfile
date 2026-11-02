@@ -6,7 +6,7 @@
 # http://www.opensource.org/licenses/mit-license
 # Copyright © 2026 Tenefic Games
 
-FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS build
+FROM --platform=$BUILDPLATFORM golang:1.27-alpine AS build
 
 ENV CGO_ENABLED=0
 
