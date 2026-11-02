@@ -22,14 +22,9 @@ helm upgrade --install podium ./charts/podium \
   --set redis.host=redis.example.internal
 ```
 
-The default image is `trungdlp/podium` from Docker Hub. Every Podium image is
-also published to GHCR; select that registry with:
-
-```yaml
-image:
-  repository: ghcr.io/teneficgames/podium
-  tag: "1.0.6"
-```
+The default image is `ghcr.io/teneficgames/podium` from GitHub Container
+Registry. The chart uses its `appVersion` as the image tag unless `image.tag`
+is set.
 
 Released chart versions can be installed directly from GHCR:
 
@@ -37,9 +32,13 @@ Released chart versions can be installed directly from GHCR:
 helm upgrade --install podium \
   oci://ghcr.io/teneficgames/charts/podium \
   --version 1.0.0 \
+  --set image.repository=ghcr.io/teneficgames/podium \
   --namespace podium \
   --create-namespace
 ```
+
+Chart 1.0.0 needs the image repository override shown above; source charts
+from 1.0.1 onward default to GHCR.
 
 See the [chart release process](../../docs/helm-releasing.md) for versioning,
 publishing, verification, and first-release setup.

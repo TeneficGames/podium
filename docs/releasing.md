@@ -17,16 +17,15 @@ Pushing `vX.Y.Z` runs the release workflow and publishes:
 - `X`
 - `latest`
 
-The release workflow publishes the same Linux AMD64/ARM64 image index to Docker
-Hub as `trungdlp/podium` and GHCR as `ghcr.io/teneficgames/podium`. The `main`
-branch publishes `edge` to both registries. Container builds inject their
-version into the Podium binary: release images use the semantic version derived
+The release workflow publishes the Linux AMD64/ARM64 image index to GHCR as
+`ghcr.io/teneficgames/podium`. The `main` branch publishes `edge` to GHCR.
+Container builds inject their version into the Podium binary: release images use the semantic version derived
 from the Git tag, `edge` images report `edge`, and local source builds report
 `dev`.
 
-The workflow authenticates to Docker Hub with `DOCKERHUB_TOKEN` and to GHCR
-with the repository `GITHUB_TOKEN`. Only image-publishing jobs receive
-`packages: write`; other CI jobs retain read-only permissions.
+The workflow authenticates to GHCR with the repository `GITHUB_TOKEN`. Only
+image-publishing jobs receive `packages: write`; other CI jobs retain read-only
+permissions.
 
 ## First GHCR release
 
@@ -51,10 +50,10 @@ Consumers integrate with the deployed service through HTTP/JSON or gRPC.
 3. Pass the real Redis Cluster integration job.
 4. Rerun documented performance measurements when the data path changes.
 5. Push the root `vX.Y.Z` tag.
-6. Verify the `X.Y.Z`, `X.Y`, `X`, and `latest` image tags in Docker Hub and
-   GHCR, including both target architectures.
+6. Verify the `X.Y.Z`, `X.Y`, `X`, and `latest` image tags in GHCR, including
+   both target architectures.
 7. Confirm the release job's version checks pass. It runs the immutable image
-   from both registries and requires `podium version` to match the semantic
+   from GHCR and requires `podium version` to match the semantic
    version derived from the Git tag.
 8. Start the immutable image in a clean environment and exercise the
    healthcheck, HTTP API, and gRPC API.

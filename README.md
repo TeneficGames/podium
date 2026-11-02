@@ -21,7 +21,6 @@ of independent leaderboards without provisioning each leaderboard in advance.
 [Quickstart](#quickstart) · [Performance](#performance) ·
 [API](docs/API.md) · [Documentation](docs/overview.md) ·
 [Helm chart](charts/podium/README.md) ·
-[Docker Hub](https://hub.docker.com/r/trungdlp/podium) ·
 [GHCR](https://github.com/orgs/TeneficGames/packages/container/package/podium)
 
 ## Quickstart
@@ -38,7 +37,7 @@ docker run --detach --rm --name podium \
   --publish 8881:8881 \
   --env PODIUM_REDIS_HOST=podium-redis \
   --env PODIUM_REDIS_PORT=6379 \
-  trungdlp/podium:latest start
+  ghcr.io/teneficgames/podium:latest start
 ```
 
 Verify the service:
@@ -73,8 +72,8 @@ curl 'http://localhost:8880/l/weekly-global/top/1?pageSize=10'
 
 `player-a` ranks above `player-b` because it reached the current score first.
 
-Use `trungdlp/podium:latest` for the latest stable release or
-`trungdlp/podium:edge` to track `main`. Versioned aliases are also published
+Use `ghcr.io/teneficgames/podium:latest` for the latest stable release or
+`ghcr.io/teneficgames/podium:edge` to track `main`. Versioned aliases are also published
 for deployments that require controlled upgrades.
 
 ## Why Podium?
