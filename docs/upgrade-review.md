@@ -21,7 +21,9 @@ dependencies and their configuration keys have been removed.
 
 ### Source layout and toolchain
 
-The repository uses Go 1.26 with the repository-pinned Go 1.26.5 toolchain.
+The repository uses Go 1.26 with the repository-pinned Go 1.26.10 toolchain.
+The `proto` and `client` modules also require Go 1.26; their updated
+gRPC gateway and HTTP/2 security fixes no longer support Go 1.25.
 Nested Go modules isolate internal server components during development and CI;
 they are not versioned or distributed as public libraries. Podium's supported
 distribution artifact is its OCI container image, and consumers use its

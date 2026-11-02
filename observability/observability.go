@@ -110,8 +110,6 @@ func New(ctx context.Context, defaultServiceName string) (*Provider, error) {
 		Release:          os.Getenv("SENTRY_RELEASE"),
 		EnableTracing:    false,
 		AttachStacktrace: true,
-		DisableLogs:      true,
-		DisableMetrics:   true,
 		Integrations:     sentryIntegrations,
 	}); err != nil {
 		_ = provider.Shutdown(ctx)
