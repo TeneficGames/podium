@@ -7,7 +7,7 @@ toolchain go1.26.10
 require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.32.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20261012220534-4341edf3f941
-	google.golang.org/grpc v1.84.0
+	google.golang.org/grpc v1.85.0
 	google.golang.org/protobuf v1.36.12
 )
 
